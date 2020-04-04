@@ -1,0 +1,179 @@
+
+= I2C controller =[peri_i2c]
+
+The Comcerto 2000 features an I2C controller supporting master and slave
+operation.
+
+Features:
+- Multi-master support, with collision detection
+- 7 of 10 bit addressing
+- General call address detection in slave mode
+- Supports repeated start condition
+
+
+The controller supports 3 speeds ratings:
+- Low speed: 100 KHz
+- Full speed: 400 KHz
+- High speed: 3.4 MHz
+
+
+The maximum speed must be selected to accomodate the slowest device on the bus.
+
+This controller is based on the same IP as the one used in the Allwinner A64.
+
+
+== Registers ==[peri_i2c_regs]
+
+|| Base address | 0x9049c000 ||
+|| Size | 0x00000020 ||
+
+|| Interrupt source | GIC SPI interrupt ||
+| I2C | 30 (level) |
+
+|| Symbol | Offset | Description ||
+| [ADDR #i2c_regs_addr] | 0x00 |  |
+| [DATA #i2c_regs_data] | 0x04 |  |
+| [CNTR #i2c_regs_cntr] | 0x08 |  |
+| [STAT #i2c_regs_stat] | 0x0c |  |
+| [CCRFS #i2c_regs_ccrfs] | 0x0c |  |
+| [XADDR #i2c_regs_xaddr] | 0x10 |  |
+| [CCRH #i2c_regs_ccrh] | 0x14 |  |
+| [RESET #i2c_regs_reset] | 0x1c |  |
+
+
+=== ADDR (0x9049c000) ===[i2c_regs_addr]
+
+Own address of the I2C controller in slave mode.
+
+|| Symbol | Bit range | R/W | Description ||
+| SLA | 7-1 | RW | Slave address. For 7-bit addressing: SLA is the 7-bit address. For 10-bit addressing: SLA is 11110b followed by the 2 most significant bits of the 10-bit address. The lower 8 bits are in the register XADDR. |
+| GCE | 0 | RW | General call address enable (slave mode). 0: disabled 1: enabled |
+
+
+=== DATA (0x9049c004) ===[i2c_regs_data]
+
+Data register for transmit and receive operations.
+
+|| Symbol | Bit range | R/W | Description ||
+| DATA | 7-0 | RW | Read: Byte shifted in. Write: Byte to shift out. |
+
+
+=== CNTR (0x9049c008) ===[i2c_regs_cntr]
+
+Control register.
+
+When IFLG is set, the internal state machine is paused. Resetting the IFLG bit
+acknowledged the interrupt and advances the state machine to its next state.
+
+|| Symbol | Bit range | R/W | Description ||
+| IEN | 7 | RW | Enable interrupts. 0: Interrupt line is kept low. 1: Interrupt line becomes high as long as IFLG is set. |
+| ENAB | 6 | RW | Bus enable. 0: SDA and SCL state is ignored. 1: Respond to own address (and general call, if enabled) in slave mode. Must be set in multi-master mode to support arbitration. |
+| STA | 5 | RW | Writing a 1 causes the controller to enter master mode and send a START condition. If the controller was already in master mode, a repeated start condition is sent. If a transaction was occuring in slave mode at the time 1 was written to STA, the transaction is completed first. The STA bit is cleared automatically after sending the START condition. |
+| STP | 4 | RW | Writing a 1 causes the controller in master mode to send a STOP condition and leave master mode. Writing a 1 in slave mode will stop the transaction, as if the remote master had sent a STOP condition. When writing 1 to both STA and STP, the controller applies STP then STA (the effect is that the current transaction, either master or slave, is aborted, and a START condition is sent). STP is reset automatically on completion. |
+| IFLG | 3 | RW | Interrupt flag. This flag is automatically set when the value of the STAT register changes, except when it transition to the idle state (0xf8). If IEN is 1, the interrupt line is held high as long as IFLG is set. Acknowledging the interrupt is done by writing a value to CNTR with the IFLG flag set to 0. This will make the internal state machine transition to the next state. When in slave mode, the current transfer is paused (SCL is held low, which is known as clock stretching) until the interrupt is acknowledged. Writing 1 to IFLG has no effect. |
+| AAK | 2 | RW | Assert acknowlegde. Writing a 1 in AAK will cause a controller to acknowledge (drive SDA low) a received byte. In slave mode, setting AAK to 1 will cause the controller to acknowledge the address part of the transaction if the address matches its own (or the general call address, if enabled). Writing 0 will cause the controller to leave SDA floating (send a NACK). |
+| reserved | 1-0 | RW | Reserved |
+
+
+=== STAT (0x9049c00c) ===[i2c_regs_stat]
+
+Status register.
+
+|| Symbol | Bit range | R/W | Description ||
+| STAT | 7-0 | R | Status information byte. See list below. |
+
+Meaning of the STAT information byte:
+
+|| Code | Mnemonic | Meaning ||
+| 0x00 | BUS_ERROR | Bus error |
+| 0x08 | START | Start condition transmitted |
+| 0x10 | START_REPEATED | Repeated start condition transmitted |
+| 0x18 | ADDR_WR_ACK | Address + Write bit transmitted, ACK received |
+| 0x20 | ADDR_WR_NACK | Address + Write bit transmitted, NACK received |
+| 0x28 | DATA_WR_ACK | Data byte transmitted in master mode, ACK received |
+| 0x30 | DATA_WR_NACK | Data byte transmitted in master mode, NACK received |
+| 0x38 | ARBIT_LOST | Arbitration lost in address or data byte |
+| 0x40 | ADDR_RD_ACK | Address + Read bit transmitted, ACK received |
+| 0x48 | ADDR_RD_NACK | Address + Read bit transmitted, NACK received |
+| 0x50 | DATA_RD_ACK | Data byte received in master mode, ACK transmitted |
+| 0x58 | DATA_RD_NACK | Data byte received in master mode, NACK transmitted |
+| 0x60 | SLVADDR_WR | Slave address + Write bit received, ACK transmitted |
+| 0x68 | ARBIT_LOST_SLVADDR_WR | Arbitration lost in address as master, slave address + Write bit received, ACK transmitted |
+| 0x70 | GENCALL | General Call address received, ACK transmitted |
+| 0x78 | ARBIT_LOST_GENCALL | Arbitration lost in address as master, General Call address received, ACK transmitted |
+| 0x80 | SLVADDR_DATA_RX_ACK | Data byte received after slave address received, ACK transmitted |
+| 0x88 | SLVADDR_DATA_RX_NACK | Data byte received after slave address received, not ACK transmitted |
+| 0x90 | GENCALL_DATA_RX_ACK | Data byte received after General Call received, ACK transmitted |
+| 0x98 | GENCALL_DATA_RX_NACK | Data byte received after General Call received, not ACK transmitted |
+| 0xa0 | SVL_STOP | STOP or repeated START condition received in slave mode |
+| 0xa8 | SLVADDR_RD | Slave address + Read bit received, ACK transmitted |
+| 0xb0 | ARBIT_LOST_SLVADDR_RD | Arbitration lost in address as master, slave address + Read bit received, ACK transmitted |
+| 0xb8 | SLV_DATA_TX_ACK | Data byte transmitted in slave mode, ACK received |
+| 0xc0 | SLV_DATA_TX_NACK | Data byte transmitted in slave mode, ACK not received |
+| 0xc8 | SLV_DATA_LAST_TX_ACK | Last byte transmitted in slave mode, ACK received |
+| 0xd0 | XADDR_WR_ACK | Second Address byte + Write bit transmitted, ACK received |
+| 0xd8 | XADDR_WR_NACK | Second Address byte + Write bit transmitted, ACK not received |
+| 0xf8 | NO_RELEVANT_INFO | No relevant status information, IFLF=0 |
+
+
+=== CCRFS (0x9049c00c) ===[i2c_regs_ccrfs]
+
+Clock control register for full speed operation.
+
+If you need to perform master mode transactions in full-speed mode, write the
+divider values into this register instead of CCRH.
+
+|| Symbol | Bit range | R/W | Description ||
+| M | 6-3 | RW | Clock divider (0-15) |
+| N | 2-0 | RW | Clock prescaler (0-7) |
+
+``Fout = Fin / (2^N * (M + 1) * 10)``
+
+``Fin`` is the frequency of the AXI clock.
+
+E.g: For an AXI clock ``Fin`` of 250 MHz, a prescaler value ``N`` of 7 and a
+divider value ``M`` of 1:
+
+```
+Fout = Fin / (2^N * (M + 1) * 10)
+Fout = 250000000 / (2^7 * (1 + 1) * 10)
+Fout = 250000000 / (128 * 2 * 10)
+Fout = 250000000 / 2560
+Fout = 97656,25 Hz
+```
+
+
+=== XADDR (0x9049c010) ===[i2c_regs_xaddr]
+
+Low 8 bits of the 10-bit own address.
+
+For this register to be of any use, the 10-bit addressing prefix and the higher
+2 bits of the 10-bit address must be written into the SLA field of the ADDR
+register. Only then will 10 bit addressing mode be enabled.
+
+|| Symbol | Bit range | R/W | Description ||
+| SLAX | 7-0 | RW | Lower 8 bits of the extended 10-bit own address. |
+
+
+=== CCRH (0x9049c004) ===[i2c_regs_ccrh]
+
+Clock control register for high speed operation.
+
+If you need to perform master mode transactions in high-speed mode, write the
+divider values into this register instead of CCRFS.
+
+|| Symbol | Bit range | R/W | Description ||
+| M | 6-3 | RW | Clock divider (0-15) |
+| N | 2-0 | RW | Clock prescaler (0-7) |
+
+``Fout = Fin / (2^N * (M + 1) * 10)``
+
+``Fin`` is the frequency of the AXI clock.
+
+
+=== RESET (0x9049c01c) ===[i2c_regs_reset]
+
+Software reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| SOFT_RST | 0 | RW | Write 1 to perform a software reset. Automatically cleared when reset is complete. |

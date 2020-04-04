@@ -1,0 +1,53 @@
+
+== PWM timers ==[peri_timers_pwm]
+
+=== Features ===
+
+- 6 PWM outputs muxed with GPIO
+- PWM module is clocked with AHB/APB clock
+- A global divider can be used to divide the clock rate for all the PWMs
+- Each PWM period and duty cycle can be programmed independently
+
+
+=== Operation ===
+
+The PWM timer is a counter which is incremented on every pulse from the output
+of the global PWM clock divider (which can be disabled).
+
+The counter starts counting from 0, and the PWM output is 0. When the counter
+reaches the programmable LOW_DUTY_CYCLE value, the PWM output becomes 1. After
+the counter reaches the programmable MAX_DUTY_CYCLE value, it is reset to zero
+and the PWM output is reset to 0.
+
+If the PWM timer is disabled, the PWM output is 0.
+
+If the clock divider registers or the duty cycle registers are written, the PWM
+counter is reset to 0, as well as the PWM output.
+
+=== Registers ===[peri_timer_pwm_regs]
+
+|| Base address | 0x9045???? ||
+
+==== PWM_DIVCTRL (0x9045???? + 0x00) ====[peri_timer_reg_pwm_divctrl]
+
+Register controlling the global PWM clock divider. When enabled, it divides
+the input AHB/APB clock by the specified ratio.
+
+|| Symbol | Bit range | R/W | Description ||
+| ENABLE | 31 | RW | Enable the clock divider |
+| DIV | 7-0 | RW | Divider ratio. Actual divider is DIV + 1. To divide by 1, disable the divider. |
+
+==== PWMx_DUTY_CYCLE (0x9045????) ====[peri_timer_reg_pwmx_duty_cycle]
+
+| PWM0_DUTY_CYCLE | 0x9045???? |
+| PWM1_DUTY_CYCLE | 0x9045???? |
+| PWM2_DUTY_CYCLE | 0x9045???? |
+| PWM3_DUTY_CYCLE | 0x9045???? |
+| PWM4_DUTY_CYCLE | 0x9045???? |
+| PWM5_DUTY_CYCLE | 0x9045???? |
+
+Thresholds defining the behaviour of the PWM timer.
+
+|| Symbol | Bit range | R/W | Description ||
+| LOW_DUTY_CYCLE | ? | RW | Low duty cycle value |
+| MAX_DUTY_CYCLE | ? | RW | Max duty cycle value |

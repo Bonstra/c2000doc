@@ -1,0 +1,86 @@
+
+= SerDes PHY config =[peri_serdes]
+
+The C2000 SoC features 3x single-lane 5Gbps Snowbush multi-standard SerDes PHY.
+All the SerDes PHYs can be configured for PCIe, SATA or SGMII, but they do not
+all have the corresponding controller attached, which effectively limits the
+number of useful configurations.
+
+The working configurations for each SerDes PHY are:
+
+|| SerDes PHY | PCIe | SATA | SGMII |
+| SerDes0 | X |  |  |
+| SerDes1 | X | X |  |
+| SerDes2 |  | X | X |
+
+All standards are available when using the internally-generated clock, but this
+has limitations. To overcome them, external clocks are needed:
+
+|| Standard | Limitations when using internal clock | External clock frequency |
+| PCIe | Only Gen1 is supported | 100 MHz |
+| SATA | No boot from SATA | 60 MHz |
+| SGMII | None? | 125 MHz |
+
+== Memory map ==[peri_serdes_map]
+
+|| Base address | 0x90590000 ||
+
+|| Range (offset from base) | Region size (w/o mirrors) | Description ||
+| 0x00000-0x03fff | 0x4000 | SerDes0 configuration registers |
+| 0x04000-0x07fff | 0x4000 | SerDes1 configuration registers |
+| 0x08000-0x0bfff | 0x4000 | SerDes2 configuration registers |
+
+|| Range in a SerDes block | Region size (w/o mirrors) | Description ||
+| 0x0000-0x07ff | 0x800 | Common CMU (Clock Multiplying Unit) registers |
+| 0x0800-0x0fff | 0x800 | Lane 0 registers |
+| 0x1000-0x17ff | 0x800 | Lane 1 registers (unimplemented in this design) |
+| 0x1800-0x1fff | 0x800 | Lane 2 registers (unimplemented in this design) |
+| 0x2000-0x27ff | 0x800 | Lane 3 registers (unimplemented in this design) |
+| 0x2800-0x2fff | 0x800 | Common lane registers |
+
+== CMU registers ==
+
+|| Symbol | Offset | Description ||
+| CMU_CTL? | 0x0000 | CMU control register |
+
+=== CMUCTL? register ===
+
+|| Symbol | Bit range | R/W | Description ||
+| ENABLE | 0 | RW | Enable CMU |
+
+== LANE0 registers ==
+
+|| Symbol | Offset | Description ||
+| CFG0? | 0x0000 | Unknown |
+| CFG2? | 0x0008 | Unknown |
+| TX_CFG? | 0x001c | Tx line analog config |
+
+=== CFG0? register ===
+
+|| Symbol | Bit range | R/W | Description ||
+| POLARITY? | 3 | RW | Invert ??? polarity |
+
+=== CFG2? register ===
+
+|| Symbol | Bit range | R/W | Description ||
+| POLARITY? | 1 | RW | Invert ??? polarity |
+
+=== TXCFG register ===
+
+|| Symbol | Bit range | R/W | Description ||
+| TX_LEV | 5-2 | RW | Tx level? (0-15) |
+
+== Common lanes registers ==
+
+|| Symbol | Offset | Description ||
+| LANES_CTL? | 0x0000 | Master lanes control register |
+
+=== LANES_CTL register (0x90592800 + (x * 0x4000)) ===
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 7 | RW | 1 for PCIe operation |
+| ? | 6 | RW | 1 for PCIe operation |
+| ? | 1 | RW | Lane0 enable? |
+| ? | 0 | RW | Master lanes enable? |
+
+Set to 0xc3 for PCIe, 0x03 for other modes.

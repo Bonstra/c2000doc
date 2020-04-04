@@ -1,0 +1,50 @@
+MindSpeed Comcerto 2000 (unofficial) documentation
+Hugo "Bonstra" Grostabussiat
+%%date(%Y-%m-%d)
+%!target:html
+%!encoding:UTF-8
+%!options(html):--toc --toc-level 3 --enum-title
+
+= About this document =
+
+In this document are gathered all the information about the hardware of the
+C2000 chip which is not found in the official data sheet, especially
+register documentation. Such information was deduced from reading the source
+code for the Linux kernel and the Barebox bootloader, as well as tweaking the
+register values and observing the results. Because of this,
+**it potentially contains a lot of imprecise, if not downright incorrect information.**
+
+After acquisition by Freescale, the C2000 SoC was rebranded
+//QorIQ LayerScape 1024A// (or LS1024A for short).
+
+%!include:memmap.t2t
+
+%!include:gpio.t2t
+
+%!include:spi.t2t
+
+%!include:i2c.t2t
+
+%!include:clkcore.t2t
+
+%!include:rtc.t2t
+
+%!include:timer.t2t
+
+%!include:pwm.t2t
+
+%!include:watchdog.t2t
+
+%!include:pcie.t2t
+
+%!include:dwc_misc.t2t
+
+%!include:usb3phy.t2t
+
+%!include:usbphy_serdes.t2t
+
+%!include:serdes.t2t
+
+%!include:pfe.t2t
+
+%!include:usb3.t2t

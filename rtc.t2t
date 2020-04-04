@@ -1,0 +1,282 @@
+
+= Real Time Clock =[peri_rtc]
+
+The RTC IP block used in the C2000 is an improved revision of the one used in
+Samsung S3C2410 and S3C2412 SoCs (and maybe others in the S3C series). The S3C
+variants contain an additional clock divider, store the year with only 2
+digits, and lack the day of week alarm information.
+
+In order to work, the RTC block requires the RTC_XI and RTC_XO pads to be
+connected to a 32768 Hz oscillator. RTC_VDD must also be connected to a 3.3V
+supply, or to a 3V coin cell battery. If any of these conditions is not met,
+the RTC counters will not run.
+
+== Register access ==[peri_rtc_reg_access]
+
+The core APB typically runs at 250 MHz, whereas the RTC APB runs at 50 MHz.
+Because of this, access is performed via a "proxy" interface.
+
+Also, a delay needs to be inserted between two APB requests, otherwise the
+transaction gets dropped.
+
+Write access:
+
++ Perform a 32 bit write into the register. The lower 16 bits contain the value
+  to write, the upper 16 bits must all be 0.
++ Wait for 5 microseconds. It is more than is strictly necessary, but this is
+  the amount the Linux driver uses.
+
+
+Read access:
+
++ Write the 32 bit value 0x00010000 into the register you want to read. No
+  actual write occurs to the RTC registers, it is just a way to tell the
+  APB/RTC interface that we want to read the value from that register.
++ Wait for 5 microseconds.
++ Read the value from the register (or any RTC register, really) using a 32
+  bit access. If bit 16 is not set, you read a stale value from a previous read
+  operation; perform another read until bit 16 is set.
++ The value of the RTC register is the lower 16 bits of the value read in the
+  previous step. Bit 16 must be set, but is not part of the value.
+
+
+
+== Registers ==[peri_rtc_regs]
+
+|| Base address | 0x904e0000 ||
+
+|| Interrupt name | GIC SPI ||
+| RTC ALM | 62 |
+| RTC PRI | 63 |
+
+|| Symbol | Offset | Description ||
+| [RTCCON #peri_rtc_reg_rtccon] | 0x00 | RTC control register |
+| [RTCALM #peri_rtc_reg_rtcalm] | 0x04 | RTC alarm control register |
+| [ALMSEC #peri_rtc_reg_almsec] | 0x08 | Alarm second data register |
+| [ALMMIN #peri_rtc_reg_almmin] | 0x0c | Alarm minute data register |
+| [ALMHOUR #peri_rtc_reg_almhour] | 0x10 | Alarm hour data register |
+| [ALMDATE #peri_rtc_reg_almdate] | 0x14 | Alarm date data register |
+| [ALMDAY #peri_rtc_reg_almday] | 0x18 | Alarm day of week data register |
+| [ALMMON #peri_rtc_reg_almmon] | 0x1c | Alarm month data register |
+| [ALMYEAR #peri_rtc_reg_almyear] | 0x20 | Alarm year data register |
+| [BCDSEC #peri_rtc_reg_bcdsec] | 0x24 | BCD second register |
+| [BCDMIN #peri_rtc_reg_bcdmin] | 0x28 | BCD minute register |
+| [BCDHOUR #peri_rtc_reg_bcdhour] | 0x2c | BCD hour register |
+| [BCDDATE #peri_rtc_reg_bcddate] | 0x30 | BCD date register |
+| [BCDDAY #peri_rtc_reg_bcdday] | 0x34 | BCD day register |
+| [BCDMON #peri_rtc_reg_bcdmon] | 0x38 | BCD month register |
+| [BCDYEAR #peri_rtc_reg_bcdyear] | 0x3c | BCD year register |
+| [RTCIM #peri_rtc_reg_rtcim] | 0x40 | RTC interrupt mode register |
+| [RTCPEND #peri_rtc_reg_rtcpend] | 0x44 | RTC interrupt pending register |
+
+
+=== RTCCON (0x904e0000) ===[peri_rtc_reg_rtccon]
+
+RTC control register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-4 | R | Reserved. Must be 0. |
+| ? | 3 | RW | Unkonwn |
+| CLKRST | 2 | RW | RTC clock count reset. Purpose unknown. |
+| RTCEN | 1 | RW | RTC write enable. Used to prevent accidental writes to the date/time. 0=Read-only 1=Write enabled |
+| STARTB | 0 | RW | RTC halt. Halts the clock counter. Useful when setting the date/time. 0=Counters are running 1=Counters are halted |
+
+
+=== RTCALM (0x904e0004) ===[peri_rtc_reg_rtcalm]
+
+RTC alarm control register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-8 | R | Reserved. Must be 0. |
+| GLOBALEN | 7 | RW | Alarm global enable. |
+| YEAREN | 6 | RW | Year alarm enable. |
+| MONEN | 5 | RW | Month alarm enable. |
+| DAYEN | 4 | RW | Day alarm enable. |
+| DATEEN | 3 | RW | Date alarm enable. |
+| HOUREN | 2 | RW | Hour alarm enable. |
+| MINEN | 1 | RW | Minute alarm enable. |
+| SECEN | 0 | RW | Second alarm enable. |
+
+
+=== ALMSEC (0x904e0008) ===[peri_rtc_reg_almsec]
+
+Alarm second data register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-7 | R | Reserved. Must be 0. |
+| SECDATA | 6-0 | RW | BCD value for alarm second |
+
+
+=== ALMMIN (0x904e000c) ===[peri_rtc_reg_almmin]
+
+Alarm minute data register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-7 | R | Reserved. Must be 0. |
+| MINDATA | 6-0 | RW | BCD value for alarm minute |
+
+
+=== ALMHOUR (0x904e0010) ===[peri_rtc_reg_almhour]
+
+Alarm hour data register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-6 | R | Reserved. Must be 0. |
+| HOURDATA | 5-0 | RW | BCD value for alarm hour |
+
+
+=== ALMDATE (0x904e0014) ===[peri_rtc_reg_almdate]
+
+Alarm date (day of month) data register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-6 | R | Reserved. Must be 0. |
+| DATEDATA | 5-0 | RW | BCD value for alarm date, from 0 to 28, 29, 30, 31 |
+
+
+=== ALMDAY (0x904e0018) ===[peri_rtc_reg_almday]
+
+Alarm day (day of week) data register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-3 | R | Reserved. Must be 0. |
+| DAYDATA | 2-0 | RW | BCD value for alarm day (1-7) |
+
+
+=== ALMMON (0x904e001c) ===[peri_rtc_reg_almmon]
+
+Alarm month data register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-5 | R | Reserved. Must be 0. |
+| MONTHDATA | 4-0 | RW | BCD value for alarm month |
+
+
+=== ALMYEAR (0x904e0020) ===[peri_rtc_reg_almyear]
+
+Alarm year data register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| YEARDATA | 15-0 | RW | BCD value for alarm year |
+
+
+=== BCDSEC (0x904e0024) ===[peri_rtc_reg_bcdsec]
+
+BCD second register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-7 | R | Reserved. Must be 0. |
+| SECDATA | 6-0 | RW | BCD value for second |
+
+
+=== BCDMIN (0x904e0028) ===[peri_rtc_reg_bcdmin]
+
+BCD minute register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-7 | R | Reserved. Must be 0. |
+| MINDATA | 6-0 | RW | BCD value for minute |
+
+
+=== ALMHOUR (0x904e002c) ===[peri_rtc_reg_almhour]
+
+BCD hour register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-6 | R | Reserved. Must be 0. |
+| HOURDATA | 5-0 | RW | BCD value for hour |
+
+
+=== BCDDATE (0x904e0030) ===[peri_rtc_reg_bcddate]
+
+BCD date (day of month) register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-6 | R | Reserved. Must be 0. |
+| DATEDATA | 5-0 | RW | BCD value for date, from 0 to 28, 29, 30, 31 |
+
+
+=== BCDDAY (0x904e0034) ===[peri_rtc_reg_bcdday]
+
+BCD day (day of week) register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-3 | R | Reserved. Must be 0. |
+| DAYDATA | 2-0 | RW | BCD value for day (1 to 7) |
+
+
+=== BCDMON (0x904e0038) ===[peri_rtc_reg_bcdmon]
+
+BCD month register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-5 | R | Reserved. Must be 0. |
+| MONTHDATA | 4-0 | RW | BCD value for month |
+
+
+=== BCDYEAR (0x904e003c) ===[peri_rtc_reg_bcdyear]
+
+BCD year register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| YEARDATA | 15-0 | RW | BCD value for year |
+
+
+=== RTCIM (0x904e0040) ===[peri_rtc_reg_rtcim]
+
+RTC interrupt mode register.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 15-3 | R | Reserved. Must be 0. |
+| ? | 5-2 | RW | Unknown. Might contain periodic tick interrupt control. |
+| ? | 1 | RW | Alarm? interrupt enable? Usually set/unset with ALMEN. |
+| ALMEN | 0 | RW | Alarm interrupt enable? |
+
+
+=== RTCPEND (0x904e0044) ===[peri_rtc_reg_rtcpend]
+
+RTC interrupt pending register.
+
+When handling an alarm interrupt, disable alarm in RTCALM, disable the
+interrupt in RTCIM, and write 0 in RTCPEND to acknowledge the interrupt.
+
+Reset value: 0x00
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 15-2 | RW | Unknown or reserved. |
+| ALMEN? | 1 | RW | Alarm? global? interrupt enable? |
+| ? | 0 | RW | Alarm interrupt pending? Write 0 to acknowledge. |

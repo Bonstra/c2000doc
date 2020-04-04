@@ -1,0 +1,895 @@
+
+= Clock and reset controller =[peri_clkcore]
+
+- 4 PLLs
+ - PLLs 0, 1 & 2 up to 2 GHz
+ - PLL 3 up to 1.2 GHz with dithering support for DDR
+ - All PLLs can be bypassed to use the reference clock instead of the PLL
+   output
+ - PLLs 0 & 1 have a divider on their output for frequency scaling
+ - Per-peripheral (clock domain) configurable clock input and divider
+- 2 NCOs
+- GEM PHY, DECT BCLK & PCIe reference clocks outputs
+- AHB/APB clock is AXI/4
+
+
+== Reference clock ==
+
+The C2000 chip accepts a 24 or 48 MHz crystal or clock as external reference
+clock for the system PLLs and SerDes. Bootstrap pins allow to select between
+crystal/clock and 24/48 MHz.
+
+The datasheet also mentions that it is theoretically possible to use a 125 MHz
+reference clock from the SerDes block, but since the SerDes clocks are not
+provided during reset, such a configuration would never boot.
+
+An internal reference clock is derived from the external reference clock. It is
+the same, except for the unusable 125 MHz case, where it is divided by 6.
+That internal reference clock can be used as clock source for peripherals.
+
+== PLLs ==
+
+The C2000 chip features 4 programmable PLLs.
+
+The input clock is the raw external reference clock.
+
+All PLLs have those 3 parameters:
+- M: 10-bit (9-bit for PLL 3) main divider (or multiplier depending on how
+  you see it) value
+- P: 6-bit pre-divider value
+- S: 3-bit post-scaler value
+
+
+PLL 3 uses an additional 12-bit parameter, K, which is used to precisely to add
+a fractional divider to the main divider.
+
+A global PLL bypass mechanism, separate from each PLL's own bypass mechanism
+allows to feed the reference clock directly to the clock generator of all
+peripherals, in lieu of the PLL output.
+
+This PLL global bypass not only bypasses the PLLs themselves, but also, for
+PLLs 0 & 1, the divider immediately after them.
+
+=== PLLs 0, 1 & 2 ===
+
+Maximum rate: 2.0 GHz
+
+Output frequency formula: Fout = (Fref * M) / (P * 2^S)
+
+PLL 0 & 1 outputs can be divided further. The divider value can be configured
+using the PLLx_DIV_CNTRL registers.
+
+=== PLL 3 ===
+
+Maximum rate: 1.2 GHz
+
+Output frequency formula from manufacturer's Linux code (in MHz):
+
+Fout = ((Fref / 1000000) * ((M * 1024) + K) / P / 2^S + 1023) / 1024
+
+The value is rounded up to the upper MHz to "look nice", losing some
+precision in the process.
+
+My guess on what the actual formula may look like:
+
+Fout = Fref * (M + K / 1024) / (P * 2^S)
+
+```
+Bootloader settings for PLL3_CFG_1066 for 48 MHz refclk.
+M=87
+P=4
+S=0
+d=4
+K=1877
+
+Result with original formula: 1065996094,749023438 Hz
+```
+PLL 3 supports dithering (spread spectrum).
+
+
+== Registers ==[peri_clkcore_regs]
+
+|| Base address | 0x904b0000 ||
+|| Size | 0x00000400 ||
+
+|| Symbol | Offset | Description ||
+| [DEVICE_RST_CNTRL #clkcore_regs_device_rst_cntrl] | 0x0000 |  |
+| [SERDES_RST_CNTRL #clkcore_regs_serdes_rst_cntrl] | 0x0004 |  |
+| PCIe_SATA_RST_CNTRL | 0x0008 |  |
+| USB_RST_CNTRL | 0x000c |  |
+| GNRL_DEVICE_CNFG_0 | 0x0010 |  |
+| GNRL_DEVICE_CNFG_1 | 0x0014 |  |
+| [GNRL_DEVICE_STATUS #clkcore_regs_gnrl_device_status] | 0x0018 |  |
+| A9DP_PWR_STAT | 0x0028 |  |
+| A9DP_PWR_CNTRL | 0x002c |  |
+| GNRL_CLK_CNTRL_0 | 0x0030 |  |
+| GNRL_CLK_CNTRL_1 | 0x0034 |  |
+| PLLS_GLOBAL_CNTRL | 0x0038 |  |
+| [AXI_CLK_CNTRL_0 #clkcore_regs_axi_clk_cntrl0] | 0x0040 |  |
+| [AXI_CLK_CNTRL_1 #clkcore_regs_axi_clk_cntrl1] | 0x0044 |  |
+| [AXI_CLK_CNTRL_2 #clkcore_regs_axi_clk_cntrl2] | 0x0048 |  |
+| [AXI_CLK_DIV_CNTRL #clkcore_regs_axi_clk_div_cntrl] | 0x004c |  |
+| [AXI_RESET_0 #clkcore_regs_axi_reset_0] | 0x0050 |  |
+| [AXI_RESET_1 #clkcore_regs_axi_reset_1] | 0x0054 |  |
+| [AXI_RESET_2 #clkcore_regs_axi_reset_2] | 0x0058 |  |
+| [A9DP_MPU_CLK_CNTRL #clkcore_regs_a9dp_mpu_clk_cntrl] | 0x0068 |  |
+| [A9DP_MPU_CLK_DIV_CNTRL #clkcore_regs_a9dp_mpu_clk_div_cntrl] | 0x006c |  |
+| [A9DP_MPU_RESET #clkcore_regs_a9dp_mpu_reset] | 0x0070 |  |
+| [A9DP_CPU_CLK_CNTRL #clkcore_regs_a9dp_cpu_clk_cntrl] | 0x0074 |  |
+| [A9DP_CPU_RESET #clkcore_regs_a9dp_cpu_reset] | 0x0078 |  |
+| [A9DP_CLK_CNTRL #clkcore_regs_a9dp_clk_cntrl] | 0x0080 |  |
+| [A9DP_CLK_DIV_CNTRL #clkcore_regs_a9dp_clk_div_cntrl] | 0x0084 |  |
+| [A9DP_RESET #clkcore_regs_a9dp_reset] | 0x0088 |  |
+| [L2CC_CLK_CNTRL #clkcore_regs_l2cc_clk_cntrl] | 0x0090 |  |
+| [L2CC_CLK_DIV_CNTRL #clkcore_regs_l2cc_clk_div_cntrl] | 0x0094 |  |
+| [L2CC_RESET #clkcore_regs_l2cc_reset] | 0x0098 |  |
+| TPI_CLK_CNTRL | 0x00a0 |  |
+| TPI_CLK_DIV_CNTRL | 0x00a4 |  |
+| TPI_RESET | 0x00a8 |  |
+| CSYS_CLK_CNTRL | 0x00b0 |  |
+| CSYS_CLK_DIV_CNTRL | 0x00b4 |  |
+| CSYS_RESET | 0x00b8 |  |
+| EXTPHY0_CLK_CNTRL | 0x00c0 |  |
+| EXTPHY0_CLK_DIV_CNTRL | 0x00c4 |  |
+| EXTPHY0_RESET | 0x00c8 |  |
+| EXTPHY1_CLK_CNTRL | 0x00d0 |  |
+| EXTPHY1_CLK_DIV_CNTRL | 0x00d4 |  |
+| EXTPHY1_RESET | 0x00d8 |  |
+| EXTPHY2_CLK_CNTRL | 0x00e0 |  |
+| EXTPHY2_CLK_DIV_CNTRL | 0x00e4 |  |
+| EXTPHY2_RESET | 0x00e8 |  |
+| DDR_CLK_CNTRL | 0x00f0 |  |
+| DDR_CLK_DIV_CNTRL | 0x00f4 |  |
+| DDR_RESET | 0x00f8 |  |
+| PFE_CLK_CNTRL | 0x0100 |  |
+| PFE_CLK_DIV_CNTRL | 0x0104 |  |
+| PFE_RESET | 0x0108 | PFE core reset |
+| IPSEC_CLK_CNTRL | 0x0110 |  |
+| IPSEC_CLK_DIV_CNTRL | 0x0114 |  |
+| IPSEC_RESET | 0x0118 |  |
+| DECT_CLK_CNTRL | 0x0120 |  |
+| DECT_CLK_DIV_CNTRL | 0x0124 |  |
+| DECT_RESET | 0x0128 |  |
+| GEMTX_CLK_CNTRL | 0x0130 |  |
+| GEMTX_CLK_DIV_CNTRL | 0x0134 |  |
+| GEMTX_RESET | 0x0138 |  |
+| TDMNTG_REF_CLK_CNTRL | 0x0140 |  |
+| TDMNTG_REF_CLK_DIV_CNTRL | 0x0144 |  |
+| TDMNTG_RESET | 0x0148 |  |
+| TDM_CLK_CNTRL | 0x014c |  |
+| TSUNTG_REF_CLK_CNTRL | 0x0150 |  |
+| TSUNTG_REF_CLK_DIV_CNTRL | 0x0154 |  |
+| TSUNTG_RESET | 0x0158 |  |
+| SATA_PMU_CLK_CNTRL | 0x0160 |  |
+| SATA_PMU_CLK_DIV_CNTRL | 0x0164 |  |
+| SATA_PMU_RESET | 0x0168 |  |
+| SATA_OOB_CLK_CNTRL | 0x0170 |  |
+| SATA_OOB_CLK_DIV_CNTRL | 0x0174 |  |
+| SATA_OOB_RESET | 0x0178 |  |
+| SATA_OCC_CLK_CNTRL | 0x0180 |  |
+| SATA_OCC_CLK_DIV_CNTRL | 0x0184 |  |
+| SATA_OCC_RESET | 0x0188 |  |
+| PCIE_OCC_CLK_CNTRL | 0x0190 |  |
+| PCIE_OCC_CLK_DIV_CNTRL | 0x0194 |  |
+| PCIE_OCC_RESET | 0x0198 |  |
+| SGMII_OCC_CLK_CNTRL | 0x01a0 |  |
+| SGMII_OCC_CLK_DIV_CNTRL | 0x01a4 |  |
+| SGMII_OCC_RESET | 0x01a8 |  |
+| PLL0_M_LSB | 0x01c0 |  |
+| PLL0_M_MSB | 0x01c4 |  |
+| PLL0_P | 0x01c8 |  |
+| PLL0_S | 0x01cc |  |
+| PLL0_CNTRL | 0x01d0 |  |
+| PLL0_TEST | 0x01d4 |  |
+| PLL0_STATUS | 0x01d8 |  |
+| PLL0_DIV_CNTRL | 0x01dc |  |
+| PLL1_M_LSB | 0x01e0 |  |
+| PLL1_M_MSB | 0x01e4 |  |
+| PLL1_P | 0x01e8 |  |
+| PLL1_S | 0x01ec |  |
+| PLL1_CNTRL | 0x01f0 |  |
+| PLL1_TEST | 0x01f4 |  |
+| PLL1_STATUS | 0x01f8 |  |
+| PLL1_DIV_CNTRL | 0x01fc |  |
+| PLL2_M_LSB | 0x0200 |  |
+| PLL2_M_MSB | 0x0204 |  |
+| PLL2_P | 0x0208 |  |
+| PLL2_S | 0x020c |  |
+| PLL2_CNTRL | 0x0210 |  |
+| PLL2_TEST | 0x0214 |  |
+| PLL2_STATUS | 0x0218 |  |
+| PLL3_M_LSB | 0x0220 |  |
+| PLL3_M_MSB | 0x0224 |  |
+| PLL3_P | 0x0228 |  |
+| PLL3_S | 0x022c |  |
+| PLL3_CNTRL | 0x0230 |  |
+| PLL3_TEST | 0x0234 |  |
+| PLL3_STATUS | 0x0238 |  |
+| PLL3_DITHER_CNTRL | 0x023c |  |
+| PLL3_K_LSB | 0x0240 |  |
+| PLL3_K_MSB | 0x0244 |  |
+| PLL3_MFR | 0x0248 |  |
+| PLL3_MRR | 0x024c |  |
+| TDMNTG_ADDR_SPACE_BASEADDR | 0x0280 |  |
+| TSUNGTG_ADDR_SPACE_BASEADDR | 0x02c0 |  |
+
+
+=== DEVICE_RST_CNTRL (0x904b0000) ===[clkcore_regs_device_rst_cntrl]
+
+Global device reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| CLK_DIV_RESTART | 7 | RW | Clock divider restart. Self-clearing |
+| WD_STATUS_CLR | 6 | W | Clear AXI watchdog status (see [GNRL_DEVICE_STATUS #clkcore_regs_gnrl_device_status]) |
+| AXI_WD_RST_EN | 5 | RW | Enable reset on [AXI watchdog timer #peri_timer_wdt] block |
+| DEBUG_RST | 4 | RW | Reset debug features (CoreSight and ARM debug). Does not self-clear |
+| CLKRST_SCLR_RST | 3 | RW | Reset clocks? Self-clearing? |
+| FUNC_SCLR_RST | 2 | RW | Perform a functional software reset. Reset all blocks except PLLs, clocks, reset and debug logic. Maybe self-clearing (if CLKRST_SCLR_RST is set at the sme time?) |
+| GLB_SCLR_RST | 1 | RW | Global reset. Self-clearing. What differences with PWR_ON_SOFT_RST? |
+| PWR_ON_SOFT_RST | 0 | RW | Power on software reset. Self-clearing |
+
+
+=== SERDES_RST_CNTRL (0x904b0004) ===[clkcore_regs_serdes_rst_cntrl]
+
+SerDes reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+|  | 7-3 | RW | Reserved. Write as 1. |
+| SERDES2_RESET | 2 | RW | SerDes 2 reset state |
+| SERDES1_RESET | 1 | RW | SerDes 1 reset state |
+| SERDES0_RESET | 0 | RW | SerDes 0 reset state |
+
+
+=== PCIe_SATA_RST_CNTRL (0x904b0008) ===
+
+PCIe & SATA reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| SATA1_TX_RST | 7 | RW | SATA1 SerDes Tx reset |
+| SATA1_RX_RST | 6 | RW | SATA1 SerDes Rx reset |
+| SATA0_TX_RST | 5 | RW | SATA0 SerDes Tx reset |
+| SATA0_RX_RST | 4 | RW | SATA0 SerDes Rx reset |
+| PCIE1_REG_RST | 3 | RW | PCIe1 controller reset? |
+| PCIE1_PWR_RST | 2 | RW | PCIe1 power domain reset? |
+| PCIE0_REG_RST | 1 | RW | PCIe0 controller reset? |
+| PCIE0_PWR_RST | 0 | RW | PCIe0 power domain reset? |
+
+Note: Asserting and deasserting PCIEx_PWR_RST also resets the PCIe registers.
+
+=== USB_RST_CNTRL (0x904b000c) ===
+
+USB reset register.
+
+UTMI is the interface between the USB controller and the USB PHY.
+
+|| Symbol | Bit range | R/W | Description ||
+| USB1_UTMI_RESET | 5 | RW | USB1 UTMI reset |
+| USB1_PHY_RESET | 4 | RW | USB1 PHY reset |
+| USB0_UTMI_RESET | 1 | RW | USB0 UTMI reset |
+| USB0_PHY_RESET | 0 | RW | USB0 PHY reset |
+
+
+=== GNRL_DEVICE_CNFG_0 (0x904b0010) ===
+
+General device configuration register 0.
+
+|| Symbol | Bit range | R/W | Description ||
+
+
+=== GNRL_DEVICE_CNFG_1 (0x904b0014) ===
+
+General device configuration register 1.
+
+|| Symbol | Bit range | R/W | Description ||
+
+
+=== GNRL_DEVICE_STATUS (0x904b0018) ===[clkcore_regs_gnrl_device_status]
+
+General device status register.
+
+|| Symbol | Bit range | R/W | Description ||
+| CPU1_WD_RST_ACTIVATED | 2 | R | Reset caused by CPU1 watchdog? |
+| CPU0_WD_RST_ACTIVATED | 1 | R | Reset caused by CPU0 watchdog? |
+| AXI_WD_RST_ACTIVATED | 0 | R | Reset caused by AXI watchdog. Can be cleared by setting the WD_STATUS_CLR bit in [DEVICE_RST_CNTRL #clkcore_regs_device_rst_cntrl]. |
+
+=== A9DP_PWR_STAT (0x904b0028) ===
+
+=== A9DP_PWR_CNTRL (0x904b002c) ===
+
+A9DP block power control register.
+
+|| Symbol | Bit range | R/W | Description ||
+| CORE_PWRDWN1 | 7 | R/W | Power down CPU1 power domain |
+| CLAMP_CORE1 | 6 | R/W | Isolate CPU1? |
+| CORE_PWRDWN0 | 5 | R/W | Power down CPU0 power domain |
+| CLAMP_CORE0 | 4 | R/W | Isolate CPU0? |
+| MP_POWERDOWN | 0 | R/W | Power down the full MP block (all cores + SCU + A9 periph.) |
+
+
+=== GNRL_CLK_CNTRL_0 (0x904b0030) ===
+
+=== GNRL_CLK_CNTRL_1 (0x904b0034) ===
+
+General clock control register 1
+
+Set to 0xd1, then 0xd0 in bootloader.
+
+|| Symbol | Bit range | R/W | Description ||
+| GLOBAL_BYPASS | 0 | RW | (DANGEROUS!) Global bypass. All the clock dividers are bypassed. Overrides the individual clock generators bypass setting. It is unclear which clock generators are effected. Used by bootloader. NEVER SET WHILE THE PLLS ARE RUNNING! |
+
+=== PLLS_GLOBAL_CNTRL (0x904b0038) ===
+
+Global PLL bypass register.
+
+|| Symbol | Bit range | R/W | Description ||
+| PLL3 | 3 | RW | PLL3 bypass. 0: Use PLL output 1: Use int_ref_clk output |
+| PLL2 | 2 | RW | PLL2 bypass. 0: Use PLL output 1: Use int_ref_clk output |
+| PLL1 | 1 | RW | PLL1 bypass. 0: Use PLL output 1: Use int_ref_clk output |
+| PLL0 | 0 | RW | PLL0 bypass. 0: Use PLL output 1: Use int_ref_clk output |
+
+=== AXI_CLK_CNTRL_0 (0x904b0040) ===[clkcore_regs_axi_clk_cntrl0]
+
+AXI interface clock control register 0.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 7 | R/W | Something important. Keep enabled. |
+| DPI_DECOMP_CLK_ENABLE | 6 | R/W | Enable clock domain for DPI decompression engine |
+| DPI_CIE_CLK_ENABLE | 5 | R/W | Enable clock domain for DPI Content Inspection Engine |
+| ?_CLK_ENABLE | 4 | R/W | Enable clock domain for something important. DDR? DMA? |
+| CLOCK_SOURCE | 3-1 | R/W | Clock source selection. 0: PLL0 1: PLL1 2: PLL2 3: PLL3 4: internal refclk (24/48 MHz)
+| CLOCK_DOMAIN_ENABLE | 0 | R/W | Enable AXI clock domain. |
+
+
+=== AXI_CLK_CNTRL_1 (0x904b0044) ===[clkcore_regs_axi_clk_cntrl1]
+
+AXI interface clock control register 1.
+
+|| Symbol | Bit range | R/W | Description ||
+| RTC_TIM_CLK_ENABLE | 7 | R/W | Enable clock domain for the RTC and timer blocks |
+| UART_CLK_ENABLE | 6 | R/W | Enable legacy UART clock domain. |
+| I2CSPI_CLK_ENABLE | 5 | R/W | Enable clock domain for slow I2C/SPI controllers. |
+| TDM_CLK_ENABLE | 4 | R/W | Enable clock domain for the TDM device. |
+| PFE_SYS_CLK_ENABLE | 3 | R/W | Enable SYS clock domain for the Packet Forwarding Engine. |
+| IPSEC_SPACC_CLK_ENABLE | 2 | R/W | Enable clock domain for the IPSec Security Protocol Accelerator. |
+| IPSEC_EAPE_CLK_ENABLE | 1 | R/W | Enable clock domain for the IPSec EAP engine. |
+| DUS_CLK_ENABLE | 0 | R/W | Enable clock domain for the DUSI subsystem (fast UART, fast I2C, fast SPI and I2S). |
+
+
+=== AXI_CLK_CNTRL_2 (0x904b0048) ===[clkcore_regs_axi_clk_cntrl_2]
+
+AXI interface clock control register 2.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 7 | R/W | Unknown. Not critical |
+| ? | 6 | R/W | Unknown. Not critical |
+| ? | 5 | R/W | Unknown. Probably something important since the system hangs if cleared. DDR? DMA? |
+| USB1_CLK_ENABLE | 4 | R/W | Enable clock domain for the USB1 (USB 3.0) device. |
+| USB0_CLK_ENABLE | 3 | R/W | Enable clock domain for the USB0 (USB 2.0) device. |
+| SATA_CLK_ENABLE | 2 | R/W | Enable clock domain for the SATA device. |
+| PCIE1_CLK_ENABLE | 1 | R/W | Enable clock domain for the PCIE1 device. |
+| PCIE0_CLK_ENABLE | 0 | R/W | Enable clock domain for the PCIE0 device. |
+
+
+=== AXI_CLK_DIV_CNTRL (0x904b004c) ===[clkcore_regs_axi_clk_div_cntrl]
+
+=== AXI_RESET_0 (0x904b0050) ===[clkcore_regs_axi_reset_0]
+
+AXI interface reset register 0.
+
+|| Symbol | Bit range | R/W | Description ||
+| DPI_DECOMP_RST | 6 | R/W | Reset AXI clock domain for DPI decompression engine |
+| DPI_CIE_RST | 5 | R/W | Reset AXI clock domain for DPI Content Inspection Engine |
+| ?_RST | 4 | R/W | Reset for something important |
+
+
+=== AXI_RESET_1 (0x904b0054) ===[clkcore_regs_axi_reset_1]
+
+AXI interface reset register 1.
+
+|| Symbol | Bit range | R/W | Description ||
+| RTC_TIM_RST | 7 | R/W | Reset AXI clock domain for the RTC and timer blocks. |
+| UART_RST | 6 | R/W | Legacy UART reset. |
+| I2CSPI_RST | 5 | R/W | Reset AXI clock domain for slow I2C/SPI controllers. |
+| TDM_RST | 4 | R/W | Reset AXI clock domain for the TDM device. |
+| PFE_SYS_RST | 3 | R/W | Reset AXI clock domain for the Packet Forwarding Engine. |
+| IPSEC_SPACC_RST | 2 | R/W | Reset AXI clock domain for the IPSec Security Protocol Accelerator. |
+| IPSEC_EAPE_RST | 1 | R/W | Reset AXI clock domain for the IPSec EAP engine. |
+| DUS_RST | 0 | R/W | Reset AXI clock domain for the DUSI subsystem (fast UART, fast I2C, fast SPI and I2S). |
+
+
+=== AXI_RESET_2 (0x904b0058) ===[clkcore_regs_axi_reset_2]
+
+AXI interface reset register 2.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 5 | R/W | Unknown. Probably something important since the system hangs if set. |
+| USB1_RST | 4 | R/W | Reset AXI clock domain for the USB1 (USB 3.0) device. |
+| USB0_RST | 3 | R/W | Reset AXI clock domain for the USB0 (USB 2.0) device. |
+| SATA_RST | 2 | R/W | Reset AXI clock domain for the SATA device. |
+| PCIE1_RST | 1 | R/W | Reset AXI clock domain for the PCIE1 device. |
+| PCIE0_RST | 0 | R/W | Reset AXI clock domain for the PCIE0 device. |
+
+
+=== A9DP_MPU_CLK_CNTRL (0x904b0068) ===[clkcore_regs_a9dp_mpu_clk_cntrl]
+
+A9 peripherals clock control.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 7 | R/W | Unknown. Set by default. |
+| GIC_CLK_ENABLE | 6 | R/W | Enable/disable interrupt controller clock. |
+
+
+=== A9DP_MPU_CLK_DIV_CNTRL (0x904b006c) ===[clkcore_regs_a9dp_mpu_clk_div_cntrl]
+
+A9 peripherals clock divider control register?
+
+Default value is 0. Never changed. ARM peripherals clock is always divided by at least 4.
+
+=== A9DP_MPU_RESET (0x904b0070) ===[clkcore_regs_a9dp_mpu_reset]
+
+Reset register for the A9 MPU block.
+Probably to reset blocks other than the CPU cores themselves (i.e. SCU and A9
+peripherals).
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 7 | R/W | No visible effect. |
+| GIC_RST | 6 | R/W | Reset interrupt controller (GIC) |
+| ? | 5 | R/W | No visible effect. |
+| ? | 4 | R/W | Reset ?. |
+| ? | 3 | R/W | No visible effect. |
+| ? | 2 | R/W | Reset ?. |
+| ? | 1 | R/W | No visible effect. |
+| ? | 0 | R/W | Reset ?. |
+
+=== A9DP_CPU_CLK_CNTRL (0x904b0074) ===[clkcore_regs_a9dp_cpu_clk_cntrl]
+
+CPU clock control register.
+
+|| Symbol | Bit range | R/W | Description ||
+| NEON1_CLK_ENABLE | 3 | R/W | Enable/disable CPU1 NEON coprocessor clock |
+| CPU1_CLK_ENABLE | 2 | R/W | Enable/disable CPU1 clock |
+| NEON0_CLK_ENABLE | 1 | R/W | Enable/disable CPU0 NEON coprocessor clock |
+| CPU0_CLK_ENABLE | 0 | R/W | Enable/disable CPU0 clock |
+
+=== A9DP_CPU_RESET (0x904b0078) ===[clkcore_regs_a9dp_cpu_reset]
+CPU cores block reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| NEON1_RST | 3 | R/W | CPU1 NEON coprocessor reset. |
+| CPU1_RST | 2 | R/W | CPU1 core reset. |
+| NEON0_RST | 1 | R/W | CPU0 NEON coprocessor reset. |
+| CPU0_RST | 0 | R/W | CPU0 core reset. |
+
+=== A9DP_CLK_CNTRL (0x904b0080) ===[clkcore_regs_a9dp_clk_cntrl]
+
+A9 subsystem clock control register.
+
+See description for XXX_CLK_CNTRL.
+
+=== A9DP_CLK_DIV_CNTRL (0x904b0084) ===[clkcore_regs_a9dp_clk_div_cntrl]
+
+A9 subsystem clock divider control register.
+
+See description for XXX_CLK_DIV_CNTRL.
+
+=== A9DP_RESET (0x904b0088) ===[clkcore_regs_a9dp_reset]
+
+Reset register for the full A9 subsystem (CPU cores + SCU + A9 peripherals +
+L2CC? + Coresight)?
+
+|| Symbol | Bit range | R/W | Description ||
+| A9DP_RST | 0 | R/W | Reset full A9 subsystem? |
+
+=== L2CC_CLK_CNTRL (0x904b0090) ===[clkcore_regs_l2cc_clk_cntrl]
+
+L2CC clock control register.
+
+|| Symbol | Bit range | R/W | Description ||
+| L2CC_CLOCK_SOURCE | 3-1 | R/W | 0-7: A9 subsystem clock (presumably, and according to the clock diagram. Tests shows that it is NOT PLL0-3, nor ref clock) |
+| L2CC_CLK_ENABLE | 0 | R/W | Enable L2CC clock. |
+
+=== L2CC_CLK_DIV_CNTRL (0x904b0094) ===[clkcore_regs_l2cc_clk_div_cntrl]
+
+L2CC clock divider control register.
+
+See XXX_CLK_DIV_CNTRL description.
+
+=== L2CC_RESET (0x904b0098) ===[clkcore_regs_l2cc_reset]
+
+L2CC reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| L2CC_RST | 0 | R/W | Put the L2CC device in reset state. 0=leave reset, 1=enter reset |
+
+
+=== TPI_CLK_CNTRL (0x904b00a0) ===
+
+=== TPI_CLK_DIV_CNTRL (0x904b00a4) ===
+
+=== TPI_RESET (0x904b00a8) ===
+
+TPI (Trace Port Interface) reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TPI_RST | 0 | R/W | Put the TPI device in reset state. 0=leave reset, 1=enter reset |
+
+=== CSYS_CLK_CNTRL (0x904b00b0) ===
+
+=== CSYS_CLK_DIV_CNTRL (0x904b00b4) ===
+
+=== CSYS_RESET (0x904b00b8) ===
+
+CSYS (CoreSight) reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| CSYS_RST | 0 | R/W | Put the CSYS device in reset state. 0=leave reset, 1=enter reset |
+
+=== EXTPHY0_CLK_CNTRL (0x904b00c0) ===
+
+=== EXTPHY0_CLK_DIV_CNTRL (0x904b00c4) ===
+
+=== EXTPHY0_RESET (0x904b00c8) ===
+
+EXT0 PHY reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| EXT0PHY_RST | 0 | R/W | Put the EXT0 PHY in reset state. 0=leave reset, 1=enter reset |
+
+=== EXTPHY1_CLK_CNTRL (0x904b00d0) ===
+
+=== EXTPHY1_CLK_DIV_CNTRL (0x904b00d4) ===
+
+=== EXTPHY1_RESET (0x904b00d8) ===
+
+EXT1 PHY reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| EXT1PHY_RST | 0 | R/W | Put the EXT1 PHY in reset state. 0=leave reset, 1=enter reset |
+
+=== EXTPHY2_CLK_CNTRL (0x904b00e0) ===
+
+=== EXTPHY2_CLK_DIV_CNTRL (0x904b00e4) ===
+
+=== EXTPHY2_RESET (0x904b00e8) ===
+
+EXT2 PHY reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| EXT2PHY_RST | 0 | R/W | Put the EXT2 PHY in reset state. 0=leave reset, 1=enter reset |
+
+=== DDR_CLK_CNTRL (0x904b00f0) ===
+
+=== DDR_CLK_DIV_CNTRL (0x904b00f4) ===
+
+=== DDR_RESET (0x904b00f8) ===
+
+DDR reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| DDRCNTRL_RST | 1 | R/W | Put the DDR controller in reset state. 0=leave reset, 1=enter reset |
+| DDRPHY_RST | 0 | R/W | Put the DDR PHY in reset state. 0=leave reset, 1=enter reset |
+
+=== PFE_CLK_CNTRL (0x904b0100) ===
+
+=== PFE_CLK_DIV_CNTRL (0x904b0104) ===
+
+=== PFE_RESET (0x904b0108) ===
+
+PFE core reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| PFE_CORE_RST | 0 | R/W | Put the PFE core in reset state. 0=leave reset, 1=enter reset |
+
+=== IPSEC_CLK_CNTRL (0x904b0110) ===
+
+=== IPSEC_CLK_DIV_CNTRL (0x904b0114) ===
+
+=== IPSEC_RESET (0x904b0118) ===
+
+IPSEC core reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| IPSEC_EAPE_CORE_RST | 0 | R/W | Put the IPSEC EAPE core into reset state. 0=leave reset, 1=enter reset |
+
+=== DECT_CLK_CNTRL (0x904b0120) ===
+
+=== DECT_CLK_DIV_CNTRL (0x904b0124) ===
+
+=== DECT_RESET (0x904b0128) ===
+
+DECT device reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| DECT_RST | 0 | R/W | Put the DECT device into reset state. 0=leave reset, 1=enter reset |
+
+=== GEMTX_CLK_CNTRL (0x904b0130) ===
+
+=== GEMTX_CLK_DIV_CNTRL (0x904b0134) ===
+
+=== GEMTX_RESET (0x904b0138) ===
+
+GEMTX device reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| GEMTX_RST | 0 | R/W | Put the GEMTX device into reset state. 0=leave reset, 1=enter reset |
+
+=== TDMNTG_REF_CLK_CNTRL (0x904b0140) ===
+
+=== TDMNTG_REF_CLK_DIV_CNTRL (0x904b0144) ===
+
+=== TDMNTG_RESET (0x904b0148) ===
+
+TDMNTG (Time Division Multiplexing Network Timer Generator) device reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TDMNTG_RST | 0 | R/W | Put the TDMNTG device into reset state. 0=leave reset, 1=enter reset |
+
+=== TDM_CLK_CNTRL (0x904b014c) ===
+
+=== TSUNTG_REF_CLK_CNTRL (0x904b0150) ===
+
+=== TSUNTG_REF_CLK_DIV_CNTRL (0x904b0154) ===
+
+=== TSUNTG_RESET (0x904b0158) ===
+
+TSU NTG (TimeStamp Unit Network Timing Generator) device reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TSUNTG_RST | 0 | R/W | Put the TSUNTG device into reset state. 0=leave reset, 1=enter reset |
+
+=== SATA_PMU_CLK_CNTRL (0x904b0160) ===
+
+=== SATA_PMU_CLK_DIV_CNTRL (0x904b0164) ===
+
+=== SATA_PMU_RESET (0x904b0168) ===
+
+SATA_PMU device (keep alive clock) reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| SATA_PMU_RST | 0 | R/W | Put the SATA_PMU device into reset state. 0=leave reset, 1=enter reset |
+
+=== SATA_OOB_CLK_CNTRL (0x904b0170) ===
+
+=== SATA_OOB_CLK_DIV_CNTRL (0x904b0174) ===
+
+=== SATA_OOB_RESET (0x904b0178) ===
+
+SATA_OOB device (keep alive clock) reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| SATA_OOB_RST | 0 | R/W | Put the SATA_OOB device into reset state. 0=leave reset, 1=enter reset |
+=== SATA_OCC_CLK_CNTRL (0x904b0180) ===
+
+=== SATA_OCC_CLK_DIV_CNTRL (0x904b0184) ===
+
+=== SATA_OCC_RESET (0x904b0188) ===
+
+SATA OCC reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| SATA_OCC_RST | 0 | R/W | Put the SATA_OCC device into reset state. 0=leave reset, 1=enter reset |
+
+=== PCIE_OCC_CLK_CNTRL (0x904b0190) ===
+
+=== PCIE_OCC_CLK_DIV_CNTRL (0x904b0194) ===
+
+=== PCIE_OCC_RESET (0x904b0198) ===
+
+PCIE OCC reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| PCIE_OCC_RST | 0 | R/W | Put the PCIE_OCC device into reset state. 0=leave reset, 1=enter reset |
+
+=== SGMII_OCC_CLK_CNTRL (0x904b01a0) ===
+
+=== SGMII_OCC_CLK_DIV_CNTRL (0x904b01a4) ===
+
+=== SGMII_OCC_RESET (0x904b01a8) ===
+
+SGMII OCC reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| SGMII_OCC_RST | 0 | R/W | Put the SGMII_OCC device into reset state. 0=leave reset, 1=enter reset |
+
+=== PLL0_M_LSB (0x904b01c0) ===
+
+=== PLL0_M_MSB (0x904b01c4) ===
+
+=== PLL0_P (0x904b01c8) ===
+
+=== PLL0_S (0x904b01cc) ===
+
+=== PLL0_CNTRL (0x904b01d0) ===
+
+=== PLL0_TEST (0x904b01d4) ===
+
+=== PLL0_STATUS (0x904b01d8) ===
+
+=== PLL0_DIV_CNTRL (0x904b01dc) ===
+
+=== PLL1_M_LSB (0x904b01e0) ===
+
+=== PLL1_M_MSB (0x904b01e4) ===
+
+=== PLL1_P (0x904b01e8) ===
+
+=== PLL1_S (0x904b01ec) ===
+
+=== PLL1_CNTRL (0x904b01f0) ===
+
+=== PLL1_TEST (0x904b01f4) ===
+
+=== PLL1_STATUS (0x904b01f8) ===
+
+=== PLL1_DIV_CNTRL (0x904b01fc) ===
+
+=== PLL2_M_LSB (0x904b0200) ===
+
+=== PLL2_M_MSB (0x904b0204) ===
+
+=== PLL2_P (0x904b0208) ===
+
+=== PLL2_S (0x904b020c) ===
+
+=== PLL2_CNTRL (0x904b0210) ===
+
+=== PLL2_TEST (0x904b0214) ===
+
+=== PLL2_STATUS (0x904b0218) ===
+
+=== PLL2_DIV_CNTRL (0x904b021c) ===
+
+=== PLL3_M_LSB (0x904b0220) ===
+
+PLL main divider (M) value (lower 8 bits).
+
+|| Symbol | Bit range | R/W | Description ||
+| M_LSB | 7-0 | RW | M low bits |
+
+=== PLL3_M_MSB (0x904b0224) ===
+
+PLL main divider (M) value (higher 1 bit).
+
+|| Symbol | Bit range | R/W | Description ||
+| M_MSB | 0 | RW | M high bit |
+
+=== PLL3_P (0x904b0228) ===
+
+=== PLL3_S (0x904b022c) ===
+
+=== PLL3_CNTRL (0x904b0230) ===
+
+=== PLL3_TEST (0x904b02234) ===
+
+=== PLL3_STATUS (0x904b0238) ===
+
+=== PLL3_DITHER_CNTRL (0x904b023c) ===
+
+Dithering control register? Set to 0x00 in bootloader.
+
+=== PLL3_K_LSB (0x904b0240) ===
+
+|| Symbol | Bit range | R/W | Description ||
+| K | 7-0 | RW | K parameter lower byte |
+
+=== PLL3_K_MSB (0x904b0244) ===
+
+|| Symbol | Bit range | R/W | Description ||
+| K | 3-0 | RW | K parameter higher byte |
+
+=== PLL3_MFR (0x904b0248) ===
+
+Unknown. Set to 0x01 in bootloader.
+
+=== PLL3_MRR (0x904b024c) ===
+
+Unknown and unused. Set to 0x07 in bootloader.
+
+=== TDMNTG_ADDR_SPACE_BASEADDR (0x904b0280) ===
+
+=== TSUNTG_ADDR_SPACE_BASEADDR (0x904b02c0) ===
+
+
+=== XXX_CLK_CNTRL ===
+
+Peripheral clock control register.
+
+|| Symbol | Bit range | R/W | Description ||
+| CLOCK_SOURCE | 1-3 | R/W | Clock source selection: 0: PLL0, 1: PLL1, 2: PLL2, 3: PLL3, 4: internal refclk (24/48 MHz) |
+| CLOCK_DOMAIN_ENABLE | 0 | R/W | Enable/disable clock domain. 0: disable, 1: enable |
+
+
+=== XXX_CLK_DIV_CNTRL ===
+
+Peripheral clock divider control register.
+
+WARNING: A hardware bug prevents reading the divider BYPASS bit.
+This bit will read as zero. A software workaround is to keep track of
+what value the software writes into the BYPASS bit of the XXX_CLK_DIV_CNTRL
+registers into a RAM region.
+Barebox keeps this info in IRAM, while Linux uses the DDR.
+
+|| Symbol | Bit range | R/W | Description ||
+| BYPASS | 7 | W | Enable/disable divider bypass. 0=apply divider, 1=bypass |
+| DIVIDER | 0-4 | RW | Clock divider value. Values 0 and 1 are reserved will not work as expected. Please set the BYPASS bit instead of setting DIVIDER to 1. |
+
+=== XXX_RESET ===
+
+Peripheral reset register.
+
+=== PLLx_M_LSB ===
+
+PLL main divider (M) value (lower 8 bits).
+
+Applies to PLLs 0-2.
+
+|| Symbol | Bit range | R/W | Description ||
+| M_LSB | 7-0 | RW | M low bits |
+
+=== PLLx_M_MSB ===
+
+PLL main divider (M) value (higher 2 bits).
+
+Applies to PLLs 0-2.
+
+|| Symbol | Bit range | R/W | Description ||
+| M_MSB | 1-0 | RW | M high bits |
+
+=== PLLx_P ===
+
+PLL pre-divider (P) value.
+
+Applies to PLLs 0-3.
+
+|| Symbol | Bit range | R/W | Description ||
+| P | 5-0 | RW | P parameter value |
+
+=== PLLx_S ===
+
+PLL post-scaler (S) value.
+
+Applies to PLLs 0-3.
+
+|| Symbol | Bit range | R/W | Description ||
+| S | 2-0 | RW | S parameter value |
+
+=== PLLx_CNTRL ===
+
+PLL control register.
+
+Applies to PLLs 0-3.
+
+|| Symbol | Bit range | R/W | Description ||
+| VSEL | 6 | RW | Voltage selection? |
+| LOCK_EN | 5 | RW | Lock something? PLL registers maybe? |
+| BYPASS | 4 | RW | Bypass PLL and use Fref as Fout |
+| RESET | 0 | RW | 0: Leave reset state 1: Put in reset state. If BYPASS is set, Fout still outputs Fref. |
+
+=== PLLx_TEST ===
+
+PLL test register?
+
+Applies to PLLs 0-3.
+
+=== PLLx_STATUS ===
+
+PLL status register.
+
+Applies to PLLs 0-3.
+
+|| Symbol | Bit range | R/W | Description ||
+| LOCK | 0 | R | Bit set when PLL is locked |
+
+=== PLLx_DIV_CNTRL ===
+
+PLL additional output divider register.
+
+Applies only to PLL 0 & 1.
+
+Unlike the XXX_CLK_DIV_CNTRL registers, these registers do not suffer from the
+write-only BYPASS bit bug and can be read directly.
+
+|| Symbol | Bit range | R/W | Description ||
+| BYPASS | 7 | RW | Enable/disable divider bypass. 0=apply divider, 1=bypass |
+| ? | 6 | ? | Unknown |
+| DIVIDER | 0-4 | RW | Clock divider value. |

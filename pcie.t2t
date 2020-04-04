@@ -1,0 +1,10 @@
+
+= PCI Express controller =[peri_pcie]
+
+The LS1024A features a PCI Express controller. It is a Synopsys Designware IP
+used in many SoC designs. The documentation is not publicly available from
+Synopsys, however the publicly available //QorIQ LS1012A Reference Manual//
+contains a full register documentation. Some details may vary depending on
+the configuration options selected by the SoC manufacturer, but the register
+offsets within the controller MMIO regions should be identical (the MMIO
+regions base offsets may differ though).

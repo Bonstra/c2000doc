@@ -1,0 +1,607 @@
+
+= GPIO and misc. system registers =[peri_gpio]
+
+The C2000 chip features up to 64 GPIOs:
+- Pins 0-15 are dedicated GPIO pins by default, pins 16-63 are assigned to
+  other functions par default.
+- Pins 0-3 are dedicated GPIO pins with no other function.
+- Pins 4-63 are muxed with GPIO and other functions.
+- Pins 0-7 can be configured as interrupt source
+  - Edge sensitive: rising, falling or both
+  - Level sensitive
+  - interrupts are provided to:
+    - the A9 subsystem
+    - the Util-PE block
+    - the CSS block
+- Pins 0-15 can drive up to 10mA, which is sufficient to directly control a
+  LED. Otherwise, an external LED driver is required.
+
+
+GPIO-related registers in this block control:
+- Pin muxing (GPIO or function selection)
+- GPIO direction (input, output)
+- Set GPIO output value or read input value
+- Interrupt source configuration
+
+
+Other registers:
+- processor to processor (PTP) IRQs
+- power management unit (PMU) IRQs
+- pads configuration (drive strength, slew rate, internal pull-up/down, Schmitt trigger inputs)
+- hardware IDs
+- fabric configuration
+- misc. Cortex A9 configuration
+- debugging
+- BIST registers
+- DDR controller
+
+
+== Pin muxing ==[peri_gpio_pin_muxing]
+
+As documented in the datasheet, augmented with what was found in the code:
+
+|| Location | Signal symbol | Option 1 | Option 2 | Option 3 | Option 4 ||
+| P1 | gem0_rxd0 | RGMII0_RXD0 | RMII0_RXD0 | N/A | N/A |
+| N5 | gem0_rxd1 | RGMII0_RXD1 | RMII0_RXD1 | N/A | N/A |
+| N4 | gem0_rxd2 | RGMII0_RXD2 | RMII0_RX_ER | N/A | N/A |
+| N3 | gem0_rxd3 | RGMII0_RXD3 | N/A | N/A | N/A |
+| N2 | gem0_rx_ctl | RGMII0_RX_CTL | RMII0_CRS_DV | N/A | N/A |
+| N1 | gem0_rxc | RGMII0_RXC | RMII0_CLK | N/A | N/A |
+| R2 | gem0_txd0 | RGMII0_TXD0 | RMII0_TXD0 | N/A | N/A |
+| R1 | gem0_txd1 | RGMII0_TXD1 | RMII0_TXD1 | N/A | N/A |
+| P5 | gem0_txd2 | RGMII0_TXD2 | N/A | N/A | N/A |
+| P4 | gem0_txd3 | RGMII0_TXD3 | N/A | N/A | N/A |
+| P3 | gem0_tx_ctl | RGMII0_TX_CTL | RMII0_TX_EN | N/A | N/A |
+| P2 | gem0_txc | RGMII0_TXC | N/A | N/A | N/A |
+| U2 | gem1_rxd0 | RGMII1_RXD0 | RMII1_RXD0 | N/A | N/A |
+| U1 | gem1_rxd1 | RGMII1_RXD1 | RMII1_RXD1 | N/A | N/A |
+| T4 | gem1_rxd2 | RGMII1_RXD2 | RMII1_RX_ER | N/A | N/A |
+| T3 | gem1_rxd3 | RGMII1_RXD3 | N/A | N/A | N/A |
+| T2 | gem1_rx_ctl | RGMII1_RX_CTL | RMII1_CRS_DV | N/A | N/A |
+| T1 | gem1_rxc | RGMII1_RXC | RMII1_CLK | N/A | N/A |
+| W1 | gem1_txd0 | RGMII1_TXD0 | RMII1_TXD0 | N/A | N/A |
+| V2 | gem1_txd1 | RGMII1_TXD1 | RMII1_TXD1 | N/A | N/A |
+| V1 | gem1_txd2 | RGMII1_TXD2 | N/A | N/A | N/A |
+| U5 | gem1_txd3 | RGMII1_TXD3 | N/A | N/A | N/A |
+| U4 | gem1_tx_ctl | RGMII1_TX_CTL | RMII1_TX_EN | N/A | N/A |
+| U3 | gem1_txc | RGMII1_TXC | N/A | N/A | N/A |
+| Y2 | gem2_rxd0 | RGMII2_RXD0 | RMII2_RXD0 | dect_sdata_in | N/A |
+| Y1 | gem2_rxd1 | RGMII2_RXD1 | RMII2_RXD1 | dect_sync_match | N/A |
+| W5 | gem2_rxd2 | RGMII2_RXD2 | RMII2_RX_ER | dect_sen | N/A |
+| W4 | gem2_rxd3 | RGMII2_RXD3 | N/A | dect_sdata_out | N/A |
+| W3 | gem2_rx_ctl | RGMII2_RX_CTL | RMII2_CRS_DV | i2s_bclk | N/A |
+| W2 | gem2_rxc | RGMII2_RXC | RMII2_CLK | i2s_sdo | N/A |
+| AB1 | gem2_txd0 | RGMII2_TXD0 | RMII2_TXD0 | dect_slot_ctrl | N/A |
+| AA2 | gem2_txd1 | RGMII2_TXD1 | RMII2_TXD1 | dect_radio_en | N/A |
+| AA1 | gem2_txd2 | RGMII2_TXD2 | N/A | i2s_codclko | N/A |
+| Y5 | gem2_txd3 | RGMII2_TXD3 | N/A | i2s_codclki | N/A |
+| Y4 | gem2_tx_ctl | RGMII2_TX_CTL | RMII2_TX_EN | i2s_lrclk | N/A |
+| Y3 | gem2_txc | RGMII2_TXC | N/A | i2s_sdi | N/A |
+| AB2 | gem2_refclk | GEM2_REFCLK | N/A | dect_tr_data | N/A |
+| C5 | gpio00 | gpio00 | N/A | N/A | N/A |
+| AC4 | gpio01 | gpio01 | N/A | N/A | N/A |
+| AD3 | gpio02 | gpio02 | N/A | N/A | N/A |
+| AC3 | gpio03 | gpio03 | N/A | N/A | N/A |
+| Y24 | gpio04 | gpio04 | tim_pwm0 | N/A | N/A |
+| Y25 | gpio05 | gpio05 | tim_pwm1 | N/A | N/A |
+| E4 | gpio06 | gpio06 | tim_pwm2 | sata0_act_led | N/A |
+| D4 | gpio07 | gpio07 | tim_pwm3 | sata0_cp_pod | N/A |
+| AC19 | gpio08 | gpio08 | N/A | uart0_rx | N/A |
+| AB19 | gpio09 | gpio09 | N/A | uart0_tx | N/A |
+| AE20 | gpio10 | gpio10 | N/A | uart0_rts_n | dect0 |
+| AD20 | gpio11 | gpio11 | N/A | uart0_cts_n | dect2 |
+| AC20 | gpio12 | gpio12 | tim_pwm4 | pfe_uart_rx | dect3 |
+| AB20 | gpio13 | gpio13 | tim_pwm5 | pfe_uart_tx | dect4 |
+| F4 | gpio14 | gpio14 | sata1_act_led | tim_evnt0 | dect5 |
+| H4 | gpio15 | gpio15 | sata1_cp_pod | tim_evnt1 | rtcosc |
+| AC21 | i2c_scl | i2c_scl | gpio16 | N/A | N/A |
+| AB21 | i2c_sda | i2c_sda | gpio17 | N/A | N/A |
+| AB22 | spi_ss0_n | spi_ss0_n | gpio18 | N/A | N/A |
+| AE23 | spi_ss1_n | spi_ss1_n | gpio19 | N/A | N/A |
+| B6 | spi_2_ss1_n | spi_2_ss1_n | gpio20 | N/A | N/A |
+| AD23 | spi_ss2_n | spi_ss2_n | gpio21 | N/A | N/A |
+| AA22 | spi_ss3_n | spi_ss3_n | gpio22 | N/A | N/A |
+| AD11 | exp_cs2_n | exp_cs2_n | gpio23 | N/A | N/A |
+| AE11 | exp_cs3_n | exp_cs3_n | gpio24 | N/A | N/A |
+| AE12 | exp_ale | exp_ale | gpio25 | N/A | N/A |
+| AD12 | exp_rdy | exp_rdy | gpio26 | N/A | N/A |
+| Y23 | tm_ext_reset | tm_ext_reset | gpio27 | N/A | N/A |
+| AC5 | exp_nand_cs | exp_nand_cs | gpio28 | N/A | N/A |
+| AB5 | exp_nand_rdy | exp_nand_rdy | gpio29 | N/A | N/A |
+| AE22 | spi_txd | spi_txd | gpio30 | N/A | N/A |
+| AC22 | spi_sclk | spi_sclk | gpio31 | N/A | N/A |
+| AD22 | spi_rxd | spi_rxd | gpio32 | N/A | N/A |
+| D5 | spi_2_rxd | spi_2_rxd | gpio33 | N/A | N/A |
+| A6 | spi_2_ss0_n | spi_2_ss0_n | gpio34 | N/A | N/A |
+| AC8 | exp_dq[8] | exp_dq[8] | gpio35 | N/A | N/A |
+| AD8 | exp_dq[9] | exp_dq[9] | gpio36 | N/A | N/A |
+| AE8 | exp_dq[10] | exp_dq[10] | gpio37 | N/A | N/A |
+| AB9 | exp_dq[11] | exp_dq[11] | gpio38 | N/A | N/A |
+| AC9 | exp_dq[12] | exp_dq[12] | gpio39 | N/A | N/A |
+| AD9 | exp_dq[13] | exp_dq[13] | gpio40 | N/A | N/A |
+| AE9 | exp_dq[14] | exp_dq[14] | gpio41 | N/A | N/A |
+| AC10 | exp_dq[15] | exp_dq[15] | gpio42 | N/A | N/A |
+| AC12 | exp_dm[1] | exp_dm[1] | gpio43 | N/A | N/A |
+| W19 | coresight_d0 | coresight_d0 | gpio44 | N/A | N/A |
+| W18 | coresight_d1 | coresight_d1 | gpio45 | N/A | N/A |
+| V19 | coresight_d2 | coresight_d2 | gpio46 | N/A | N/A |
+| V18 | coresight_d3 | coresight_d3 | gpio47 | N/A | N/A |
+| T18 | coresight_d4 | coresight_d4 | gpio48 | N/A | N/A |
+| T19 | coresight_d5 | coresight_d5 | gpio49 | N/A | N/A |
+| R18 | coresight_d6 | coresight_d6 | gpio50 | N/A | N/A |
+| R19 | coresight_d7 | coresight_d7 | gpio51 | N/A | N/A |
+| N18 | coresight_d8 | coresight_d8 | gpio52 | N/A | N/A |
+| N19 | coresight_d9 | coresight_d9 | gpio53 | N/A | N/A |
+| M18 | coresight_d10 | coresight_d10 | gpio54 | N/A | N/A |
+| M19 | coresight_d11 | coresight_d11 | gpio55 | N/A | N/A |
+| K19 | coresight_d12 | coresight_d12 | gpio56 | N/A | N/A |
+| K18 | coresight_d13 | coresight_d13 | gpio57 | N/A | N/A |
+| J19 | coresight_d14 | coresight_d14 | gpio58 | N/A | N/A |
+| J18 | coresight_d15 | coresight_d15 | gpio59 | N/A | N/A |
+| AE21 | uart1_rx | uart1_rx | uart_s2_rx | N/A | N/A |
+| AD21 | uart1_tx | uart1_tx | uart_s2_tx | N/A | N/A |
+| AC23 | tdm_ck | tdm_ck | zsi_zclk | gpio63 | isi_psclk |
+| AD24 | tdm_fs | tdm_fs | zsi_fsync | gpio62 | gpio62 (slic_n_reset) |
+| AC25 | tdm_dr | tdm_dr | zsi_zmiso | gpio61 | isi_data_i |
+| AC24 | tdm_dx | tdm_dx | zsi_zmosi | gpio60 | isi_data_o |
+
+
+== Registers ==[peri_gpio_regs]
+
+|| Base address | 0x90470000 ||
+|| Size | 0x00000?00 ||
+
+|| Interrupt source | GIC SPI interrupt ||
+| PTP0 | 0 (level) |
+| PTP1 | 1 (level) |
+| PTP2 | 2 (level) |
+| PTP3 | 3 (level) |
+| GPIO0 | 45 (level/edge) |
+| GPIO1 | 46 (level/edge) |
+| GPIO2 | 47 (level/edge) |
+| GPIO3 | 48 (level/edge) |
+| GPIO4 | 49 (level/edge) |
+| GPIO5 | 50 (level/edge) |
+| GPIO6 | 51 (level/edge) |
+| GPIO7 | 52 (level/edge) |
+
+|| Wake-up source | PMU interrupt ||
+| GPIO0 | 0 (level/edge) |
+| GPIO1 | 1 (level/edge) |
+| GPIO2 | 2 (level/edge) |
+| GPIO3 | 3 (level/edge) |
+| GPIO4 | 4 (level/edge) |
+| GPIO5 | 5 (level/edge) |
+| GPIO6 | 6 (level/edge) |
+| GPIO7 | 7 (level/edge) |
+| TIMER0 | 8 (edge) |
+| TIMER1 | 9 (edge) |
+| TIMER2 | 10 (edge) |
+| TIMER3 | 11 (edge) |
+| ZDS/MSIF | 12 (level) |
+| RTC_ALM | 13 (level/edge) |
+| RTC_PRI | 14 (level) |
+| PCIe0 | 15 (level) |
+| PCIe1 | 16 (level) |
+| SATA | 17 (level) |
+| SATA_MSI | 18 (level) |
+| USB2p0 | 19 (level) |
+| USB3p0 | 20 (level/edge) |
+| HFE_0 | 21 (level) |
+| WOL | 22 (edge) |
+| CSS | 23 (level) |
+| DUS_DMAC | 24 (level) |
+| DUS_UART0 | 25 (level) |
+| DUS_UART1/UART_S2 | 26 (level) |
+| HFE_1 | 27 (level) |
+| USP3p0_PM | 28 (level) |
+| PTP0 | 29 (level) |
+| PTP1 | 30 (level) |
+| PTP2 | 31 (level) |
+
+|| Symbol | Offset | Description ||
+| [GPIO_OUTPUT_REG #peri_gpio_output_reg] | 0x0000 | Output value to apply to GPIOs 31-0 |
+| [GPIO_OE_REG #peri_gpio_oe_reg] | 0x0004 | Direction configuration for GPIOs 31-0 |
+| [GPIO_INT_CFG_REG #peri_gpio_int_cfg_reg] | 0x0008 | Interrupt configuration for GPIOs 7-0 |
+| GPIO_ARM_UNALIGNED_LOGIC_ENABLE | 0x000c |  |
+| [GPIO_INPUT_REG #peri_gpio_input_reg] | 0x0010 | GPIOs 31-0 input values |
+| GPIO_APB_WS | 0x0014 | APB bus wait states? |
+| [GPIO_SYSTEM_CONFIG #peri_gpio_system_config] | 0x001c | Bootstrap pins configuration value |
+| GPIO_MBIST | 0x0020 | Memory BIST? |
+| GPIO_TDM_MUX | 0x0028 | TDM loopback config? FS output enable? |
+| GPIO_ARM_ID | 0x0030 | Part number info (empty?) |
+| [GPIO_MISC_CTRL #peri_gpio_misc_ctrl] | 0x0034 | Misc pads and fabric remap control |
+| GPIO_DDR_AXI_CTRL | 0x0038 |  |
+| GPIO_DDRC_STATUS | 0x003c |  |
+| GPIO_BOOTSTRAP_STATUS | 0x0040 |  |
+| GPIO_BOOTSTRAP_OVERRIDE | 0x0044 |  |
+| GPIO_USB_PHY_BIST_STATUS_REG | 0x0048 |  |
+| GPIO_GENERAL_CONTROL_REG | 0x004c |  |
+| [GPIO_DEVICE_ID_REG #peri_gpio_device_id_reg] | 0x0050 | C2000 revision info |
+| GPIO_ARM_MEMORY_SENSE_AMP | 0x0054 |  |
+| [GPIO_PIN_SELECT_REG #peri_gpio_pin_select_reg] | 0x0058 | Pad function selection |
+| [GPIO_PIN_SELECT_REG2 #peri_gpio_pin_select_reg2] | 0x005c | Pad function selection |
+| [GPIO_MISC_PIN_SELECT #peri_gpio_misc_pin_select] | 0x0060 | Misc pad function selection |
+| [GPIO_FABRIC_CTRL_REG #peri_gpio_fabric_ctrl_reg] | 0x006c | Interconnect fabric configuration |
+| GPIO_A9_AUTH_CTRL_REG | 0x0070 |  |
+| GPIO_A9_ACP_CONF_REG | 0x0074 | Accelerator Coherency Port configuration |
+| GPIO_PCIE_CLK_OUT_CTRL_REG | 0x0080 |  |
+| GPIO_INTR_STAT_REG | 0x0094 | Interrupt status register. Used for PTP0-PTP3 (Processor-to-processor IRQs) |
+| GPIO_INTR_CLR_REG | 0x0098 | Clear interrupt. Used for PTP0-PTP3 (Processor-to-processor IRQs) |
+| GPIO_INTR_SET_REG | 0x009c | Set interrupt. Used for PTP0-PTP3 (Processor-to-processor IRQs) |
+| GPIO_INTR_MASK_REG | 0x00a0 |  |
+| GPIO_CSS_DECT_SYS_CFG0 | 0x00b0 |  |
+| GPIO_CSS_DECT_SYS_CFG1 | 0x00b4 |  |
+| GPIO_CSS_DECT_CTRL | 0x00b8 |  |
+| [GPIO_63_32_PIN_OUTPUT #peri_gpio_63_32_pin_output] | 0x00d0 | Output value to apply to GPIOs 63-32 |
+| [GPIO_63_32_PIN_OUTPUT_EN #peri_gpio_63_32_pin_output_en] | 0x00d4 | Direction configuration for GPIOs 63-32 |
+| [GPIO_63_32_PIN_INPUT #peri_gpio_63_32_pin_input] | 0x00d8 | GPIOs 63-32 input values |
+| [GPIO_63_32_PIN_SELECT #peri_gpio_63_32_pin_select] | 0x00dc | GPIOs 63-32 GPIO/function selection |
+| [GPIO_PAD_CONFIG0 #peri_gpio_pad_config0] | 0x0100 | Pad configuration register |
+| [GPIO_PAD_CONFIG1 #peri_gpio_pad_config1] | 0x0104 | Pad configuration register |
+| [GPIO_PAD_CONFIG2 #peri_gpio_pad_config2] | 0x0108 | Pad configuration register |
+| [GPIO_PAD_CONFIG3 #peri_gpio_pad_config3] | 0x010c | Pad configuration register |
+| [GPIO_PAD_CONFIG4 #peri_gpio_pad_config4] | 0x0110 | Pad configuration register |
+| [GPIO_PAD_CONFIG5 #peri_gpio_pad_config5] | 0x0114 | Pad configuration register |
+| [GPIO_PAD_CONFIG6 #peri_gpio_pad_config6] | 0x0118 | Pad configuration register |
+| GPIO_PAD_CONFIG7 | 0x011c | Pad configuration register |
+| GPIO_PAD_CONFIG8 | 0x0120 | Pad configuration register |
+| GPIO_PAD_CONFIG9 | 0x0124 | Pad configuration register |
+| GPIO_PAD_CONFIG10 | 0x0128 | Pad configuration register |
+| GPIO_PAD_CONFIG11 | 0x012c | Pad configuration register |
+| GPIO_PAD_CONFIG12 | 0x0130 | Pad configuration register |
+| GPIO_PAD_CONFIG13 | 0x0134 | Pad configuration register |
+| GPIO_PAD_CONFIG14 | 0x0138 | Pad configuration register |
+| GPIO_PMU_INTR_STAT0 | 0x0150 | PMU interrupt status (using MASK0)
+| GPIO_PMU_INTR_STAT1 | 0x0154 | PMU interrupt status (using MASK1)
+| GPIO_PMU_INTR_STAT | 0x015c | PMU interrupt status (ignoring MASK0/1)
+| GPIO_PMU_INTR_CLR | 0x0160 | PMU interrupt clear resiter |
+| GPIO_PMU_INTR_SET | 0x0164 | PMU interrupt set register |
+| GPIO_PMU_INTR_MASK0 | 0x0168 | PMU interrupt mask 0 (PFE Util-PE?) |
+| GPIO_PMU_INTR_MASK1 | 0x016c | PMU interrupt mask 1 (CSS?) |
+| GPIO_MEM_EMA_CONFIG0 | 0x01a0 | Memory EMA (Extra Margin Adjustment) |
+| GPIO_MEM_EMA_CONFIG1 | 0x01a4 | Memory EMA (Extra Margin Adjustment) |
+| GPIO_MEM_EMA_CONFIG2 | 0x01a8 | Memory EMA (Extra Margin Adjustment) |
+| GPIO_MEM_EMA_CONFIG3 | 0x01ac | Memory EMA (Extra Margin Adjustment) |
+| GPIO_MEM_EMA_CONFIG4 | 0x01b0 | Memory EMA (Extra Margin Adjustment) |
+| GPIO_MEM_EMA_CONFIG5 | 0x01b4 | Memory EMA (Extra Margin Adjustment) |
+| GPIO_MEM_EMA_CONFIG6 | 0x01b8 | Memory EMA (Extra Margin Adjustment) |
+
+=== GPIO_OUTPUT_REG (0x90470000) ===[peri_gpio_output_reg]
+
+Allow to set a GPIO pin output value. GPIO must be configured as an output
+for the value in this register to have any effect.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO31 | 31 | R/W | GPIO 31 output value. 0=low 1=high |
+| GPIOxx | xx | R/W | GPIO xx output value. 0=low 1=high |
+| GPIO0 | 0  | R/W | GPIO 0 output value. 0=low 1=high |
+
+=== GPIO_OE_REG (0x90470004) ===[peri_gpio_oe_reg]
+
+Configure a GPIO pin as input or output.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO31 | 31 | R/W | GPIO 31 output enable. 0=input 1=output |
+| GPIOxx | xx | R/W | GPIO xx output enable. 0=input 1=output |
+| GPIO0 | 0  | R/W | GPIO 0 output enable. 0=input 1=output |
+
+=== GPIO_INT_CFG_REG (0x90470008) ===[peri_gpio_int_cfg_reg]
+
+Configure GPIO input pins 0-7 behaviour as interrupt sources.
+The matching interrupts in the GIC are SPIs 45 through 52 (IDs 77 through 84).
+
+For each of those GPIOs, the configuration value can be:
+0 - Disable
+1 - Falling edge
+2 - Rising edge
+3 - Active high (level-triggered)
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO7 | 15-14 | R/W | GPIO7 IRQ config |
+| GPIO6 | 13-12 | R/W | GPIO6 IRQ config |
+| GPIO5 | 11-10 | R/W | GPIO5 IRQ config |
+| GPIO4 | 9-8 | R/W | GPIO4 IRQ config |
+| GPIO3 | 7-6 | R/W | GPIO3 IRQ config |
+| GPIO2 | 5-4 | R/W | GPIO2 IRQ config |
+| GPIO1 | 3-2 | R/W | GPIO1 IRQ config |
+| GPIO0 | 1-0 | R/W | GPIO0 IRQ config |
+
+=== GPIO_INPUT_REG (0x90470010) ===[peri_gpio_input_reg]
+
+Allow to read a GPIO pin input value. For outputs, read value should be the
+same as the output value. For pins not configured as GPIO, the value may
+reflect the current logical state of the pin.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO31 | 31 | R | GPIO 31 output value. 0=low 1=high |
+| GPIOxx | xx | R | GPIO xx output value. 0=low 1=high |
+| GPIO0 | 0  | R | GPIO 0 output value. 0=low 1=high |
+
+=== GPIO_SYSTEM_CONFIG (0x9047001c) ===[peri_gpio_system_config]
+
+System configuration bootstrap pins register.
+
+|| Symbol | Bit range | R/W | Description ||
+| CLOCK | 21 | R | Whether IBR should enable PLLs. 0: Keep disabled 1: Enable PLLs |
+| SPI_SCLK_POL | 20 | R | SPI SCLK polarity. 0: -ve 1: +ve |
+| EXT_ID_READ_SEL | 19-17 | R | Extended ID Read Select. Purpose unknown. Overlaps previous bits. |
+| SPI_ADDR_LEN | 19-18 | R | 0: N/A 1: 2 bytes 2: 3 bytes 3: 4 bytes (Fast SPI only supports 3-byte addresses) |
+| SECURE_BOOT | 17 | R | 0: Disable 1: Enable |
+| FAST_UART_SPEED | 16 | R | 0: 115200 bauds 1: 921600 bauds |
+| CORESIGHT_DRV | 15 | R | 0: Drive interface 1: Tri-state (if unused or used as GPIOs) |
+| EXP_DM_DRV | 14 | R | EXP_DM driving mode - 0: bus is driven only during writes 1: bus is driven all the time |
+| GEM2_CNF | 13 | R | GEM2 mode - 0: GEMAC (PPFE) 1: I2S/CSS |
+| SERDES2_CNF | 12 | R | SerDes2 mode - 0: SATA1 1: SGMII |
+| SERDES1_CNF | 11 | R | SerDes1 mode - 0: PCIe1 1: SATA0 |
+| L2CC_AXI_SYNC | 10 | R | 0: L2CC and AXI clocks are asynchronous 1: L2CC and AXI clocks are synchronous and balanced |
+| SYS_PLL_REF_CLK | 9-8 | R | 0: USB XTAL (Officially reserved, but seen used in the wild) 1: SerDes0 refclk output (broken) 2: SerDes2 refclk output (broken) 3: SerDes XTAL |
+| SERDES_OSC_FREQ | 7 | R | 0: 48 MHz SerDes clock is used 1: 24 MHz SerDes clock is used |
+| SERDES_OSC_XTAL | 6 | R | 0: Crystal is connected to XI and XO 1: Clock is connected to XI |
+| USB_OSC_FREQ | 5 | R | (Officially unused. In effect, should be the same as bit 7) 0: 48 MHz USB XTAL 1: 24 MHz USB XTAL |
+| (none) | 4 | R | Reserved |
+| TDM_CLK_OUT | 3 | R | 0: TDM clock is driven by external device 1: TDM clock is driven by C2000 |
+| BOOT_OPT | 2-0 | R | Boot device (refer to the table below) |
+
+|| BOOT_OPT | Boot device ||
+| 0 | Low-speed SPI |
+| 1 | I2C |
+| 2 | High-speed SPI |
+| 3 | UART |
+| 4 | Reserved |
+| 5 | SATA |
+| 6 | 8 bit NOR |
+| 7 | 16 bit NOR |
+
+
+=== GPIO_MISC_CTRL (0x90470034) ===[peri_gpio_misc_ctrl]
+
+Misc pads and fabric remap control.
+
+|| Symbol | Bit range | R/W | Description ||
+| GEM2_PAD_COMPENSATION | 31-30 | R/W | GEM2? TX pad compensation logic. Set to 0 in bootloader for 2.5V RGMII) |
+| GEM2_? | 29-28 | R/W | Probably something related to GEM1 pads |
+| GEM1_PAD_COMPENSATION | 27-26 | R/W | GEM1? TX pad compensation logic. Set to 0 in bootloader for 2.5V RGMII) |
+| GEM1_? | 25-24 | R/W | Probably something related to GEM1 pads |
+| GEM0_PAD_COMPENSATION | 23-22 | R/W | GEM0? TX pad compensation logic. Set to 0 in bootloader for 2.5V RGMII) |
+| GEM0_? | 21-20 | R/W | Probably something related to GEM0 pads |
+| GEM2_REFCLK_TRISTATE | 16 | R/W | Tri-state GEM2_REFCLK pad |
+| GEM1_REFCLK_TRISTATE | 15 | R/W | Tri-state GEM1_REFCLK pad |
+| GEM0_REFCLK_TRISTATE | 14 | R/W | Tri-state GEM0_REFCLK pad |
+| EXP_CLK_TRISTATE | 13 | R/W | Tri-state EXP_CLK pad |
+| DISABLE_FABRIC_REMAP | 4 | R/W | Disable IBR remap |
+
+
+=== GPIO_DEVICE_ID_REG (0x90470050) ===[peri_gpio_device_id_reg]
+
+SoC revision info.
+
+|| Symbol | Bit range | R/W | Description ||
+| C2K_REVISION | 31-24 | R | C2000 SoC revision. 0=A0, 1=A1 |
+
+=== GPIO_PIN_SELECT_REG (0x90470058) ===[peri_gpio_pin_select_reg]
+
+Pins 0-15 function selection register.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO15 | 31-30 | R/W | GPIO pin 15 function: 0=GPIO 1=SATA1_CP_POD 2=TIM_EVENT1 3=RTCOSC |
+| GPIO14 | 29-28 | R/W | GPIO pin 14 function: 0=GPIO 1=SATA1_ACT_LED 2=TIM_EVENT0 3=DECT5 |
+| GPIO13 | 27-26 | R/W | GPIO pin 13 function: 0=GPIO 1=PWM5 2=PFE_UART_TX 3=DECT4 |
+| GPIO12 | 25-24 | R/W | GPIO pin 12 function: 0=GPIO 1=PWM4 2=PFE_UART_RX 3=DECT3 |
+| GPIO11 | 23-22 | R/W | GPIO pin 11 function: 0=GPIO 1=unknown/reserved 2=UART0_CTS_N 3=DECT2 |
+| GPIO10 | 21-20 | R/W | GPIO pin 10 function: 0=GPIO 1=unknown/reserved 2=UART0_RTS_N 3=DECT0 |
+| GPIO9 | 19-18 | R/W | GPIO pin 9 function: 0=GPIO 1=unknown/reserved 2=UART0_TX 3=unknown/reserved |
+| GPIO8 | 17-16 | R/W | GPIO pin 8 function: 0=GPIO 1=unknown/reserved 2=UART0_RX 3=unknown/reserved |
+| GPIO7 | 15-14 | R/W | GPIO pin 7 function: 0=GPIO 1=PWM3 2=SATA0_CP_POD 3=unknown/reserved |
+| GPIO6 | 13-12 | R/W | GPIO pin 6 function: 0=GPIO 1=PWM2 2=SATA0_ACT_LED 3=unknown/reserved |
+| GPIO5 | 11-10 | R/W | GPIO pin 5 function: 0=GPIO 1=PWM1 2-3=unknown/reserved |
+| GPIO4 | 9-8 | R/W | GPIO pin 4 function: 0=GPIO 1=PWM0 2-3=unknown/reserved |
+| GPIO3 | 7-6 | R/W | GPIO pin 3 function: 0=GPIO 1-3=unknown/reserved |
+| GPIO2 | 5-4 | R/W | GPIO pin 2 function: 0=GPIO 1-3=unknown/reserved |
+| GPIO1 | 3-2 | R/W | GPIO pin 1 function: 0=GPIO 1-3=unknown/reserved |
+| GPIO0 | 1-0 | R/W | GPIO pin 0 function: 0=GPIO 1-3=unknown/reserved |
+
+=== GPIO_PIN_SELECT_REG2 (0x9047005c) ===[peri_gpio_pin_select_reg2]
+
+Pins 16-31 function selection register.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO31 | 31-30 | R/W | GPIO pin 31 function: 0=SPI_SCLK 1=GPIO 2-3=unknown/reserved |
+| GPIO30 | 29-28 | R/W | GPIO pin 30 function: 0=SPI_TXD 1=GPIO 2-3=unknown/reserved |
+| GPIO29 | 27-26 | R/W | GPIO pin 29 function: 0=EXP_NAND_RDY 1=GPIO 2-3=unknown/reserved |
+| GPIO28 | 25-24 | R/W | GPIO pin 28 function: 0=EXP_NAND_CS 1=GPIO 2-3=unknown/reserved |
+| GPIO27 | 23-22 | R/W | GPIO pin 27 function: 0=TM_EXT_RESET 1=GPIO 2-3=unknown/reserved |
+| GPIO26 | 21-20 | R/W | GPIO pin 26 function: 0=EXP_RDY 1=GPIO 2-3=unknown/reserved |
+| GPIO25 | 19-18 | R/W | GPIO pin 25 function: 0=EXP_ALE 1=GPIO 2-3=unknown/reserved |
+| GPIO24 | 17-16 | R/W | GPIO pin 24 function: 0=EXP_CS3_N 1=GPIO 2-3=unknown/reserved |
+| GPIO23 | 15-14 | R/W | GPIO pin 23 function: 0=EXP_CS2_N 1=GPIO 2-3=unknown/reserved |
+| GPIO22 | 13-12 | R/W | GPIO pin 22 function: 0=SPI_SS3_N 1=GPIO 2-3=unknown/reserved |
+| GPIO21 | 11-10 | R/W | GPIO pin 21 function: 0=SPI_SS2_N 1=GPIO 2-3=unknown/reserved |
+| GPIO20 | 9-8 | R/W | GPIO pin 20 function: 0=SPI_2_SS1_N 1=GPIO 2-3=unknown/reserved |
+| GPIO19 | 7-6 | R/W | GPIO pin 19 function: 0=SPI_SS1_N 1=GPIO 2-3=unknown/reserved |
+| GPIO18 | 5-4 | R/W | GPIO pin 18 function: 0=SPI_SS0_N 1=GPIO 2-3=unknown/reserved |
+| GPIO17 | 3-2 | R/W | GPIO pin 17 function: 0=I2C_SDA 1=GPIO 2-3=unknown/reserved |
+| GPIO16 | 1-0 | R/W | GPIO pin 16 function: 0=I2C_SCL 1=GPIO 2-3=unknown/reserved |
+
+=== GPIO_MISC_PIN_SELECT (0x90470060) ===[peri_gpio_misc_pin_select]
+
+Misc pin selection (i.e. not GPIOs) register
+
+|| Symbol | Bit range | R/W | Description ||
+| DDRC_ODT_SRC | 7-6 | R/W | DDRC ODT (on-die termination) source select? Set to 1 in bootloader |
+| TDM_MUX | 5-4 | R/W | TDM interface mux. 0=TDM (SiLabs si3227) 1=ZDS (Zarlink le88264) 2=GPIOs 60-63 3=MSIF (SiLabs si32268) |
+| UART1_MUX | 1-0 | R/W | UART1/2 selection. 0=UART1 1=UART2 (slow/legacy UART)? 2=? 3=? |
+
+=== GPIO_FABRIC_CTRL_REG (0x9047006c) ===[peri_gpio_fabric_ctrl_reg]
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 8-2 | R/W | Unknown |
+| SATA_DDRC_PORT | 1-0 | R/W | DDRC port used for SATA controller. Set to 2 in Linux. |
+
+=== GPIO_63_32_PIN_OUTPUT (0x904700d0) ===[peri_gpio_63_32_pin_output]
+
+Set the output values for GPIOs 32-63.
+For pins configured as output, setting the bit drives the pin high, clearing
+it drives the pin low.
+For pins configured as input, setting the bit has no effect.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO63 | 31 | R/W | GPIO 63 output value. For output: 0=low 1=high |
+| GPIOxx | (xx - 32) | R/W | GPIO xx output value. For output: 0=low 1=high |
+| GPIO32 | 0 | R/W | GPIO 32 output value. For output: 0=low 1=high |
+
+=== GPIO_63_32_PIN_OUTPUT_EN (0x904700d4) ===[peri_gpio_63_32_pin_output_en]
+
+Configure GPIOs 32-63 as inputs or outputs.
+
+Beware, value is inverted wrt. [GPIO_OE_REG #peri_gpio_oe_reg].
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO63 | 31 | R/W | GPIO 63 input/output config. 0=output 1=input |
+| GPIOxx | (xx - 32) | R/W | GPIO xx input/output config. 0=output 1=input |
+| GPIO32 | 0 | R/W | GPIO 32 input/output config. 0=output 1=input |
+
+=== GPIO_63_32_PIN_INPUT (0x904700d8) ===[peri_gpio_63_32_pin_input]
+
+Read input values for GPIOs 32-63. Can also read pin value even if pin is not
+configured as a GPIO, or if configured as a GPIO output.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO63 | 31 | R | GPIO 63 input value. 0=low 1=high |
+| GPIOxx | xx-32 | R | GPIO xx input value. 0=low 1=high |
+| GPIO32 | 0 | R | GPIO 32 input value. 0=low 1=high |
+
+=== GPIO_63_32_PIN_SELECT (0x904700dc) ===[peri_gpio_63_32_pin_select]
+
+Select function for GPIOs 32-63.
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO63 | 31 | R/W | GPIO 63 function. 0=selected by TDM_MUX in GPIO_MISC_PIN_SELECT 1=unknown/reserved |
+| GPIO62 | 30 | R/W | GPIO 62 function. 0=selected by TDM_MUX in GPIO_MISC_PIN_SELECT 1=unknown/reserved |
+| GPIO61 | 29 | R/W | GPIO 61 function. 0=selected by TDM_MUX in GPIO_MISC_PIN_SELECT 1=unknown/reserved |
+| GPIO60 | 28 | R/W | GPIO 60 function. 0=selected by TDM_MUX in GPIO_MISC_PIN_SELECT 1=unknown/reserved |
+| GPIO59 | 27 | R/W | GPIO 59 function. 0=CORESIGHT_D15 1=GPIO |
+| GPIO58 | 26 | R/W | GPIO 58 function. 0=CORESIGHT_D14 1=GPIO |
+| GPIO57 | 25 | R/W | GPIO 57 function. 0=CORESIGHT_D13 1=GPIO |
+| GPIO56 | 24 | R/W | GPIO 56 function. 0=CORESIGHT_D12 1=GPIO |
+| GPIO55 | 23 | R/W | GPIO 55 function. 0=CORESIGHT_D11 1=GPIO |
+| GPIO54 | 22 | R/W | GPIO 54 function. 0=CORESIGHT_D10 1=GPIO |
+| GPIO53 | 21 | R/W | GPIO 53 function. 0=CORESIGHT_D9 1=GPIO |
+| GPIO52 | 20 | R/W | GPIO 52 function. 0=CORESIGHT_D8 1=GPIO |
+| GPIO51 | 19 | R/W | GPIO 51 function. 0=CORESIGHT_D7 1=GPIO |
+| GPIO50 | 18 | R/W | GPIO 50 function. 0=CORESIGHT_D6 1=GPIO |
+| GPIO49 | 17 | R/W | GPIO 49 function. 0=CORESIGHT_D5 1=GPIO |
+| GPIO48 | 16 | R/W | GPIO 48 function. 0=CORESIGHT_D4 1=GPIO |
+| GPIO47 | 15 | R/W | GPIO 47 function. 0=CORESIGHT_D3 1=GPIO |
+| GPIO46 | 14 | R/W | GPIO 46 function. 0=CORESIGHT_D2 1=GPIO |
+| GPIO45 | 13 | R/W | GPIO 45 function. 0=CORESIGHT_D1 1=GPIO |
+| GPIO44 | 12 | R/W | GPIO 44 function. 0=CORESIGHT_D0 1=GPIO |
+| GPIO43 | 11 | R/W | GPIO 43 function. 0=EXP_DM[1] 1=GPIO |
+| GPIO42 | 10 | R/W | GPIO 42 function. 0=EXP_DQ[15] 1=GPIO |
+| GPIO41 | 9 | R/W | GPIO 41 function. 0=EXP_DQ[14] 1=GPIO |
+| GPIO40 | 8 | R/W | GPIO 40 function. 0=EXP_DQ[13] 1=GPIO |
+| GPIO39 | 7 | R/W | GPIO 39 function. 0=EXP_DQ[12] 1=GPIO |
+| GPIO38 | 6 | R/W | GPIO 38 function. 0=EXP_DQ[11] 1=GPIO |
+| GPIO37 | 5 | R/W | GPIO 37 function. 0=EXP_DQ[10] 1=GPIO |
+| GPIO36 | 4 | R/W | GPIO 36 function. 0=EXP_DQ[9] 1=GPIO |
+| GPIO35 | 3 | R/W | GPIO 35 function. 0=EXP_DQ[8] 1=GPIO |
+| GPIO34 | 2 | R/W | GPIO 34 function. 0=SPI_2_SS0_N 1=GPIO |
+| GPIO33 | 1 | R/W | GPIO 33 function. 0=SPI_2_RXD 1=GPIO |
+| GPIO32 | 0 | R/W | GPIO 32 function. 0=SPI_RXD 1=GPIO |
+
+=== GPIO_PAD_CONFIGx (0x90470100 + x*4) ===[peri_gpio_pad_configx]
+
+|| Symbol | Bit range | R/W | Description ||
+| X_4_SLEW_RATE | 29 | R/W | Pad output slew rate. 0=slow 1=fast |
+| X_4_SCHMITT_TRIGGER? | 28 | R/W | Enable Schmitt trigger on input. 0=disable 1=enable |
+| X_4_PULL_EN | 27 | R/W | Enable internal weak pull up/down resistor |
+| X_4_PULL_SEL | 26 | R/W | Pull-up/down resistor selection. 0=pull-down 1=pull-up |
+| X_4_DRIVE_STRENGTH | 25-24 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+| X_3_SLEW_RATE | 23 | R/W | Pad output slew rate. 0=slow 1=fast |
+| X_3_SCHMITT_TRIGGER? | 22 | R/W | Enable Schmitt trigger on input. 0=disable 1=enable |
+| X_3_PULL_EN | 21 | R/W | Enable internal weak pull up/down resistor |
+| X_3_PULL_SEL | 20 | R/W | Pull-up/down resistor selection. 0=pull-down 1=pull-up |
+| X_3_DRIVE_STRENGTH | 19-18 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+| X_2_SLEW_RATE | 17 | R/W | Pad output slew rate. 0=slow 1=fast |
+| X_2_SCHMITT_TRIGGER? | 16 | R/W | Enable Schmitt trigger on input. 0=disable 1=enable |
+| X_2_PULL_EN | 15 | R/W | Enable internal weak pull up/down resistor |
+| X_2_PULL_SEL | 14 | R/W | Pull-up/down resistor selection. 0=pull-down 1=pull-up |
+| X_2_DRIVE_STRENGTH | 13-12 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+| X_1_SLEW_RATE | 11 | R/W | Pad output slew rate. 0=slow 1=fast |
+| X_1_SCHMITT_TRIGGER? | 10 | R/W | Enable Schmitt trigger on input. 0=disable 1=enable |
+| X_1_PULL_EN | 9 | R/W | Enable internal weak pull up/down resistor |
+| X_1_PULL_SEL | 8 | R/W | Pull-up/down resistor selection. 0=pull-down 1=pull-up |
+| X_1_DRIVE_STRENGTH | 7-6 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+| X_0_SLEW_RATE | 5 | R/W | Pad output slew rate. 0=slow 1=fast |
+| X_0_SCHMITT_TRIGGER? | 4 | R/W | Enable Schmitt trigger on input. 0=disable 1=enable |
+| X_0_PULL_EN | 3 | R/W | Enable internal weak pull up/down resistor |
+| X_0_PULL_SEL | 2 | R/W | Pull-up/down resistor selection. 0=pull-down 1=pull-up |
+| X_0_DRIVE_STRENGTH | 1-0 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+
+=== GPIO_PAD_CONFIG0 (0x90470100) ===[peri_gpio_pad_config0]
+
+|| Symbol | Bit range | R/W | Description ||
+| TDM_DR_PULL_EN | 27 | R/W | TDM_DR pin bias enable. 0=no bias 1=pull-up/down |
+| TDM_DR_PULL_SEL | 26 | R/W | TDM_DR pin pull-up/down selection. 0=pull-down 1=pull-up |
+| TDM_DR_DRIVE_STRENGTH | 25-24 | R/W | TDM_DR drive strength. Set in Linux BSP. 0=x1 1=x3 2=x2 3=x4 |
+| TDM_DX_PULL_EN | 21 | R/W | TDM_DX pin bias enable. 0=no bias 1=pull-up/down |
+| TDM_DX_PULL_SEL | 20 | R/W | TDM_DX pin pull-up/down selection. 0=pull-down 1=pull-up |
+| TDM_DX_DRIVE_STRENGTH | 19-18 | R/W | TDM_DX drive strength. Set in Linux BSP. 0=x1 1=x3 2=x2 3=x4 |
+| TDM_FS_PULL_EN | 15 | R/W | TDM_FS pin bias enable. 0=no bias 1=pull-up/down |
+| TDM_FS_PULL_SEL | 14 | R/W | TDM_FS pin pull-up/down selection. 0=pull-down 1=pull-up |
+| TDM_FS_DRIVE_STRENGTH | 13-12 | R/W | TDM_FS drive strength. Set in Linux BSP. 0=x1 1=x3 2=x2 3=x4 |
+| TDM_CK_PULL_EN | 9 | R/W | TDM_CK pin bias enable. 0=no bias 1=pull-up/down |
+| TDM_CK_PULL_SEL | 8 | R/W | TDM_CK pin pull-up/down selection. 0=pull-down 1=pull-up |
+| TDM_CK_DRIVE_STRENGTH | 7-6 | R/W | TDM_CK drive strength. Set in Linux BSP. 0=x1 1=x3 2=x2 3=x4 |
+
+=== GPIO_PAD_CONFIG1 (0x90470104) ===[peri_gpio_pad_config1]
+
+|| Symbol | Bit range | R/W | Description ||
+| SPI_RXD_PULL_EN | 3 | R/W | Pull-up/down enable for SPI_RXD pad. 0=disable 1=enable |
+| SPI_RXD_PULL_SEL | 2 | R/W | Pull-up/down selection for SPI_RXD pad. 0=pull-down 1=pull-up|
+| SPI_RXD_DRIVE_STRENGTH? | 1-0 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+
+=== GPIO_PAD_CONFIG2 (0x90470108) ===[peri_gpio_pad_config2]
+
+|| Symbol | Bit range | R/W | Description ||
+| SPI_2_SS0_N_SLEW_RATE? | 17 | R/W | Pad output slew rate. 0=slow 1=fast |
+| SPI_2_SS0_N_PULL_SEL | 14 | R/W | Enable pull-up resistor on SPI_2_SS0_N pad |
+| SPI_2_SS0_N_DRIVE_STRENGTH? | 13-12 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+| SPI_2_RXD_PULL_EN | 3 | R/W | Pull-up/down enable for SPI_2_RXD pad. 0=disable 1=enable |
+| SPI_2_RXD_PULL_SEL | 2 | R/W | Pull-up/down selection for SPI_2_RXD pad. 0=pull-down 1=pull-up|
+| SPI_2_RXD_DRIVE_STRENGTH? | 1-0 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+
+=== GPIO_PAD_CONFIG3 (0x9047010c) ===[peri_gpio_pad_config3]
+
+|| Symbol | Bit range | R/W | Description ||
+| GEM0_RXC_PULLDOWN? | 20 | R/W | Enable pull-down? resistor on GEM0_RXC pad |
+| GEM0_RXC_DRIVE_STRENGTH? | 19-18 | R/W | GEM0 RXC drive strength? |
+| GEM0_?_SLEW_RATE | 17 | R/W | GEM0 Tx ? slew rate |
+| GEM0_?_DRIVE_STRENGTH | 13-12 | R/W | GEM0 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
+| GEM0_?_SLEW_RATE | 11 | R/W | GEM0 Tx ? slew rate |
+| GEM0_?_DRIVE_STRENGTH | 7-6 | R/W | GEM0 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
+
+=== GPIO_PAD_CONFIG4 (0x90470110) ===[peri_gpio_pad_config4]
+
+|| Symbol | Bit range | R/W | Description ||
+| GEM1_RXC_PULLDOWN? | 20 | R/W | Enable pull-down? resistor on GEM1_RXC pad |
+| GEM1_?_SLEW_RATE | 17 | R/W | GEM1 Tx ? slew rate |
+| GEM1_?_DRIVE_STRENGTH | 13-12 | R/W | GEM1 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
+| GEM1_?_SLEW_RATE | 11 | R/W | GEM1 Tx ? slew rate |
+| GEM1_?_DRIVE_STRENGTH | 7-6 | R/W | GEM1 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
+
+=== GPIO_PAD_CONFIG5 (0x90470114) ===[peri_gpio_pad_config5]
+
+|| Symbol | Bit range | R/W | Description ||
+| GEM2_RXC_PULLDOWN? | 20 | R/W | Enable pull-down? resistor on GEM2_RXC pad |
+| GEM2_?_SLEW_RATE | 17 | R/W | GEM2 Tx ? slew rate |
+| GEM2_?_DRIVE_STRENGTH | 13-12 | R/W | GEM2 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
+| GEM2_?_SLEW_RATE | 11 | R/W | GEM2 Tx ? slew rate |
+| GEM2_?_DRIVE_STRENGTH | 7-6 | R/W | GEM2 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
+
+=== GPIO_PAD_CONFIG6 (0x90470118) ===[peri_gpio_pad_config6]
+
+|| Symbol | Bit range | R/W | Description ||
+| CORESIGHT_PULL_EN | 21 | R/W | Pull-up/down enable for CORESIGHT pads. 0=disable 1=enable |
+| CORESIGHT_PULL_SEL | 20 | R/W | Pull-up/down selection for CORESIGHT pads. 0=pull-down 1=pull-up|
+| CORESIGHT_DRIVE_STRENGTH? | 19-18 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |

@@ -1,0 +1,153 @@
+
+= PCIe, SATA and USB control =[peri_dwc_misc]
+
+Configuration registers for PCIe, SATA and USB 2.0 Designware IPs.
+
+== Registers ==
+
+|| Base address | 0x90460000 ||
+
+|| Symbol | Offset | Description ||
+| [PCIE0_CFG0 #peri_dwc_misc_reg_pcie_cfg0] | 0x000 | PCIE0 configuration register 0 |
+| PCIE0_CFG1 | 0x004 | PCIE0 configuration register 1 |
+| PCIE0_CFG2 | 0x008 | PCIE0 configuration register 2 |
+| PCIE0_CFG3 | 0x00c | PCIE0 configuration register 3 |
+| PCIE0_CFG4 | 0x010 | PCIE0 configuration register 4 |
+| [PCIE0_CFG5 #peri_dwc_misc_reg_pcie_cfg5] | 0x014 | PCIE0 configuration register 5 |
+| PCIE0_CFG6 | 0x018 | PCIE0 configuration register 6 |
+| [PCIE1_CFG0 #peri_dwc_misc_reg_pcie_cfg0] | 0x020 | PCIE1 configuration register 0 |
+| PCIE1_CFG1 | 0x024 | PCIE1 configuration register 1 |
+| PCIE1_CFG2 | 0x028 | PCIE1 configuration register 2 |
+| PCIE1_CFG3 | 0x02c | PCIE1 configuration register 3 |
+| PCIE1_CFG4 | 0x030 | PCIE1 configuration register 4 |
+| [PCIE1_CFG5 #peri_dwc_misc_reg_pcie_cfg5] | 0x034 | PCIE1 configuration register 5 |
+| PCIE1_CFG6 | 0x038 | PCIE1 configuration register 6 |
+| [USB0_DWC_CFG_REGF #peri_dwc_misc_reg_usb0_dwc_cfg] | 0x03c | DWC USB 2.0 controller configuration register |
+| [PCIE0_STS0 #peri_dwc_misc_reg_pcie_sts0] | 0x040 | PCIE0 status register 0 |
+| PCIE0_STS1 | 0x044 | PCIE0 status register 1 |
+| PCIE0_STS2 | 0x048 | PCIE0 status register 2 |
+| [PCIE1_STS0 #peri_dwc_misc_reg_pcie_sts0] | 0x04c | PCIE1 status register 0 |
+| PCIE1_STS1 | 0x050 | PCIE1 status register 1 |
+| PCIE1_STS2 | 0x054 | PCIE1 status register 2 |
+| PCIE0_STS3 | 0x058 | PCIE0 status register 3 |
+| PCIE1_STS3 | 0x05c | PCIE1 status register 3 |
+| PCIE0_PWR_CFG_BDGT_DATA | 0x080 | PCIE0 power budgeting configuration data? |
+| PCIE0_PWR_CFG_BDGT_FN | 0x084 | PCIE0 power budgeting configuration function? |
+| PCIE1_PWR_CFG_BDGT_DATA | 0x088 | PCIE1 power budgeting configuration data |
+| PCIE1_PWR_CFG_BDGT_FN | 0x08c | PCIE1 power budgeting configuration function? |
+| PCIE0_RADM_STS | 0x0c0 | PCIE0 RADM status register? |
+| PCIE0_PWR_STS_BDGT | 0x0c4 | PCIE0 power budgeting status register? |
+| PCIE1_RADM_STS | 0x0c8 | PCIE1 RADM status register? |
+| PCIE1_PWR_STS_BDGT | 0x0cc | PCIE1 power budgeting status register? |
+| [PCIE0_INTR_STS #peri_dwc_misc_reg_pcie_intr_sts] | 0x100 | PCIE0 interrupt status register |
+| [PCIE0_INTR_EN #peri_dwc_misc_reg_pcie_intr_en] | 0x104 | PCIE0 interrupt enable register |
+| PCIE0_INTR_MSI_STS | 0x108 | PCIE0 MSI status register |
+| PCIE0_INTR_MSI_EN | 0x10c | PCIE0 MSI enable register |
+| [PCIE1_INTR_STS #peri_dwc_misc_reg_pcie_intr_sts] | 0x110 | PCIE1 interrupt status register |
+| [PCIE1_INTR_EN #peri_dwc_misc_reg_pcie_intr_en] | 0x114 | PCIE1 interrupt enable register |
+| PCIE1_INTR_MSI_STS | 0x118 | PCIE1 MSI status register |
+| PCIE1_INTR_MSI_EN | 0x11c | PCIE1 MSI enable register |
+
+==== PCIEx_CFG0 (0x904600x0) ====[peri_dwc_misc_reg_pcie_cfg0]
+
+| PCIE0_CFG0 | 0x90460000 |
+| PCIE1_CFG0 | 0x90460020 |
+
+PCIEx configuration register 0.
+
+|| Symbol | Bit range | R/W | Description ||
+| DEV_TYPE | 4-0 | RW | PCIE device type. |
+
+Device types:
+
+| DEV_TYPE_EP (Endpoint) | 0x0 |
+| DEV_TYPE_LEP (Legacy endpoint) | 0x1 |
+| DEV_TYPE_RC (Root Complex) | 0x4 |
+| DEV_TYPE_UP_SW (Upstream switch port) | 0x5 |
+| DEV_TYPE_DWN_SW (Downstream switch port) | 0x6 |
+
+==== PCIEx_CFG5 (0x904600x4) ====[peri_dwc_misc_reg_pcie_cfg5]
+
+| PCIE0_CFG5 | 0x90460014 |
+| PCIE1_CFG5 | 0x90460034 |
+
+PCIEx configuration register 5.
+
+|| Symbol | Bit range | R/W | Description ||
+| LINK_DOWN_RST | 9 | RW | Initiate linkdown reset (I assume it resets LTSSM to link down state) |
+| APP_RDY_L23 | 2 | RW | Delay entry to the L2/L3 Ready state until this bit is set to 1. |
+| LTSSM_ENABLE | 1 | RW | Enable or disable LTSSM. Setting to 0 causes LTSSM to reset and stay in the Detect state. Set to 1 after configuring the PCIe core registers to resume the LTSSM state machine. |
+| APP_INIT_RST | 0 | RW | ? |
+
+==== PCIEx_STS0 (0x9046004x) ====[peri_dwc_misc_reg_pcie_sts0]
+
+| PCIE0_STS0 | 0x90460040 |
+| PCIE1_STS0 | 0x9046004c |
+
+PCIEx status register 0.
+
+|| Symbol | Bit range | R/W | Description ||
+| RDLH_LINK_UP | 16 | R | Data link is up. |
+| XMLH_LINK_UP | 15 | R | PHY link is up. |
+| LINK_REQ_RST_NOT | 0 | R | Notify that the link went down unexpectedly and requires a reset (using LINK_DOWN_RST bit in PCIEx_CFG5)? ? 0=requires reset? 1=no action required? |
+
+==== PCIEx_INTR_STS (0x904601x0) ====[peri_dwc_misc_reg_pcie_intr_sts]
+
+| PCIE0_CFG0 | 0x90460100 |
+| PCIE1_CFG0 | 0x90460110 |
+
+PCIEx interrupt status register.
+
+Pending interrupts have their corresponding bit set when reading.
+Writing a 1 for an interrupt bit clears that bit.
+
+|| Symbol | Bit range | R/W | Description ||
+| MSI | 12 | RW | MSI interrupt |
+| LINK_AUTO_BW | 11 | RW |  |
+| HP | 10 | RW |  |
+| PME | 9 | RW |  |
+| AER | 8 | RW |  |
+| INTD_DEASSERT | 7 | RW | Legacy INTD deasserted |
+| INTD_ASSERT | 6 | RW | Legacy INTD asserted |
+| INTC_DEASSERT | 5 | RW | Legacy INTC deasserted |
+| INTC_ASSERT | 4 | RW | Legacy INTC asserted |
+| INTB_DEASSERT | 3 | RW | Legacy INTB deasserted |
+| INTB_ASSERT | 2 | RW | Legacy INTB asserted |
+| INTA_DEASSERT | 1 | RW | Legacy INTA deasserted |
+| INTA_ASSERT | 0 | RW | Legacy INTA asserted |
+
+==== PCIEx_INTR_EN (0x904601x4) ====[peri_dwc_misc_reg_pcie_intr_en]
+
+| PCIE0_CFG0 | 0x90460104 |
+| PCIE1_CFG0 | 0x90460114 |
+
+PCIEx interrupt enable register.
+
+Writing a 1 bit enables the corresponding interrupt, writing a 0 bit disables
+it.
+
+|| Symbol | Bit range | R/W | Description ||
+| MSI | 12 | RW | MSI interrupt |
+| LINK_AUTO_BW | 11 | RW |  |
+| HP | 10 | RW |  |
+| PME | 9 | RW |  |
+| AER | 8 | RW |  |
+| INTD_DEASSERT | 7 | RW | Legacy INTD deasserted |
+| INTD_ASSERT | 6 | RW | Legacy INTD asserted |
+| INTC_DEASSERT | 5 | RW | Legacy INTC deasserted |
+| INTC_ASSERT | 4 | RW | Legacy INTC asserted |
+| INTB_DEASSERT | 3 | RW | Legacy INTB deasserted |
+| INTB_ASSERT | 2 | RW | Legacy INTB asserted |
+| INTA_DEASSERT | 1 | RW | Legacy INTA deasserted |
+| INTA_ASSERT | 0 | RW | Legacy INTA asserted |
+
+==== USB0_DWC_CFG_REGF (0x9046003c) ====[peri_dwc_misc_reg_usb0_dwc_cfg]
+
+Register controlling the USB 2.0 controller (usb0) miscellaneous signals.
+
+|| Symbol | Bit range | R/W | Description ||
+| usb0_? | 12 | RW | Force UTMI+ OTG idDig value? Set to 1 for host mode. |
+| usb1_id_sel | 9 | RW | Selects ID value from register for usb1 (USB 3.0) |
+| usb0_id_sel | 8 | RW | Selects ID value from register for usb0 (USB 2.0). Set to 1 for host mode. |
+| usb1_scaledown_mode | 3-2 | RW | Scale-down mode (simulation use). 0 = disabled, other = reserved, to speed up design simulation only (use scaled-down values for timers) |
+| usb0_scaledown_mode | 1-0 | RW | Scale-down mode (simulation use). 0 = disabled, other = reserved, to speed up design simulation only (use scaled-down values for timers) |

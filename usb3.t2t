@@ -1,0 +1,106 @@
+
+= USB 3.0 controller =[peri_usb3]
+
+The C2000 SoC integrates a DWC USB3.0 controller from Synopsys.
+It supports both device and host modes.
+
+== Memory map ==
+
+|| Base address | 0x9f000000 ||
+
+|| Range (offset from base) | Region size (w/o mirrors) | Description ||
+| 0x00000-0x07fff | ? | xHCI registers |
+| 0x00000-0x0001f | 0x20 | Host Controller Capability Registers |
+| 0x00020-0x0041f | 0x400 | Host Controller Operational Registers |
+| 0x00420-0x0042f | 0x10 | Host Controlelr Port Register Set |
+| 0x00440-0x0045f | 0x8 | Host Controller Runtime Registers |
+| 0x00460-0x0047f | 0x20 | Host Controller Interrupt Registers |
+| 0x00480-0x0087f | 0x4 | Host Controller Doorbell Register |
+| 0x00880-0x07fff | ? | xHCI Extended Capabilities |
+| 0x0c100-0x0c6ff | ? | Global Registers |
+| 0x0c700-0x0cbff | ? | Device Registers |
+| 0x0cc00-0x0ccff | ? | USB2.0 OTG and Battery Charger Registers |
+| 0x0cd00-0x0cfff | 0x300 | Unused/aliased |
+| 0x40000-0x7ffff | 0x40000 | Internal RAM 0 - Debug Access (256KB) |
+| 0x80000-0xbffff | 0x40000 | Internal RAM 1 - Debug Access (256KB) |
+| 0xc0000-0xfffff | 0x40000 | Internal RAM 2 - Debug Access (256KB) |
+
+
+=== xHCI registers ===
+
+Refer to the xHCI specification.
+
+=== Global register ===
+
+|| Symbol | Offset | Description ||
+| GSBUSCFG0 | 0xc100 |  |
+| GSBUSCFG1 | 0xc104 |  |
+| GTXTHRCFG | 0xc108 |  |
+| GRXTHRCFG | 0xc10c |  |
+| GCTL | 0xc110 |  |
+| GEVTEN | 0xc114 |  |
+| GSTS | 0xc118 |  |
+| GSNPSID | 0xc120 |  |
+| GGPIO | 0xc124 |  |
+| GUID | 0xc128 |  |
+| GUCTL | 0xc12c |  |
+| GBUSERRADDR_31_0 | 0xc130 |  |
+| GBUSERRADDR_63_32 | 0xc134 |  |
+| GPRTBITMAP_31_0 | 0xc138 |  |
+| GPRTBITMAP_63_32 | 0xc13c |  |
+| GHWPARAMS0 | 0xc140 |  |
+| GHWPARAMS1 | 0xc144 |  |
+| GHWPARAMS2 | 0xc148 |  |
+| GHWPARAMS3 | 0xc14c |  |
+| GHWPARAMS4 | 0xc150 |  |
+| GHWPARAMS5 | 0xc154 |  |
+| GHWPARAMS6 | 0xc158 |  |
+| GHWPARAMS7 | 0xc15c |  |
+| GDBGFIFOSPACE | 0xc160 |  |
+| GDBGLTSSM | 0xc164 |  |
+| GDBGLNMCC | 0xc168 |  |
+| GDBGBMU | 0xc16c |  |
+| GDBGLSPMUX | 0xc170 |  |
+| GDBGLSP | 0xc174 |  |
+| GDBGEPINFO0 | 0xc178 |  |
+| GDBGEPINFO1 | 0xc17c |  |
+| GPRTBITMAP_HS_31_0 | 0xc180 |  |
+| GPRTBITMAP_HS_63_32 | 0xc184 |  |
+| GPRTBITMAP_FS_31_0 | 0xc188 |  |
+| GPRTBITMAP_FS_63_32 | 0xc18c |  |
+| GUSB2PHYCFG_0 | 0xc200 |  |
+| GUSB2PHYCFG_x | 0xc200 + (4 * x) |  |
+| GUSB2PHYCFG_15 | 0xc23c |  |
+| GUSB2I2CCTL_0 | 0xc240 |  |
+| GUSB2PHYCFG_x | 0xc240 + (4 * x) |  |
+| GUSB2I2CCTL_15 | 0xc27c |  |
+| GUSB2PHYACC_0 | 0xc280 |  |
+| GUSB2PHYACC_x | 0xc280 + (4 * x) |  |
+| GUSB2PHYACC_15 | 0xc2bc |  |
+| GUSB3PIPECTL_0 | 0xc2c0 |  |
+| GUSB3PIPECTL_x | 0xc2c0 + (4 * x) |  |
+| GUSB3PIPECTL_15 | 0xc2fc |  |
+| GTXFIFOSIZ_0 | 0xc300 |  |
+| GTXFIFOSIZ_x | 0xc300 + (4 * x) |  |
+| GTXFIFOSIZ_31 | 0xc37c |  |
+| GRXFIFOSIZ_0 | 0xc380 |  |
+| GRXFIFOSIZ_x | 0xc380 + (4 * x) |  |
+| GRXFIFOSIZ_31 | 0xc3fc |  |
+| GEVNTADR_31_0_0 | 0xc400 |  |
+| GEVNTADR_63_32_0 | 0xc404 |  |
+| GEVNTSIZ_0 | 0xc408 |  |
+| GEVNTCOUNT_0 | 0xc40c |  |
+| GEVNTADR_31_0_x | 0xc400 + (0x10 * x) |  |
+| GEVNTADR_63_32_x | 0xc404 + (0x10 * x) |  |
+| GEVNTSIZ_x | 0xc408 + (0x10 * x) |  |
+| GEVNTCOUNT_x | 0xc40c + (0x10 * x) |  |
+| GEVNTADR_31_0_31 | 0xc500 |  |
+| GEVNT_63_32_31 | 0xc504 |  |
+| GEVNTSIZ_31 | 0xc508 |  |
+| GEVNTCOUNT_31 | 0xc50c |  |
+| GHWPARAMS8 | 0xc600 |  |
+
+
+=== Device registers ===
+
+=== USB 2.0 OTG and Battery Charger register ===

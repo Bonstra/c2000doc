@@ -1,0 +1,318 @@
+
+= SPI controller =[peri_spi]
+
+The Comcerto 2000 features two SPI master controllers: a high speed and a low
+speed one. Both controllers are instances of the Synopsys Designware SPI
+master controller core.
+
+Common features:
+- Master-only
+- Data frame size: 4 to 16 bits
+- Hardware and/or software slave select
+
+
+HS SPI specific features:
+- Clock rate up to 50 MHz
+- 2 hardware slave select outputs
+- FIFO depth: 32 words
+- Can be controlled by the DUSI DMA unit
+
+
+LS SPI specific features:
+- Clock rate up to 14 MHz (16 MHz theoretical)
+- 4 hardware slave select outputs
+- FIFO depth: 8 words
+- No DMA support
+
+
+Remark: While the register documentation describes registers and fields for
+operating the SPI controller in slave mode, it does not mean that the
+C2000 actually implements them.
+
+
+== Registers ==[peri_spi_regs]
+
+||   | HS SPI (DUSI) | LS SPI ||
+| Base address | 0x96500000 | 0x90498000 |
+| Size | 0x1000 | 0x1000 |
+| GIC SPI interrupt | 28 (level) | 29 (level) |
+
+|| Symbol | Offset | Description ||
+| [CTRL0 #spi_regs_ctrl0] | 0x00 | SPI control register 0 |
+| [CTRL1 #spi_regs_ctrl1] | 0x04 | SPI control register 1 |
+| [SSIENR #spi_regs_ssienr] | 0x08 | Synchronous serial interface enable register |
+| [MWCR #spi_regs_mwcr] | 0x0c | Microwire control register? |
+| [SER #spi_regs_ser] | 0x10 | Slave enable register |
+| [BAUDR #spi_regs_baudr] | 0x14 | Baud rate divider register |
+| [TXFLTR #spi_regs_txfltr] | 0x18 | Tx FIFO level threshold register |
+| [RXFLTR #spi_regs_rxfltr] | 0x1c | Rx FIFO level threshold register |
+| [TXFLR #spi_regs_txflr] | 0x20 | Tx FIFO level register |
+| [RXFLR #spi_regs_rxflr] | 0x24 | Rx FIFO level register |
+| [SR #spi_regs_sr] | 0x28 | Status register |
+| [IMR #spi_regs_imr] | 0x2c | Interrupt mask register |
+| [ISR #spi_regs_isr] | 0x30 | Interrupt status register |
+| [RISR #spi_regs_risr] | 0x34 | Raw interrupt status register |
+| [TXOICR #spi_regs_txoicr] | 0x38 | Tx FIFO overflow interrupt clear register |
+| [RXOICR #spi_regs_rxoicr] | 0x3c | Rx FIFO overflow interrupt clear register |
+| [RXUICR #spi_regs_rxuicr] | 0x40 | Rx FIFO underflow interrupt clear register |
+| [MSTICR #spi_regs_msticr] | 0x44 | Multi master interrupt clear register |
+| [ICR #spi_regs_icr] | 0x48 | Interrupt clear register |
+| [DMACR #spi_regs_dmacr] | 0x4c | DMA control register |
+| [DMATDLR #spi_regs_dmatdlr] | 0x50 | DMA Tx data level register |
+| [DMARDLR #spi_regs_dmardlr] | 0x54 | DMA Rx data level register |
+| [IDR #spi_regs_idr] | 0x58 | ID register |
+| [VERSION #spi_regs_version] | 0x5c | Version register |
+| [DR #spi_regs_dr] | 0x60 | Data register |
+| [RXDLY #spi_regs_rxdly] | 0xf0 | Rx sample delay register |
+
+
+=== CTRL0 (HS: 0x96500000 LS: 0x90498000) ===[spi_regs_ctrl0]
+
+SPI control register 0
+
+|| Symbol | Bit range | R/W | Description ||
+| CFS | 15-12 | RW | Control frame size. Selects the length of the control word for the Microwire frame format. |
+| SRL | 11 | RW | Shift register loop. Connects the Tx shift register output to the Rx shift register input. 0=normal 1=loopback |
+| SLVOE | 10 | RW | Slave output enable. No use in master mode. |
+| TMOD | 9-8 | RW | Transmission mode. 0=Tx+Rx 1=Tx only 2=Rx only 3=EEPROM read |
+| SCOL | 7 | RW | SPI clock polarity. 0=normal clock polarity (active high) 1=inverted clock polarity (active low) |
+| SCPH | 6 | RW | SPI clock phase. 0=normal clock phase (serial clock toggles in the middle of the data bit) 1=inverted clock phase (serial clock toggles at the start of a data bit) |
+| FRF | 5-4 | RW | Frame format. 0=SPI 1=SSP 2=Microwire 3=reserved |
+| DFS | 3-0 | RW | Data frame size. Data frame size (in bits) = DFS + 1. Min frame size: 4 bits. Max frame size: 16 bits. |
+
+=== CTRL1 (HS: 0x96500004 LS: 0x90498004) ===[spi_regs_ctrl1]
+
+SPI control register 1
+
+|| Symbol | Bit range | R/W | Description ||
+| NDF | 15-0 | RW | In receive-only or EEPROM modes, number of data frames to read. 0x0fff appears to be the maximum acceptable value. |
+
+
+=== SSIENR (HS: 0x96500008 LS: 0x90498008) ===[spi_regs_ssienr]
+
+Synchronous serial interface enable register
+
+|| Symbol | Bit range | R/W | Description ||
+| SSIEN | 0 | RW | Enable SPI controller. When disabled, transfers are stopped and FIFOs are cleared. |
+
+=== MWCR (HS: 0x9650000c LS: 0x9049800c) ===[spi_regs_mwcr]
+
+Microwire control register?
+
+|| Symbol | Bit range | R/W | Description ||
+
+
+=== SER (HS: 0x96500010 LS: 0x90498010) ===[spi_regs_ssienr]
+
+Slave enable register. When a bit in this register is set, the corresponding
+slave select line is activated when a serial transfer begins. Setting or
+clearing bits have no effect on the slave select lines until a transfer is
+started.
+
+|| Symbol | Bit range | R/W | Description ||
+| SE15 | 15 | RW | Enable slave select line 15 |
+| SEx | x | RW | Enable slave select line x |
+| SE0 | 0 | RW | Enable slave select line 0 |
+
+
+=== BAUDR (HS: 0x96500014 LS: 0x90498014) ===[spi_regs_baudr]
+
+Baud clock divider register
+
+|| Symbol | Bit range | R/W | Description ||
+| SCDIV | 15-0 | RW | Serial clock divider. SCLK = DUSI_CLK / SCDIV. SCDIV must be even, between 2 and 0xfffe. Setting to 0 disables the clock. |
+
+
+=== TXFLTR (HS: 0x96500018 LS: 0x90498018) ===[spi_regs_txfltr]
+
+Tx FIFO level threshold register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TXFLT | 7-0 | RW | Tx FIFO threshold at/below which an interrupt is generated. Max value depends on the FIFO size instantiated at design time. |
+
+
+=== RXFLTR (HS: 0x9650001c LS: 0x9049801c) ===[spi_regs_rxfltr]
+
+Rx FIFO level threshold register.
+
+|| Symbol | Bit range | R/W | Description ||
+| RXFLT | 7-0 | RW | Rx FIFO threshold above which an interrupt is generated. Max value depends on the FIFO size instantiated at design time. |
+
+
+=== TXFLR (HS: 0x96500020 LS: 0x90498020) ===[spi_regs_txflr]
+
+Current Tx FIFO level register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TXFL | 7-0 | RO | Current Tx FIFO level. In Rx/Tx and Tx-only modes, transfer ends when FIFO level drops to 0. |
+
+
+=== RXFLR (HS: 0x96500024 LS: 0x90498024) ===[spi_regs_rxflr]
+
+Current Rx FIFO level register.
+
+|| Symbol | Bit range | R/W | Description ||
+| RXFL | 7-0 | RO | Current Rx FIFO level |
+
+
+=== SR (HS: 0x96500028 LS: 0x90498028) ===[spi_regs_sr]
+
+Status register.
+
+|| Symbol | Bit range | R/W | Description ||
+| DCOL | 6 | RO | Data collision error. Only relevant for controllers supporting multi-master operation (unsupported). |
+| TX_ERR | 5 | RO | Tx error. Only relevant in slave operation (unsupported). |
+| RF_FULL | 4 | RO | Rx FIFO full |
+| RF_NOT_EMPT | 3 | RO | Rx FIFO not empty |
+| TF_EMPT | 2 | RO | Tx FIFO empty |
+| TF_NOT_FULL | 1 | RO | Tx FIFO not full |
+| BUSY | 0 | RO | SSI busy flag, serial transfer in progress |
+
+
+=== IMR (HS: 0x9650002c LS: 0x9049802c) ===[spi_regs_imr]
+
+Interrupt mask register.
+
+|| Symbol | Bit range | R/W | Description ||
+| MSTIM | 5 | RW | Multi-Master contention interrupt |
+| RXFIM | 4 | RW | Rx FIFO full interrupt |
+| RXOIM | 3 | RW | Rx FIFO overflow interrupt |
+| RXUIM | 2 | RW | Rx FIFO underflow interrupt |
+| TXOIM | 1 | RW | Tx FIFO overflow interrupt |
+| TXEIM | 0 | RW | Tx FIFO empty interrupt |
+
+
+=== ISR (HS: 0x96500030 LS: 0x90498030) ===[spi_regs_isr]
+
+Interrupt status register (after the mask is applied).
+
+|| Symbol | Bit range | R/W | Description ||
+| MSTIS | 5 | R | Multi-Master contention interrupt |
+| RXFIS | 4 | R | Rx FIFO full interrupt |
+| RXOIS | 3 | R | Rx FIFO overflow interrupt |
+| RXUIS | 2 | R | Rx FIFO underflow interrupt |
+| TXOIS | 1 | R | Tx FIFO overflow interrupt |
+| TXEIS | 0 | R | Tx FIFO empty interrupt |
+
+
+=== RISR (HS: 0x96500034 LS: 0x90498034) ===[spi_regs_risr]
+
+Raw interrupt status register (before the mask is applied).
+
+|| Symbol | Bit range | R/W | Description ||
+| MSTIR | 5 | R | Multi-Master contention interrupt |
+| RXFIR | 4 | R | Rx FIFO full interrupt |
+| RXOIR | 3 | R | Rx FIFO overflow interrupt |
+| RXUIR | 2 | R | Rx FIFO underflow interrupt |
+| TXOIR | 1 | R | Tx FIFO overflow interrupt |
+| TXEIR | 0 | R | Tx FIFO empty interrupt |
+
+
+=== TXOICR (HS: 0x96500038 LS: 0x90498038) ===[spi_regs_txoicr]
+
+SPI Tx FIFO overflow interrupt clear register
+
+|| Symbol | Bit range | R/W | Description ||
+| TXOICR | 0 | R | Clear transmit FIFO overflow interrupt. Read value reflects the interrupt status before clearing. |
+
+
+=== RXOICR (HS: 0x9650003c LS: 0x9049803c) ===[spi_regs_rxoicr]
+
+SPI Rx FIFO overflow interrupt clear register
+
+|| Symbol | Bit range | R/W | Description ||
+| RXOICR | 0 | R | Clear receive FIFO overflow interrupt. Read value reflects the interrupt status before clearing. |
+
+
+=== RXUICR (HS: 0x96500040 LS: 0x90498040) ===[spi_regs_rxuicr]
+
+SPI Rx FIFO underflow interrupt clear register
+
+|| Symbol | Bit range | R/W | Description ||
+| RXUICR | 0 | R | Clear receive FIFO underflow interrupt. Read value reflects the interrupt status before clearing. |
+
+
+=== MSTICR (HS: 0x96500044 LS: 0x90498044) ===[spi_regs_msticr]
+
+SPI multi-master interrupt clear register
+
+|| Symbol | Bit range | R/W | Description ||
+| MSTICR | 0 | R | Clear multi-master contention interrupt. Read value reflects the interrupt status before clearing. |
+
+=== ICR (HS: 0x96500048 LS: 0x90498048) ===[spi_regs_icr]
+
+Interrupt clear register. Reading this register will clear all pending interrupts.
+
+Use this to clear overflow/underflow conditions.
+
+The value returned when reading this register is unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ICR | 0 | R | Clear Tx overflow, Rx underflow, Rx overflow and multi-master interrupts when read. |
+
+
+=== DMACR (HS: 0x9650004c LS: 0x9049804c) ===[spi_regs_dmacr]
+
+DMA control register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TDMAE | 1 | RW | Tx FIFO DMA channel enable |
+| RDMAE | 0 | RW | Rx FIFO DMA channel enable |
+
+
+=== DMATDLR (HS: 0x96500050 LS: 0x90498050) ===[spi_regs_dmatdlr]
+
+DMA Tx data level register.
+
+Seen value: 0x10
+
+|| Symbol | Bit range | R/W | Description ||
+| DMATDL | 4-0 | RW | Transmit data level at/below which a DMA request is made to fill the Tx FIFO. Writing a value equal or higher than the FIFO size will have no effect, and the register will retain its previous value. |
+
+
+=== DMARDLR (HS: 0x96500054 LS: 0x90498054) ===[spi_regs_dmardlr]
+
+DMA Rx data level register.
+
+Seen value: 0x0f
+
+|| Symbol | Bit range | R/W | Description ||
+| DMARDL | 4-0 | RW | Receive data level above which a DMA request is made to empty the Rx FIFO. Writing a value equal or higher than the FIFO size will have no effect, and the register will retain its previous value. |
+
+
+=== IDR (HS: 0x96500058 LS: 0x90498058) ===[spi_regs_idr]
+
+ID register
+
+|| Symbol | Bit range | R/W | Description ||
+| ID | 31-0 | R | ID value. Meaning unknown. |
+
+
+=== VERSION (HS: 0x9650005c LS: 0x9049805c) ===[spi_regs_version]
+
+SSI core version register?
+
+- Value for HS SPI: 0x3331352A "315*"
+- Value for LS SPI: 0x3330312A "301*"
+
+
+|| Symbol | Bit range | R/W | Description ||
+| VER | 31-0 | R | SSI core revision number |
+
+=== DR (HS: 0x96500060 LS: 0x90498060) ===[spi_regs_dr]
+
+Data register.
+
+Registers in range 0x64-0xef are all aliases of DR in order to facilitate AHB
+burst transfers. Reading or writing in that range will have the same effect as
+accessing DR.
+
+|| Symbol | Bit range | R/W | Description ||
+| DR | 15-0 | RW | Data register. When written, data word is pushed into the Tx FIFO. When reading, data is popped from the Rx FIFO. Written data must be right-justified. Read data is automatically right-justified. |
+
+=== RXDLY (HS: 0x965000f0 LS: 0x904980f0) ===[spi_regs_rxdly]
+
+SPI sample delay register.
+
+|| Symbol | Bit range | R/W | Description ||
+| RSD | 15-0 | RW | Rx data sample delay. Delay the sampling of the rxd signal by RSD DUSI_CLK cycles. A value higher than the depth of the internal shift register (4?) will cause a value a 0 to be used instead. |

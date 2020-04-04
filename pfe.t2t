@@ -1,0 +1,628 @@
+
+= Packet Forwarding Engine (PFE) =[pfe]
+
+Processor engines (PE):
+
+|| PE ID | PE name ||
+| 0 | CLASS0 |
+| 1 | CLASS1 |
+| 2 | CLASS2 |
+| 3 | CLASS3 |
+| 4 | CLASS4 |
+| 5 | CLASS5 |
+| 6 | TMU0 |
+| 7 | TMU1 |
+| 8 | TMU2 |
+| 9 | TMU3 |
+| 10 | UTIL |
+
+The //Class// PEs are responsible for //class//ifying packets.
+
+The TMU PEs are responsible for scheduling packets and shaping traffic.
+
+The Util PE is responsible for all the other tasks.
+
+== CBUS (common bus?) memory map ==[pfe_cbus]
+
+The CBUS is shared by the ARM and all PEs.
+
+|| Seen from | CBUS base address ||
+| ARM | 0x9c000000 |
+| Any PE | 0xc0000000 |
+
+|| Base offset in CBUS | Size | Size (w/o mirrors) | Description ||
+| 0x200000 | 0x10000 | ? | [EMAC1 #pfe_gemac] |
+| 0x210000 | 0x10000 | ? | [EGPI1 #pfe_gpi] |
+| 0x220000 | 0x10000 | ? | [EMAC2 #pfe_gemac] |
+| 0x230000 | 0x10000 | ? | [EGPI2 #pfe_gpi] |
+| 0x240000 | 0x10000 | 0x800 | [BMU1 #pfe_bmu] |
+| 0x250000 | 0x10000 | 0x800 | [BMU2 #pfe_bmu] |
+| 0x260000 | 0x10000 | ? | ARB |
+| 0x270000 | 0x10000 | ? | DDR_CONFIG |
+| 0x280000 | 0x10000 | ? | HIF |
+| 0x290000 | 0x10000 | ? | HGPI |
+| 0x300000 | 0x10000 | ? | LMEM |
+| 0x310000 | 0x10000 | ? | [TMU_CSR #pfe_tmu_csr] |
+| 0x320000 | 0x10000 | ? | [CLASS_CSR #pfe_class_csr] |
+| 0x330000 | 0x10000 | ? | [EMAC3 #pfe_gemac] |
+| 0x340000 | 0x10000 | ? | [EGPI3 #pfe_gpi] |
+| 0x350000 | 0x10000 | ? | HIF_NOCPY |
+| 0x360000 | 0x10000 | ? | [UTIL_CSR #pfe_util_csr] |
+| 0x370000 | 0x10000 | ? | CBUS_GPT |
+
+Note: Do not attempt to perform a byte access at address 0xffff of a
+peripheral as it will cause CBUS to hang. Instead, perform a 16-bit access at
+address 0xfffe.
+
+== Class PE memory map ==[pfe_class_memmap]
+
+All addresses are given for the Class PE address space.
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0x00000000-0x0000ffff | 0x2000 | DMEM (per PE data memory) |
+| 0x00010000-0x0001ffff | 0x8000 | PMEM (per PE program memory)
+| 0x00020000-0x85ffffff | ? | DDR + ACP + IRAM |
+| 0xc0000000-0xc0ffffff | ? | CBUS |
+| 0xc1000000-0xc1ffffff | ? | Class APB bus |
+| 0xc2000000-0xc2ffffff | ? | Class AHB1 bus |
+| 0xc3000000-0xc3ffffff | ? | Class AHB2 bus |
+
+=== Class APB bus map ===[pfe_class_apb]
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0xc1000000-0xc100ffff | ? | GPT (General Purpose Timer) |
+| 0xc1010000-0xc101ffff | ? | UART |
+| 0xc1020000-0xc102ffff | ? | PERG |
+| 0xc1030000-0xc103ffff | ? | EFET |
+
+=== Class AHB1 bus map ===[pfe_class_ahb1]
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0xc2030000-0xc203ffff | ? | MAC hash |
+| 0xc2050000-0xc205ffff | ? | VLAN hash |
+
+=== Class AHB2 bus map ===[pfe_class_ahb2]
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0xc3010000-0xc301ffff | 0x8000 | PE LMEM |
+| 0xc3020000-0xc302ffff | ? | CCU |
+
+== Gigabit Ethernet MAC (GEMAC) ==[pfe_gemac]
+
+== GPI ==[pfe_gpi]
+
+Generic Packet Interface?
+
+== Buffer Management Unit (BMU) ==[pfe_bmu]
+
+The buffer management unit (BMU) manages a buffer pool, allowing multiple
+peripherals to acquire and release buffers from the pool.
+
+The base address of the buffer pool is configurable, as well as the buffer
+size. The number of buffers in the pool is configurable too, to a limit of
+65535 buffers.
+
+The BMU does not perform any DMA transfers; the state of the buffer pool is
+kept in an internal memory which can be cleared by a software reset.
+
+The BMU can generate interrupt requests to notify a PE of buffer pool state
+changes.
+
+When a peripheral needs a buffer, it can allocate one by reading the
+BMU_ALLOC_CTRL register. If a buffer is available, its address will be returned
+and the BMU will mark this buffer as allocated. If no buffer is available, the
+address 0 will be returned.
+
+To free a previously allocated buffer, the peripheral must write the buffer
+address into the BMU_FREE_CTRL register. If the peripheral attempts to double
+free a buffer, the address of the offending free operation will be stored in
+the BMU_FREE_ERR_ADDR register.
+
+=== BMU registers ===[pfe_bmu_regs]
+
+|| BMU instance | Base offset in CBUS ||
+| BMU1 | 0x240000 |
+| BMU2 | 0x250000 |
+
+|| Symbol | Offset | Description ||
+| [BMU_VERSION #pfe_bmu_reg_bmu_version] | 0x000 | BMU version register (reads 0x21 on my hardware) |
+| [BMU_CTRL #pfe_bmu_reg_bmu_ctrl] | 0x004 | BMU control register (enable/reset) |
+| [BMU_UCAST_CONFIG #pfe_bmu_reg_bmu_ucast_config] | 0x008 | Number of buffers in the pool |
+| [BMU_UCAST_BASE_ADDR #pfe_bmu_reg_bmu_ucast_base_addr] | 0x00c | Base address to the buffer pool |
+| [BMU_BUF_SIZE #pfe_bmu_reg_bmu_buf_size] | 0x010 | Size of one buffer in the pool |
+| [BMU_BUF_CNT #pfe_bmu_reg_bmu_buf_cnt] | 0x014 | Not implemented? Always reads 0 and writes have no visible effect. |
+| [BMU_THRES #pfe_bmu_reg_bmu_thres] | 0x018 | BMU buffer count threshold |
+| [BMU_INT_SRC #pfe_bmu_reg_bmu_int_src] | 0x020 | BMU interrupt source register |
+| [BMU_INT_ENABLE #pfe_bmu_reg_bmu_int_enable] | 0x024 | BMU interrupt enable register |
+| [BMU_ALLOC_CTRL #pfe_bmu_reg_bmu_alloc_ctrl] | 0x030 | Allocates one buffer from the pool |
+| [BMU_FREE_CTRL #pfe_bmu_reg_bmu_free_ctrl] | 0x034 | Free one previously allocated buffer from the pool |
+| [BMU_FREE_ERR_ADDR #pfe_bmu_reg_bmu_free_err_addr] | 0x038 | Address of buffer used in invalid free operation |
+| [BMU_CURR_BUF_CNT #pfe_bmu_reg_bmu_curr_buf_cnt] | 0x03c | Number of buffers currently allocated |
+| [BMU_MCAST_CNT #pfe_bmu_reg_bmu_mcast_cnt] | 0x040 | Unknown |
+| [BMU_MCAST_ALLOC_CTRL #pfe_bmu_reg_bmu_mcast_alloc_ctrl] | 0x044 | Unknown |
+| [BMU_REM_BUF_CNT #pfe_bmu_reg_bmu_rem_buf_cnt] | 0x048 | Number of remaining free buffers in the pool |
+| [BMU_LOW_WATERMARK #pfe_bmu_reg_bmu_low_watermark] | 0x050 | Low watermark value |
+| [BMU_HIGH_WATERMARK #pfe_bmu_reg_bmu_high_watermark] | 0x054 | High watermark value |
+| [BMU_INT_MEM_ACCESS #pfe_bmu_reg_bmu_int_mem_access] | 0x100 | Internal memory access register |
+
+==== BMU_VERSION (BMU_BASE + 0x000) ====[pfe_bmu_reg_bmu_version]
+
+BMU silicon revision. 0x21 on my c2k chip.
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | ?-0 | R | BMU silicon revision |
+
+==== BMU_CTRL (BMU_BASE + 0x004) ====[pfe_bmu_reg_bmu_ctrl]
+
+BMU control register. The ENABLE bit must be set prior attempting to access
+the other BMU registers (except BMU_VERSION), otherwise the transation may
+hang forever (or until the watchdog kicks in).
+
+Performing a software reset will not reset the value of the configuration
+registers, only the internal state will be cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| SW_RESET | 1 | RW | Perform software reset. Self-clearing. |
+| ENABLE | 0 | RW | BMU enable. 0=disable 1=enable |
+
+==== BMU_UCAST_CONFIG (BMU_BASE + 0x008) ====[pfe_bmu_reg_bmu_ucast_config]
+
+Number of buffers in the pool.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_COUNT | 15-0 | RW | Total number of buffers in the pool. |
+
+==== BMU_UCAST_BASE_ADDR (BMU_BASE + 0x00c) ====[pfe_bmu_reg_bmu_ucast_base_addr]
+
+Base address of the buffer pool.
+
+The BASE_ADDRESS value is only used to convert between the buffer index, used
+internally, and the full physical address, used for the BMU_ALLOC_CTRL and
+BMU_FREE_CTRL registers.
+
+|| Symbol | Bit range | R/W | Description ||
+| BASE_ADDRESS | 31-0 | RW | Base address of the buffer pool. |
+
+==== BMU_BUF_SIZE (BMU_BASE + 0x010) ====[pfe_bmu_reg_bmu_buf_size]
+
+Size of one buffer in the pool.
+
+The size in bytes is computed as follow:
+
+```
+BUF_SIZE_BYTES = 1 << BUF_SIZE
+```
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_SIZE | 15-0 | RW | Buffer size in powers of 2 (the BUF_SIZE value from above formula). |
+
+==== BMU_BUF_CNT (BMU_BASE + 0x014) ====[pfe_bmu_reg_bmu_buf_cnt]
+
+Unknown. Always reads 0. Writes have no visible effect.
+
+==== BMU_THRES (BMU_BASE + 0x18) ====[pfe_bmu_reg_bmu_thres]
+
+Number of allocated buffer threshold at which an interrupt request should be
+generated.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-16 | RW | Purpose unknown. |
+| THRES | 15-0 | RW | An interrupt request is generated as long as the number of allocated buffer is greater or equal than THRES. |
+
+==== BMU_INT_SRC (BMU_BASE + 0x20) ====[pfe_bmu_reg_bmu_int_src]
+
+Interrupt source pending and acknowledge register.
+
+Reading from this register shows the pending interrupt requests.
+
+Writing into this registers acknowledges the interrupt requests which have
+their bit set in the value written.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 8 | RW | ? |
+| ? | 7 | RW | ? |
+| ? | 6 | RW | ? |
+| ? | 5 | RW | ? |
+| INVALID_FREE | 4 | RW | Set when freeing an already free buffer, or freeing a buffer outside the pool. |
+| THRES | 3 | RW | Set when the number of allocated buffers is greater or equal to the THRES value set in the BMU_THRES register. |
+| FULL | 2 | RW | Set when all buffers are allocated. |
+| EMPTY | 1 | RW | Set when no buffer is allocated. |
+| ? | 0 | RW | ? |
+
+==== BMU_INT_ENABLE (BMU_BASE + 0x24) ====[pfe_bmu_reg_bmu_int_enable]
+
+Interrupt source enable register.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 8 | RW | ? |
+| ? | 7 | RW | ? |
+| ? | 6 | RW | ? |
+| ? | 5 | RW | ? |
+| INVALID_FREE | 4 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| THRES | 3 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| FULL | 2 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| EMPTY | 1 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| ? | 0 | RW | ? |
+
+==== BMU_ALLOC_CTRL (BMU_BASE + 0x30) ====[pfe_bmu_reg_bmu_alloc_ctrl]
+
+Buffer allocation register.
+
+Reading from this register will allocate one buffer from the pool and return
+its address. If no free buffer is available, the value 0 is returned.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_ADDR | 31-0 | R | Address of the buffer just allocated. |
+
+==== BMU_FREE_CTRL (BMU_BASE + 0x34) ====[pfe_bmu_reg_bmu_free_ctrl]
+
+Buffer free register.
+
+Writing an address into this register will free the previously-allocated buffer
+with that address.
+
+If the address does not match any allocated buffer, an error will be reported
+via the INVALID_FREE interrupt source, and the offending address will be stored
+(at some point) in the BMU_FREE_ERR_ADDR register.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_ADDR | 31-0 | W | Address of the buffer to free. |
+
+==== BMU_FREE_ERR_ADDR (BMU_BASE + 0x38) ====[pfe_bmu_reg_bmu_free_err_addr]
+
+Buffer free error address register (buggy, see below).
+
+This register should contain the address which was last written into
+BMU_FREE_CTRL if that address was not a valid allocated buffer.
+
+It appears the hardware is buggy, and the correct value will not appear unless
+a few other invalid free attempts are made.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_ADDR | 31-0 | R | Address of the invalid buffer free attempt. |
+
+==== BMU_CURR_BUF_CNT (BMU_BASE + 0x3c) ====[pfe_bmu_reg_bmu_curr_buf_cnt]
+
+Number of buffers currently allocated.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_CNT | 15-0 | R | Number of allocated buffers. |
+
+==== BMU_MCAST_CNT (BMU_BASE + 0x40) ====[pfe_bmu_reg_bmu_mcast_cnt]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 2-0 | RW | Unknown |
+
+==== BMU_MCAST_ALLOC_CTRL (BMU_BASE + 0x44) ====[pfe_bmu_reg_bmu_mcast_alloc_ctrl]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | R | Unknown |
+
+==== BMU_REM_BUF_CNT (BMU_BASE + 0x48) ====[pfe_bmu_reg_bmu_rem_buf_cnt]
+
+Number of remaining free buffers in the pool.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_CNT | 15-0 | R | Number of free buffers. |
+
+==== BMU_LOW_WATERMARK (BMU_BASE + 0x50) ====[pfe_bmu_reg_bmu_low_watermark]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 15-0 | RW | Unknown. Default value: 0x0000 |
+
+==== BMU_HIGH_WATERMARK (BMU_BASE + 0x54) ====[pfe_bmu_reg_bmu_high_watermark]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 15-0 | RW | Unknown. Default value: 0xffff |
+
+==== BMU_INT_MEM_ACCESS (BMU_BASE + 0x100) ====[pfe_bmu_reg_bmu_int_mem_access]
+
+Internal memory access register.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | R | Unknown. Value changes as buffers are allocated/freed. |
+
+== Host Interface (HIF) ==
+
+== TMU control and status registers (TMU_CSR) ==
+
+== Class control and status registers (CLASS_CSR) ==[pfe_class_csr]
+
+Various control and registers for all the Class PEs.
+
+=== Class CSR registers ===[pfe_class_csr_regs]
+
+|| Base offset in CBUS | Seen from ARM | Seen from any PE ||
+| 0x00320000 | 0x9c320000 | 0xc0320000 |
+
+Registers:
+
+|| Offset | Symbol | Description ||
+| 0x0000 | [VERSION #pfe_class_csr_reg_version] | Class PE version |
+| 0x0004 | [TX_CTRL #pfe_class_csr_reg_tx_ctrl] | Class PE core control |
+| 0x0010 | INQ_PKTPTR |  |
+| 0x0014 | HDR_SIZE |  |
+| 0x0020 | PE0_QB_DM_ADDR0 | DMEM address of 1st and 2nd buffers on QB side |
+| 0x0024 | PE0_QB_DM_ADDR1 | DMEM address of 3rd and 4th buffers on QB side |
+| 0x0060 | PE0_RO_DM_ADDR0 | DMEM address of 1st and 2nd buffers on RO side |
+| 0x0064 | PE0_RO_DM_ADDR1 | DMEM address of 3rd and 4th buffers on RO side |
+| 0x0100 | [MEM_ACCESS_ADDR #pfe_class_csr_reg_mem_access_addr] | Class PE memory access command/address register |
+| 0x0104 | [MEM_ACCESS_WDATA #pfe_class_csr_reg_mem_access_wdata] | Data to write to Class PE memory |
+| 0x0108 | [MEM_ACCESS_RDATA #pfe_class_csr_reg_mem_access_rdata] | Data read from Class PE memory |
+| 0x0114 | TM_INQ_ADDR |  |
+| 0x0118 | PE_STATUS |  |
+| 0x011c | PHY1_RX_PKTS |  |
+| 0x0120 | PHY1_TX_PKTS |  |
+| 0x0124 | PHY1_LP_FAIL_PKTS |  |
+| 0x0128 | PHY1_INTF_FAIL_PKTS |  |
+| 0x012c | PHY1_INTF_MATCH_PKTS |  |
+| 0x0130 | PHY1_L3_FAIL_PKTS |  |
+| 0x0134 | PHY1_V4_PKTS |  |
+| 0x0138 | PHY1_V6_PKTS |  |
+| 0x013c | PHY1_CHKSUM_ERR_PKTS |  |
+| 0x0140 | PHY1_TTL_ERR_PKTS |  |
+| 0x0144 | PHY2_RX_PKTS |  |
+| 0x0148 | PHY2_TX_PKTS |  |
+| 0x014c | PHY2_LP_FAIL_PKTS |  |
+| 0x0150 | PHY2_INTF_FAIL_PKTS |  |
+| 0x0154 | PHY2_INTF_MATCH_PKTS |  |
+| 0x0158 | PHY2_L3_FAIL_PKTS |  |
+| 0x015c | PHY2_V4_PKTS |  |
+| 0x0160 | PHY2_V6_PKTS |  |
+| 0x0164 | PHY2_CHKSUM_ERR_PKTS |  |
+| 0x0168 | PHY2_TTL_ERR_PKTS |  |
+| 0x016c | PHY3_RX_PKTS |  |
+| 0x0170 | PHY3_TX_PKTS |  |
+| 0x0174 | PHY3_LP_FAIL_PKTS |  |
+| 0x0178 | PHY3_INTF_FAIL_PKTS |  |
+| 0x017c | PHY3_INTF_MATCH_PKTS |  |
+| 0x0180 | PHY3_L3_FAIL_PKTS |  |
+| 0x0184 | PHY3_V4_PKTS |  |
+| 0x0188 | PHY3_V6_PKTS |  |
+| 0x018c | PHY3_CHKSUM_ERR_PKTS |  |
+| 0x0190 | PHY3_TTL_ERR_PKTS |  |
+| 0x0194 | PHY1_ICMP_PKTS |  |
+| 0x0198 | PHY1_IGMP_PKTS |  |
+| 0x019c | PHY1_TCP_PKTS |  |
+| 0x01a0 | PHY1_UDP_PKTS |  |
+| 0x01a4 | PHY2_ICMP_PKTS |  |
+| 0x01a8 | PHY2_IGMP_PKTS |  |
+| 0x01ac | PHY2_TCP_PKTS |  |
+| 0x01b0 | PHY2_UDP_PKTS |  |
+| 0x01b4 | PHY3_ICMP_PKTS |  |
+| 0x01b8 | PHY3_IGMP_PKTS |  |
+| 0x01bc | PHY3_TCP_PKTS |  |
+| 0x01c0 | PHY3_UDP_PKTS |  |
+| 0x01c4 | PHY4_ICMP_PKTS |  |
+| 0x01c8 | PHY4_IGMP_PKTS |  |
+| 0x01cc | PHY4_TCP_PKTS |  |
+| 0x01d0 | PHY4_UDP_PKTS |  |
+| 0x01d4 | PHY4_RX_PKTS |  |
+| 0x01d8 | PHY4_TX_PKTS |  |
+| 0x01dc | PHY4_LP_FAIL_PKTS |  |
+| 0x01e0 | PHY4_INTF_FAIL_PKTS |  |
+| 0x01e4 | PHY4_INTF_MATCH_PKTS |  |
+| 0x01e8 | PHY4_L3_FAIL_PKTS |  |
+| 0x01ec | PHY4_V4_PKTS |  |
+| 0x01f0 | PHY4_V6_PKTS |  |
+| 0x01f4 | PHY4_CHKSUM_ERR_PKTS |  |
+| 0x01f8 | PHY4_TTL_ERR_PKTS |  |
+| 0x0200 | [PE_SYS_CLK_RATIO #pfe_class_csr_reg_pe_sys_clk_ratio] | Core clock/bus clock ratio |
+| 0x0204 | AFULL_THRES |  |
+| 0x0208 | GAP_BETWEEN_READS |  |
+| 0x020c | MAX_BUF_CNT |  |
+| 0x0210 | TSQ_FIFO_THRES |  |
+| 0x0214 | TSQ_MAX_CNT |  |
+| 0x0218 | IRAM_DATA_0 |  |
+| 0x021c | IRAM_DATA_1 |  |
+| 0x0220 | IRAM_DATA_2 |  |
+| 0x0224 | IRAM_DATA_3 |  |
+| 0x0228 | [BUS_ACCESS_ADDR #pfe_class_csr_reg_bus_access_addr] | Class bus access command/address register |
+| 0x022c | [BUS_ACCESS_WDATA #pfe_class_csr_reg_bus_access_wdata] | Data to write to Class bus |
+| 0x0230 | [BUS_ACCESS_RDATA #pfe_class_csr_reg_bus_access_rdata] | Data read from Class bus |
+| 0x0234 | ROUTE_HASH_ENTRY_SIZE |  |
+| 0x0238 | ROUTE_TABLE_BASE |  |
+| 0x023c | [ROUTE_MULTI #pfe_class_csr_reg_route_multi] | Route table configuration |
+| 0x0240 | SMEM_OFFSET |  |
+| 0x0244 | LMEM_BUF_SIZE |  |
+| 0x0248 | VLAN_ID |  |
+| 0x024c | BMU1_BUF_FREE |  |
+| 0x0250 | USE_TMU_INQ |  |
+| 0x0254 | VLAN_ID1 |  |
+| 0x0258 | [BUS_ACCESS_BASE #pfe_class_csr_reg_bus_access_base] | High byte of bus access address |
+| 0x025c | [HIF_PARSE #pfe_class_csr_reg_hif_parse] |  |
+| 0x0260 | HOST_PE0_GP | Host general purpose register for PE0 |
+| 0x0264 | PE0_GP | PE general purpose register for PE0 |
+| 0x0268 | HOST_PE1_GP | Host general purpose register for PE1 |
+| 0x026c | PE1_GP | PE general purpose register for PE1 |
+| 0x0270 | HOST_PE2_GP | Host general purpose register for PE2 |
+| 0x0274 | PE2_GP | PE general purpose register for PE2 |
+| 0x0278 | HOST_PE3_GP | Host general purpose register for PE3 |
+| 0x027c | PE3_GP | PE general purpose register for PE3 |
+| 0x0280 | HOST_PE4_GP | Host general purpose register for PE4 |
+| 0x0284 | PE4_GP | PE general purpose register for PE4 |
+| 0x0288 | HOST_PE5_GP | Host general purpose register for PE5 |
+| 0x028c | PE5_GP | PE general purpose register for PE5 |
+| 0x0290 | PE_INT_SRC |  |
+| 0x0294 | PE_INT_ENABLE |  |
+| 0x0298 | TPID0_TPID1 |  |
+| 0x029c | TPID2 |  |
+| 0x02a0 | [L4_CHKSUM_ADDR #pfe_class_csr_reg_l4_chksum_addr] |  |
+| 0x02a4 | PE0_DEBUG |  |
+| 0x02a8 | PE1_DEBUG |  |
+| 0x02ac | PE2_DEBUG |  |
+| 0x02b0 | PE3_DEBUG |  |
+| 0x02b4 | PE4_DEBUG |  |
+| 0x02b8 | PE5_DEBUG |  |
+| 0x02bc | STATE |  |
+
+==== VERSION (0x0000) ====[pfe_class_csr_reg_version]
+
+Class PE block version
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | 31-0 | R | Class PE block version. (0x20) |
+
+==== TX_CTRL (0x0004) ====[pfe_class_csr_reg_tx_ctrl]
+
+Class PE core state control.
+
+|| Symbol | Bit range | R/W | Description ||
+| CTRL | 1-0 | RW | Enable/reset PE cores. 0=disable 1=enable 2=software reset |
+
+==== MEM_ACCESS_ADDR (0x0100) ====[pfe_class_csr_reg_mem_access_addr]
+
+Class PE internal memory access command/address register.
+
+This register allows indirect access to a PE's internal memory. Writing a
+command into this register will trigger a read or write operation at the
+requested address.
+
+|| Symbol | Bit range | R/W | Description ||
+| csr_pe_mem_cmd | 31 | RW | Read of write command. 0=read 1=write |
+| csr_pe_mem_wren | 27-24 | RW | Bit mask indicating which data bytes will be read/written, interpreted in big endian. |
+| csr_pe_mem_addr | 23-0 | RW | PE memory address to read/write. Address should be on a word boundary. |
+
+csr_pe_mem_addr decoding:
+
+|| Base offset | PE | Memory type | Size ||
+| 0x008000 | CLASS0 | IMEM | 0x8000 |
+| 0x010000 | CLASS0 | DMEM | 0x2000 |
+| 0x108000 | CLASS1 | IMEM | 0x8000 |
+| 0x110000 | CLASS1 | DMEM | 0x2000 |
+| 0x208000 | CLASS2 | IMEM | 0x8000 |
+| 0x210000 | CLASS2 | DMEM | 0x2000 |
+| 0x308000 | CLASS3 | IMEM | 0x8000 |
+| 0x310000 | CLASS3 | DMEM | 0x2000 |
+| 0x408000 | CLASS4 | IMEM | 0x8000 |
+| 0x410000 | CLASS4 | DMEM | 0x2000 |
+| 0x508000 | CLASS5 | IMEM | 0x8000 |
+| 0x510000 | CLASS5 | DMEM | 0x2000 |
+
+==== MEM_ACCESS_WDATA (0x0104) ====[pfe_class_csr_reg_mem_access_wdata]
+
+Class PE internal memory write data register. Contains the data to write when
+a write request is written into
+[MEM_ACCESS_ADDR #pfe_class_csr_reg_mem_access_addr]. Value is in big endian.
+
+|| Symbol | Bit range | R/W | Description ||
+| WDATA | 31-0 | RW | Word to write into internal memory |
+
+==== MEM_ACCESS_RDATA (0x0108) ====[pfe_class_csr_reg_mem_access_rdata]
+
+Class PE internal memory read data register. Contains the data read after
+writing a read request into
+[MEM_ACCESS_ADDR #pfe_class_csr_reg_mem_access_addr]. Value is in big endian.
+
+|| Symbol | Bit range | R/W | Description ||
+| RDATA | 31-0 | RW | Word read from internal memory |
+
+==== PE_SYS_CLK_RATIO (0x0200) ====[pfe_class_csr_reg_pe_sys_clk_ratio]
+
+Core clock/bus clock ratio.
+
+|| Symbol | Bit range | R/W | Description ||
+| RATIO | 1-0 | RW | Core clock/system bus clock ratio. 0=1:1 1=2:1 |
+
+==== BUS_ACCESS_ADDR (0x0228) ====[pfe_class_csr_reg_bus_access_addr]
+
+Class PE internal bus access command/address register.
+
+This register allows indirect access to the Class bus. Writing a command into
+this register will trigger a read or write operation at the requested address.
+
+|| Symbol | Bit range | R/W | Description ||
+| CMD | 31 | RW | Read of write command. 0=read 1=write |
+| WIDTH | 27-24 | RW | Access width in bytes. 1=byte 2=hword 4=word. I suspect this field doesn't actually have any effect. |
+| ADDR | 23-0 | RW | Class bus address where the access will be performed. Bits 31-24 are stored in [BUS_ACCESS_BASE #pfe_class_csr_reg_bus_access_base]. |
+
+==== BUS_ACCESS_WDATA (0x022c) ====[pfe_class_csr_reg_bus_access_wdata]
+
+Data word to write during Class bus access write request started by a write
+in [BUS_ACCESS_ADDR #pfe_class_csr_reg_bus_access_addr]. Value is in big
+endian.
+
+|| Symbol | Bit range | R/W | Description ||
+| WDATA | 31-0 | RW | Word to write to Class bus. Big endian. |
+
+==== BUS_ACCESS_RDATA (0x0230) ====[pfe_class_csr_reg_bus_access_rdata]
+
+Data word read after a Class bus access read request started by a write
+in [BUS_ACCESS_ADDR #pfe_class_csr_reg_bus_access_addr]. Value is in big
+endian.
+
+|| Symbol | Bit range | R/W | Description ||
+| RDATA | 31-0 | RW | Word read from Class bus. Big endian. |
+
+==== ROUTE_MULTI (0x023c) ====[pfe_class_csr_reg_route_multi]
+
+Route table configuration.
+
+|| Symbol | Bit range | R/W | Description ||
+| QB2BUS_LE | 15 | RW | Byte swap something? |
+| HASH_TYPE | 13-12 | RW | Hash type: 0=normal 1=CRC port 2=CRC IP 3=CRC port+IP |
+| CLASS_TOE | 11 | RW | ? |
+| ARC_HIT_CHECK_EN | 7 | RW | ? |
+| IP_ALIGNED | 6 | RW | ? |
+| HW_BRIDGE_FETCH | 5 | RW | ? |
+| HW_ROUTE_FETCH | 3 | RW | ? |
+| PHYNO_IN_HASH | 1 | RW | Include PHY number in hash? |
+| TWO_LEVEL_ROUTE | 0 | RW | ? |
+
+==== BUS_ACCESS_BASE (0x0258) ====[pfe_class_csr_reg_bus_access_base]
+
+|| Symbol | Bit range | R/W | Description ||
+| BASE | 31-24 | RW | High byte of bus address used in indirect Class bus accesses |
+
+==== HIF_PARSE (0x025c) ====[pfe_class_csr_reg_hif_parse]
+
+|| Symbol | Bit range | R/W | Description ||
+| HIF_PKT_OFFST | 4-1 | RW | Offset of HIF metadata in packet? |
+| HIF_PKT_CLASS_EN | 0 | RW | Enable interpretation of HIF metadata? |
+
+
+==== L4_CHKSUM_ADDR (0x02a0) ====[pfe_class_csr_reg_l4_chksum_addr]
+
+|| Symbol | Bit range | R/W | Description ||
+| IPV4_CHKSUM_DROP | 9 | RW | ? |
+| UDP_CHKSUM_DROP | 1 | RW | ? |
+| TCP_CHKSUM_DROP | 0 | RW | ? |
+
+== Host Interface no copy (HIF nocpy) ==
+
+== Util control and status registers (UTIL_CSR) ==
+
+== CBUS general purpose timer (CBUS_GPT) ==
+
+
+== eSi-RISC architecture ==
+
+The PE cores are implementation of an (32 bit?) eSi-RISC core configured in
+Harvard architecture.
+
+
+== Traffic/Time Management/Multiplexing Unit PE (TMU) ==
+
+eSi-RISC core. Requires firmware.
+
+The TMU does traffic shaping and scheduling.
+
+== Classifier PE (CLASS) ==
+
+eSi-RISC core. Requires firmware.
+
+
+== UTIL PE (UTIL or UPE) ==
+
+eSi-RISC core. Requires firmware.
+
+Utility PE. Does all tasks that do not fit the other PEs.
+

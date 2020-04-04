@@ -1,0 +1,191 @@
+
+= Timers =[peri_timer]
+
+- 6 general purpose timers
+- 6 PWM timers
+  - Each PWM can drive one output pin
+  - Independently configurable period and duty cycle
+- One 16 bit TDM frame sync timer
+  - incremented on Tx frame SYNC or Rx frame SYNC
+  - interrupt on one or both of the 2 timer pulses
+- One 32 bit watchdog timer
+  - performs a hard reset of the system if the CPU does not reset the timer
+    count before it reaches its maximum value
+
+
+== General purpose timers ==[peri_timers_gp]
+
+=== Features ===
+
+- Six 32 bit timers
+- timers can generate interrupts on timeout pulse
+- timers can be paired (chained) to form 64 bit timers
+- timers 2, 3 & 5 have programmable low and high bounds, the others have their
+  lower bound hardcoded to 0.
+- timers 0, 1 & 4 do not have a low bound, but can be reloaded with a specific
+  count value
+- timer 1 (resp. 4) can count external events on pin TIM_EVNT0 (resp.
+  TIM_EVNT1) when that pin is configured as an input.
+- timer 3 (resp. 5) can drive TIM_EVNT0 (resp. TIM_EVNT1) and switch its
+  logical state when the counter reaches the high bound.
+
+
+=== Operation in normal mode ===
+
+In normal mode, all the timers are free-running counters which are incremented
+on the rising edge of HCLK.
+
+The counter value is reset to its lower bound (or zero for timers 0, 1 & 4)
+when one of its bound is written. It is therefore recommended for timers 2, 3
+& 5 to set the lower bound last.
+
+When the counter equals the high bound value, the timer output is asserted and,
+if the corresponding bit is set in the TIMER_IRQ_MASK register, an interrupt
+pulse is generated. Then, on the next rising edge of HCLK, the counter value is
+reset to the lower bound value.
+
+For timer 3 (resp. 5), the logical state of the TIM_EVNT0 (resp. TIM_EVNT1)
+output is also toggled when the counter value is equal to the high bound value.
+(It may requires a flag to be set in the control register to work.)
+
+=== Event counter mode (timers 1 & 4 only) ===
+
+Timers 1 (resp. 4) can count events occurring on TIM_EVNT0 (resp. TIM_EVNT1).
+It requires TIM_EVNTx to be configured as input, and the bit ??? in
+TIMERx_CTRL to be set.
+
+The counter is incremented on every rising or falling edge on TIM_EVNTx.
+The pulse must be held for at least 1 HCLK cycle + 3 ns for the edge to be
+detected.
+
+How to choose between rising or falling edge or both is still unclear.
+
+=== Operation in chained mode ===
+
+Timers can be paired to operate in chained mode, effectively turning two 32
+bit timers into a single 64 bit timer.
+In this mode, the low order timer of the pair is running as usual, while the
+high order one is incremented only when the low order timer times out.
+
+The table below lists all possible timer pairs.
+|| Low order | High order ||
+| Timer 0 | Timer 2 |
+| Timer 1 | Timer 3 |
+| Timer 4 | Timer 5 |
+
+Chaining mode can be enabled by writing the bit 0 (CHAIN) in TIMERx_CTRL of
+the high order timer.
+
+=== Registers ===[peri_timer_gp_regs]
+
+|| Base address | 0x90450000 ||
+
+|| Interrupt name | GIC SPI ||
+| TIMER0 | 55 (pulse) |
+| TIMER1 | 56 (pulse) |
+| TIMER2 | 57 (pulse) |
+| TIMER3 | 58 (pulse) |
+| TIMER4 | 59 (pulse) |
+| TIMER5 | 60 (pulse) |
+
+==== TIMERx_LOW_BOUND ====[peri_timer_reg_timerx_low_bound]
+
+|| Symbol | Address ||
+| TIMER2_LOW_BOUND | 0x90450010 |
+| TIMER3_LOW_BOUND | 0x90450020 |
+| TIMER5_LOW_BOUND | 0x90450038 |
+
+Low bound value for the timer. It is reloaded automatically into the counter
+when the cycle after it reaches the high bound.
+
+|| Symbol | Bit range | R/W | Description ||
+| LOW_BOUND | 31-0 | RW | Timer counter low bound. When written, reset the current counter to that value. |
+
+==== TIMERx_HIGH_BOUND ====[peri_timer_reg_timerx_high_bound]
+
+|| Symbol | Address ||
+| TIMER0_HIGH_BOUND | 0x90450000 |
+| TIMER1_HIGH_BOUND | 0x90450008 |
+| TIMER2_HIGH_BOUND | 0x90450014 |
+| TIMER3_HIGH_BOUND | 0x90450024 |
+| TIMER4_HIGH_BOUND | 0x90450030 |
+| TIMER5_HIGH_BOUND | 0x9045003c |
+
+High bound value for the timer. When the counter reaches this value, its output
+is asserted.
+
+|| Symbol | Bit range | R/W | Description ||
+| HIGH_BOUND | 31-0 | RW | Timer counter high bound. Reset counter to low bound when written. |
+
+==== TIMERx_CURRENT_COUNT ====[peri_timer_reg_timerx_current_count]
+
+|| Symbol | Address ||
+| TIMER0_CURRENT_COUNT | 0x90450004 |
+| TIMER1_CURRENT_COUNT | 0x9045000c |
+| TIMER2_CURRENT_COUNT | 0x9045001c |
+| TIMER3_CURRENT_COUNT | 0x9045002c |
+| TIMER4_CURRENT_COUNT | 0x90450034 |
+| TIMER5_CURRENT_COUNT | 0x90450040 |
+
+Current counter value for the timer.
+
+|| Symbol | Bit range | R/W | Description ||
+| CURRENT_COUNT | 31-0 | RW? | Current counter value. Can be set for at least timers 0, 1 & 4. |
+
+==== TIMERx_CTRL ====[peri_timer_reg_timerx_ctrl]
+
+|| Symbol | Address ||
+| TIMER2_CTRL | 0x90450018 |
+| TIMER3_CTRL | 0x90450028 |
+| TIMER5_CTRL | 0x90450044 |
+
+Control register for the timer.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-1 | R | Reserved. Must be 0. |
+| CHAIN | 0 | RW | Increment counter on another timer output rising edge instead of HCLK |
+
+==== TIMER_IRQ_MASK (0x90450048) ====[peri_timer_reg_timer_irq_mask]
+
+Timer interrupt mask register.
+
+Set the bit corresponding to the timer you want to enable interrupts for. Reset
+the bit to disable interrupts for that timer.
+
+|| Symbol | Bit range | R/W | Description ||
+| TIMER5 | 5 | RW | Timer 5 interupt mask. 0=masked 1=unmasked |
+| TIMER4 | 4 | RW | Timer 4 interupt mask. 0=masked 1=unmasked |
+| TIMER3 | 3 | RW | Timer 3 interupt mask. 0=masked 1=unmasked |
+| TIMER2 | 2 | RW | Timer 2 interupt mask. 0=masked 1=unmasked |
+| TIMER1 | 1 | RW | Timer 1 interupt mask. 0=masked 1=unmasked |
+| TIMER0 | 0 | RW | Timer 0 interupt mask. 0=masked 1=unmasked |
+
+==== TIMER_STATUS (0x90450050) ====[peri_timer_reg_timer_status]
+
+Timer completion status register.
+
+For each timer, the corrsponding bit in this register shows whether that timer
+reached its high bound value since the last time its status bit was cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| TIMER5 | 5 | R | Timer 5 status. 0=hasn't completed yet 1=completed at least once |
+| TIMER4 | 4 | R | Timer 4 status. 0=hasn't completed yet 1=completed at least once |
+| TIMER3 | 3 | R | Timer 3 status. 0=hasn't completed yet 1=completed at least once |
+| TIMER2 | 2 | R | Timer 2 status. 0=hasn't completed yet 1=completed at least once |
+| TIMER1 | 1 | R | Timer 1 status. 0=hasn't completed yet 1=completed at least once |
+| TIMER0 | 0 | R | Timer 0 status. 0=hasn't completed yet 1=completed at least once |
+
+==== TIMER_STATUS_CLR (0x90450050) ====[peri_timer_reg_timer_status_clr]
+
+Timer completion status clear register.
+
+When a timer has completed, its status bit can be reset by writing 1 in this
+bit.
+
+|| Symbol | Bit range | R/W | Description ||
+| TIMER5 | 5 | W | Write 1 to clear timer 5 completion status. |
+| TIMER4 | 4 | W | Write 1 to clear timer 4 completion status. |
+| TIMER3 | 3 | W | Write 1 to clear timer 3 completion status. |
+| TIMER2 | 2 | W | Write 1 to clear timer 2 completion status. |
+| TIMER1 | 1 | W | Write 1 to clear timer 1 completion status. |
+| TIMER0 | 0 | W | Write 1 to clear timer 0 completion status. |

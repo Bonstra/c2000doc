@@ -1,0 +1,140 @@
+
+= USB 3.0 PHY =[peri_usb3phy]
+
+The C2000 has a built-in USB 3.0 PHY, which complies with the PIPE (PHY
+Interface for PCI Express (and USB 3.0 Architectures)) specification.
+
+The USB 3.0 PHY is connected to the USB1 controller (DWC3_USB) via a PIPE
+interface featuring a 32-bit data bus. If all the 32 lines are used, the PHY
+must generate a PIPE clock (PCLK) of 125 MHz.
+
+The reference clock for the USB 3.0 PHY can be generated internally by a PLL,
+using the 24/48 MHz crystal as reference.
+
+== Registers ==
+
+|| Base address | 0x904a0000 ||
+| [DWC3_CTRL_REG0 #peri_usb3phy_dwc3_ctrl_reg0] | 0x904a0010 |
+| [DWC3_CTRL_REG1 #peri_usb3phy_dwc3_ctrl_reg1] | 0x904a0014 |
+| [DWC3_CTRL_REG2 #peri_usb3phy_dwc3_ctrl_reg2] | 0x904a0018 |
+| [PHY_CTRL_REG0 #peri_usb3phy_phy_ctrl_reg0]  | 0x904a0020 |
+| [PHY_CTRL_REG1 #peri_usb3phy_phy_ctrl_reg1]  | 0x904a0024 |
+| [PHY_CTRL_REG2 #peri_usb3phy_phy_ctrl_reg2]  | 0x904a0028 |
+| [PHY_CTRL_REG3 #peri_usb3phy_phy_ctrl_reg3]  | 0x904a002c |
+
+
+==== DWC3_CTRL_REG0 (0x904a0010) ====[peri_usb3phy_dwc3_ctrl_reg0]
+
+USB 3.0 controller control register 0.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-24 | ? | Reserved. Must be 0. |
+| xhc_bme | 23 | RW | 0=Bus mastering capability disabled 1=Bus mastering capability enabled |
+| xhsi_rev | 22 | ? | 1=This XHCI is compliant to xHCI standard revision 1.0 0=? |
+| fladj_30mhz_reg | 21-16 | RW | Unknown (filter adjust?). Should be set to 32. |
+| bus_filter_bypass | 15-12 | RW | b'0000=Bus filters enabled b'1111=Bus filters bypassed |
+| reserved | 11-10 | ? | Reserved. Must be 0. |
+| pme_en | 9 | RW | 0=Disable the PME generation 1=Enable the PME generation |
+| host_port_power_control_present | 8 | RW | 0=Port does not have power switched 1=Port has power switches |
+| vbus_ctrl_en | 7 | RW | 0=(device) do not allow controller to drive PHY's DRVVBUS 1=(host) allow controller to drive the PHY's DRVVBUS |
+| host_u3_port_disable | 6 | RW | 0=USB 3.0 port enabled 1=USB 3.0 port disabled |
+| host_u2_port_disable | 5 | RW | 0=USB 2.0 port enabled 1=USB 2.0 port disabled |
+| host_msi_enable | 4 | RW | 0=enable level type interrupt from controller 1=enable pulse type interrupt from controller |
+| hub_port_perm_attach | 3-2 | RW | b'00=Device is not permanently attached b'11=Device is permanently attached |
+| hub_port_overcurrent | 1-0 | R? | b'00=No over-current b'11=Over-current |
+
+
+==== DWC3_CTRL_REG1 (0x904a0014) ====[peri_usb3phy_dwc3_ctrl_reg1]
+
+USB 3.0 controller control register 1.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-9 | ? | Reserved. |
+| host_legacy_smi_bar_wr | 8 | ? | ? |
+| reserved | 7-5 | ? | Reserved. |
+| host_legacy_smi_pci_cmd_writel | 4 | R | ? |
+| reserved | 3-2 | ? | Reserved. |
+| pm_power_state_request | 1-0 | RW | ? |
+
+
+==== DWC3_CTRL_REG2 (0x904a0018) ====[peri_usb3phy_dwc3_ctrl_reg2]
+
+USB 3.0 controller control register 2.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-1 | ? | Reserved. Must be 0. |
+| light_reset_n | 0 | RW | Active low reset. Is is similar to the xHCI "Light Reset" which does not reset any sticky bits. When operating as a device, this bit should be kept high. Default=0 |
+
+
+==== PHY_CTRL_REG0 (0x904a0020) ====[peri_usb3phy_phy_ctrl_reg0]
+
+USB 3.0 PHY control register 0.
+
+|| Symbol | Bit range | R/W | Description ||
+| ssc_reg_clk_sel | 31-23 | RW | Spread Spectrum Reference Clock Shifting. Recommended value: 0100_0010_0 |
+| ssc_range | 22-20 | RW | Spread Spectrum Clock Range |
+| ssc_en | 19 | RW | Spead Spectrum Enable |
+| mpll_multiplier | 18-12 | RW | MPLL Frequency Multiplier Control, but only relevant is refclksel=b'11 |
+| commononn | 11 | RW | Common Block Power-Down Control. 0=off? 1=on? |
+| ref_clkdiv2 | 10 | RW | Input Reference Clock Divider Control |
+| fsel | 9-4 | RW | Frequency select. |
+| refclksel | 3-2 | RW | Input Reference Select for HS PLL Block. |
+| ref_use_pad | 1 | RW | Select external reference clock. Usually b'10 |
+| phy_sel_div2_clk | 0 | RW | Divide reference clock by 2. 0=bypass divider 1=divide by 2 |
+
+
+==== PHY_CTRL_REG1 (0x904a0024) ====[peri_usb3phy_phy_ctrl_reg1]
+
+USB 3.0 PHY control register 1.
+
+|| Symbol | Bit range | R/W | Description ||
+| sqrxtune0 | 31-29 | RW | Recommended value: b'011 |
+| los_level | 28-24 | RW | Recommended value: b'0_1001 |
+| ref_ssp_en | 23 | RW | Recommended value: b'1 |
+| otgtune0 | 22-20 | RW | Recommended value: b'100 |
+| txfslstune0 | 19-16 | RW | Recommended value: b'100 |
+| txpreemppulsetune0 | 15 | RW | Recommended value: b'0 |
+| compdistune0 | 14-12 | RW | Recommended value: b'100 |
+| txpreempamptune0 | 11-10 | RW | Recommended value: b'11 |
+| txhsxvtune0 | 9-8 | RW | Recommended value: b'11 |
+| txrestune0 | 7-6 | RW | Recommended value: b'01 |
+| txrisetune0 | 5-4 | RW | Recommended value: b'01 |
+| txvreftune0 | 3-0 | RW | Recommended value: b'0011 |
+
+
+==== PHY_CTRL_REG2 (0x904a0028) ====[peri_usb3phy_phy_ctrl_reg2]
+
+USB 3.0 PHY control register 2.
+
+|| Symbol | Bit range | R/W | Description ||
+| lane0_tx_term_offset | 31-27 | RW | Recommended value: b'0_0000 |
+| reserved | 26 | ? | Reserved. Must be 0. |
+| tx_vboost_lvl | 25-23 | RW | Recommended value: b'000 |
+| lod_bias | 22-20 | RW | Recommended value: b'000 |
+| vbusvldextsel0 | 19 | RW | Recommended value: b'0 |
+| pcs_tx_swing_full | 18-12 | RW | Recommended value: b'101_1101 |
+| pcs_tx_deemph_6db | 11-6 | RW | Recommended value: b'10_0000 |
+| pcs_tx_deemph_3p5db | 5-0 | RW | Recommended value: b'01_0101 |
+
+
+==== PHY_CTRL_REG3 (0x904a002c) ====[peri_usb3phy_phy_ctrl_reg3]
+
+USB 3.0 PHY control register 3.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-17 | ? | Reserved. Must be 0. |
+| loopbackenb0 | 16 | RW | 0=Loopback disabled (default) 1=Loopback enabled |
+| adpprbenb0 | 15 | RW | Recommended value: b'0 |
+| adbdischrg0 | 14 | RW | Recommended value: b'0 |
+| adbchrg0 | 13 | RW | Recommended value: b'0 |
+| idpullup0 | 12 | RW | Recommended value: b'0 if host-only |
+| drvvbus0 | 11 | RW | Recommended value: b'1 if host-only |
+| vbusvldext0 | 10 | RW | Recommended value: b'0 |
+| vatestenb | 9-8 | RW | Recommended value: b'00 |
+| otgdisable | 7 | RW | Recommended value: b'0 |
+| test_powerdown_ssp | 6 | RW | Recommended value: b'0 |
+| test_powerdown_hsp | 5 | RW | Recommended value: b'0 |
+| lane0_tx2rx_loopbk | 4 | RW | Recommended value: b'0 |
+| lane0_ext_pclk_req | 3 | RW | Recommended value: b'0 |
+| reserved | 2-1 | ? | Reserved. Must be 0. |
+| rerenablen | 0 | RW | Recommended value: b'1 |

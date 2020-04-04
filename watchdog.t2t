@@ -1,0 +1,52 @@
+
+== Watchdog timer ==[peri_timer_wdt]
+
+The LS1024A features a 32 bit watchdog counter, which can reset the system if
+the counter value is not reset before it reaches its programmable limit.
+
+The watchdog timer is similar to the other low-order timers: it is a
+free-running 32 bit counter, driven by the AHB clock (usually 250 MHz).
+
+Unlike the regular timers, the watchdog counter is not reset when it reaches
+the HIGH_BOUND value.
+
+Also note that the watchdog only triggers a reset when the counter value is
+equal to the HIGH_BOUND value; no reset will occur while the counter is above
+HIGH_BOUND.
+
+For the system to actually reset on watchdog timer overflow, the AXI_WD_RST_EN
+bit must be set in the [DEVICE_RST_CNTRL #clkcore_regs_device_rst_cntrl]
+register.
+
+=== Registers ===[peri_timer_wdt_regs]
+
+|| Symbol | Offset | Description ||
+| [HIGH_BOUND #peri_timer_wdt_reg_high_bound] | 0xd0 | Watchdog max count register |
+| [CONTROL #peri_timer_wdt_reg_control] | 0xd4 | Watchdog control register |
+| [CURRENT_COUNT #peri_timer_wdt_reg_current_count] | 0xd8 | Watchdog current count register |
+
+==== HIGH_BOUND (0x904500d0) ====[peri_timer_wdt_reg_high_bound]
+
+Maximum value for the watchdog counter at which to perform a system reset.
+Writing a new value resets CURRENT_COUNT.
+
+|| Symbol | Bit range | R/W | Description ||
+| HIGH_BOUND | 31-0 | RW | Maximum counter value |
+
+==== CONTROL (0x904500d4) ====[peri_timer_wdt_reg_control]
+
+Watchdog timer control register. Can enable or disable the watchdog timer.
+
+Disabling the watchdog does not cause the watchdog timer to stop counting, but
+only prevents it from requesting a system reset.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-1 | R | Reserved. Must be 0. |
+| ENABLE | 0 | RW | Enable the watchdog reset timer. 0=disable 1=enable |
+
+==== CURRENT_COUNT (0x904500d8) ====[peri_timer_wdt_reg_current_count]
+
+Watchdog timer current count.
+
+|| Symbol | Bit range | R/W | Description ||
+| CURRENT_COUNT | 31-0 | RW | Read or set the current watchdog timer counter. |
