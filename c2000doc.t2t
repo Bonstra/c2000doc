@@ -7,12 +7,15 @@ Hugo "Bonstra" Grostabussiat
 
 = About this document =
 
-In this document are gathered all the information about the hardware of the
-C2000 chip which is not found in the official data sheet, especially
-register documentation. Such information was deduced from reading the source
-code for the Linux kernel and the Barebox bootloader, as well as tweaking the
-register values and observing the results. Because of this,
-**it potentially contains a lot of imprecise, if not downright incorrect information.**
+This document is an effort to document the Comcerto 2000 SoC from Mindspeed
+technologies (rebranded as Freescale/NXP QorIQ LS1024A after acquisition by
+Freescale, then by NXP).
+
+The information in this document comes only from public sources, such as the
+official public datasheet, datasheets from other chips using the same IP blocks,
+GPL'd source code, and experimentation on real hardware.
+
+Be aware that because of this, this document **potentially contains a lot of imprecise, if not downright incorrect information.**
 
 After acquisition by Freescale, the C2000 SoC was rebranded
 //QorIQ LayerScape 1024A// (or LS1024A for short).
