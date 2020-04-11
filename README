@@ -1,0 +1,23 @@
+Comcerto 2000 (LS1024A) SoC unofficial documentation
+
+This document is an effort to document the Comcerto 2000 SoC from Mindspeed
+technologies (rebranded as Freescale/NXP QorIQ LS1024A after acquisition by
+Freescale, then by NXP).
+
+The information in this document comes only from public sources, such as the
+official public datasheet, datasheets from other chips using the same IP blocks,
+GPL'd source code, and experimentation on real hardware.
+
+The document is written in the txt2tags format (https://txt2tags.org/). You can
+build the HTML version by installing txt2tags and running:
+
+$ txt2tags c2000doc.t2t
+
+This will generate the c2000doc.html file.
+
+If you also have GNU make installed, you can also simply run:
+
+$ make
+
+It will re-generate the c2000doc.html file only if one of the .t2t files has
+changed since the HTML was generated.
