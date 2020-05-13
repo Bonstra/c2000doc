@@ -102,12 +102,18 @@ Microwire control register?
 || Symbol | Bit range | R/W | Description ||
 
 
-=== SER (HS: 0x96500010 LS: 0x90498010) ===[spi_regs_ssienr]
+=== SER (HS: 0x96500010 LS: 0x90498010) ===[spi_regs_ser]
 
 Slave enable register. When a bit in this register is set, the corresponding
 slave select line is activated when a serial transfer begins. Setting or
 clearing bits have no effect on the slave select lines until a transfer is
 started.
+
+Also, all the slave select lines are deasserted when a transfer ends, which in
+Tx-only and Tx/Rx modes, happens when the Tx FIFO is empty (at least for
+non-DMA transfers). If the CPU and OS cannot keep up and write new data after
+the Tx FIFO has become empty, the slave select line will be deasserted,
+activated again and the new data written, which is usually not what you want.
 
 || Symbol | Bit range | R/W | Description ||
 | SE15 | 15 | RW | Enable slave select line 15 |
