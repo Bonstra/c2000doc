@@ -93,6 +93,256 @@ All addresses are given for the Class PE address space.
 
 Generic Packet Interface?
 
+=== GPI registers ===[pfe_gpi_regs]
+
+|| GPI instance | Base offset in CBUS ||
+| EGPI1 | 0x210000 |
+| EGPI2 | 0x230000 |
+| HGPI | 0x290000 |
+| EGPI3 | 0x340000 |
+
+|| Symbol | Offset | Description ||
+| [GPI_VERSION #pfe_gpi_reg_gpi_version] | 0x000 | GPI silicon revision register |
+| [GPI_CTRL #pfe_gpi_reg_gpi_ctrl] | 0x004 | GPI control register |
+| [GPI_RX_CONFIG #pfe_gpi_reg_gpi_rx_config] | 0x008 | GPI Rx config register |
+| [GPI_HDR_SIZE #pfe_gpi_reg_gpi_hdr_size] | 0x00c | GPI header size register |
+| [GPI_BUF_SIZE #pfe_gpi_reg_gpi_buf_size] | 0x010 | GPI buffer size register |
+| [GPI_LMEM_ALLOC_ADDR #pfe_gpi_reg_gpi_lmem_alloc_addr] | 0x014 | GPI LMEM alloc address register |
+| [GPI_LMEM_FREE_ADDR #pfe_gpi_reg_gpi_lmem_free_addr] | 0x018 | GPI LMEM free address register |
+| [GPI_DDR_ALLOC_ADDR #pfe_gpi_reg_gpi_ddr_alloc_addr] | 0x01c | GPI DDR alloc address register |
+| [GPI_DDR_FREE_ADDR #pfe_gpi_reg_gpi_ddr_free_addr] | 0x020 | GPI DDR free address register |
+| [GPI_CLASS_ADDR #pfe_gpi_reg_gpi_class_addr] | 0x024 | GPI CLASS address register |
+| [GPI_DRX_FIFO #pfe_gpi_reg_gpi_drx_fifo] | 0x028 |  |
+| [GPI_TRX_FIFO #pfe_gpi_reg_gpi_trx_fifo] | 0x02c |  |
+| [GPI_INQ_PKTPTR #pfe_gpi_reg_gpi_inq_pktptr] | 0x030 | GPI packet input FIFO? |
+| [GPI_DDR_DATA_OFFSET #pfe_gpi_reg_gpi_ddr_data_offset] | 0x034 | GPI data offset for DDR packets |
+| [GPI_LMEM_DATA_OFFSET #pfe_gpi_reg_gpi_lmem_data_offset] | 0x038 | GPI data offset for LMEM packets |
+| [GPI_TMLF_TX #pfe_gpi_reg_gpi_tmlf_tx] | 0x04c |  |
+| [GPI_DTX_ASEQ #pfe_gpi_reg_gpi_dtx_aseq] | 0x050 |  |
+| [GPI_FIFO_STATUS #pfe_gpi_reg_gpi_fifo_status] | 0x054 | GPI FIFO status register |
+| [GPI_FIFO_DEBUG #pfe_gpi_reg_gpi_fifo_debug] | 0x058 | GPI FIFO debug register |
+| [GPI_TX_PAUSE_TIME #pfe_gpi_reg_gpi_tx_pause_time] | 0x05c | GPI Tx pause time register |
+| [GPI_LMEM_SEC_BUF_DATA_OFFSET #pfe_gpi_reg_gpi_lmem_sec_buf_data_offset] | 0x060 | ? |
+| [GPI_DDR_SEC_BUF_DATA_OFFSET #pfe_gpi_reg_gpi_ddr_sec_buf_data_offset] | 0x064 | ? |
+| [GPI_TOE_CHKSUM_EN #pfe_gpi_reg_gpi_toe_checksum_en] | 0x068 |  |
+| [GPI_OVERRUN_DROPCNT #pfe_gpi_reg_gpi_overrun_dropcnt] | 0x06c | GPI dropped packets counter register |
+
+==== GPI_VERSION (GPI_BASE + 0x000) ====[pfe_gpi_reg_gpi_version]
+
+GPI silicon revision. 0x50 on my c2k chip.
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | ?-0 | R | GPI silicon revision |
+
+==== GPI_CTRL (GPI_BASE + 0x004) ====[pfe_gpi_reg_gpi_ctrl]
+
+GPI control register. The ENABLE bit must be set prior attempting to access
+the other GPI registers (except GPI_VERSION), otherwise the transaction may
+hang forever (or until the watchdog kicks in).
+
+Performing a software reset will not reset the value of the configuration
+registers, only the internal state will be cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| SW_RESET | 1 | RW | Perform software reset. Self-clearing. |
+| ENABLE | 0 | RW | BMU enable. 0=disable 1=enable |
+
+==== GPI_RX_CONFIG (GPI_BASE + 0x008) ====[pfe_gpi_reg_gpi_rx_config]
+
+Rx configuration register.
+
+Depending on their size, the packets may be written to LMEM for small packets, or DDR for larger ones.
+
+|| Symbol | Bit range | R/W | Description ||
+| LMEM_RTRY_CNT | 31-16 | RW | LMEM write retry counter. Typical value is 0x40. |
+| DDR_BUF_EN | 1 | RW | Enable use of buffers in DDR |
+| LMEM_BUF_EN | 0 | RW | Enable use of buffers in LMEM |
+
+==== GPI_HDR_SIZE (GPI_BASE + 0x00c) ====[pfe_gpi_reg_gpi_hdr_size]
+
+Header size configuration register.
+
+Depending on whether packets are written to DDR or LMEM, the size of the header
+may differ. This register allows configuration of the header size for LMEM and
+DDR buffers.
+
+|| Symbol | Bit range | R/W | Description ||
+| DDR_HDR_SIZE | 31-16 | RW | Header size for buffers in DDR. Typical value: 0x100 |
+| LMEM_HDR_SIZE | 15-0 | RW | Header size for buffers in LMEM. Typical value: 0x10 |
+
+==== GPI_BUF_SIZE (GPI_BASE + 0x010) ====[pfe_gpi_reg_gpi_buf_size]
+
+Buffer size configuration register.
+
+Depending on whether packets are written to DDR or LMEM, the size of the buffer
+may differ. This register allows configuration of the buffer size for LMEM and
+DDR buffers. The header size is included in the buffer size.
+
+|| Symbol | Bit range | R/W | Description ||
+| DDR_BUF_SIZE | 31-16 | RW | Size of DDR buffers. Typical value: 0x800 |
+| LMEM_BUF_SIZE | 15-0 | RW | Size of LMEM buffers Typical value: 0x80 |
+
+==== GPI_LMEM_ALLOC_ADDR (GPI_BASE + 0x014) ====[pfe_gpi_reg_gpi_lmem_alloc_addr]
+
+Address in the PE address space of the
+[BMU_ALLOC_CTRL #pfe_bmu_reg_bmu_alloc_ctrl] register of the [BMU #pfe_bmu]
+instance to use to allocate a new buffer in LMEM. Each read operation to the
+specified address must return the address of a newly-allocated buffer, or 0 if
+no buffer is available.
+
+The buffer size for the BMU must be greater or equal to the one configured in
+the GPI.
+
+|| Symbol | Bit range | R/W | Description ||
+| LMEM_ALLOC_ADDR | 31-0 | RW | Address of the BMU buffer allocation register to use for LMEM buffer allocation. |
+
+==== GPI_LMEM_FREE_ADDR (GPI_BASE + 0x018) ====[pfe_gpi_reg_gpi_lmem_free_addr]
+
+Address in the PE address space of the
+[BMU_FREE_CTRL #pfe_bmu_reg_bmu_free_ctrl] register of the [BMU #pfe_bmu]
+instance to used to manage buffers in LMEM. The addresses of buffers to free
+will be written at that address.
+
+|| Symbol | Bit range | R/W | Description ||
+| LMEM_FREE_ADDR | 31-0 | RW | Address of the BMU buffer allocation register to use for LMEM buffer allocation. |
+
+==== GPI_DDR_ALLOC_ADDR (GPI_BASE + 0x01c) ====[pfe_gpi_reg_gpi_ddr_alloc_addr]
+
+Address in the PE address space of the
+[BMU_ALLOC_CTRL #pfe_bmu_reg_bmu_alloc_ctrl] register of the [BMU #pfe_bmu]
+instance to use to allocate a new buffer in DDR. Each read operation to the
+specified address must return the address of a newly-allocated buffer, or 0 if
+no buffer is available.
+
+The buffer size for the BMU must be greater or equal to the one configured in
+the GPI.
+
+|| Symbol | Bit range | R/W | Description ||
+| DDR_ALLOC_ADDR | 31-0 | RW | Address of the BMU buffer allocation register to use for DDR buffer allocation. |
+
+==== GPI_DDR_FREE_ADDR (GPI_BASE + 0x020) ====[pfe_gpi_reg_gpi_ddr_free_addr]
+
+Address in the PE address space of the
+[BMU_FREE_CTRL #pfe_bmu_reg_bmu_free_ctrl] register of the [BMU #pfe_bmu]
+instance to used to manage buffers in DDR. The addresses of buffers to free
+will be written at that address.
+
+|| Symbol | Bit range | R/W | Description ||
+| DDR_FREE_ADDR | 31-0 | RW | Address of the BMU buffer allocation register to use for DDR buffer allocation. |
+
+==== GPI_CLASS_ADDR (GPI_BASE + 0x024) ====[pfe_gpi_reg_gpi_class_addr]
+
+Address in the PE address space of the INQ_PKTPTR FIFO register in the
+[CLASS_CSR block #pfe_class_csr].
+
+|| Symbol | Bit range | R/W | Description ||
+| CLASS_ADDR | 31-0 | RW | Address of CLASS FIFO. |
+
+==== GPI_DRX_FIFO (GPI_BASE + 0x028) ====[pfe_gpi_reg_gpi_drx_fifo]
+
+Data? Rx FIFO depth? register?
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 15-0 | RW | ? Default value: 0x80 |
+
+==== GPI_TRX_FIFO (GPI_BASE + 0x02c) ====[pfe_gpi_reg_gpi_trx_fifo]
+
+? Rx FIFO depth? register?
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 15-0 | RW | ? Default value: 0x80 |
+
+==== GPI_INQ_PKTPTR (GPI_BASE + 0x030) ====[pfe_gpi_reg_gpi_inq_pktptr]
+
+Tx packet descriptor address FIFO?
+
+The address of the packet descriptor for the packet to send can be written into
+this register?
+
+|| Symbol | Bit range | R/W | Description ||
+| PKTPTR | 31-0 | RW | Address of the Tx descriptor of the packet to send? |
+
+==== GPI_DDR_DATA_OFFSET (GPI_BASE + 0x034) ====[pfe_gpi_reg_gpi_ddr_data_offset]
+
+Offset in the DDR buffer where data starts.
+
+|| Symbol | Bit range | R/W | Description ||
+| DATA_OFFSET | 8-0 | RW | Offset in the DDR buffer to the start of data region. Typical value: 0x100 |
+
+==== GPI_LMEM_DATA_OFFSET (GPI_BASE + 0x038) ====[pfe_gpi_reg_gpi_lmem_data_offset]
+
+Offset in the LMEM buffer where data starts.
+
+|| Symbol | Bit range | R/W | Description ||
+| DATA_OFFSET | 7-0 | RW | Offset in the LMEM buffer to the start of data region. Typical value: 0x10 |
+
+==== GPI_TMLF_TX (GPI_BASE + 0x04c) ====[pfe_gpi_reg_gpi_tmlf_tx]
+
+Something to do with TMU?
+
+|| Symbol | Bit range | R/W | Description ||
+| TMLF_TXTHRES | 7-0 | RW | Something Tx threshold value. Typical value: 0xbc |
+
+==== GPI_DTX_ASEQ (GPI_BASE + 0x050) ====[pfe_gpi_reg_gpi_dtx_aseq]
+
+Unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ASEQ_LEN | 7-0 | RW | Unknown. Typical value: 0x40. EGPI1 has value 0x50. |
+
+==== GPI_FIFO_STATUS (GPI_BASE + 0x054) ====[pfe_gpi_reg_gpi_fifo_status]
+
+Some FIFO status register. Format unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| STICK? | 0 | RW | Keep Tx on hold? |
+
+==== GPI_FIFO_DEBUG (GPI_BASE + 0x058) ====[pfe_gpi_reg_gpi_fifo_debug]
+
+Some FIFO debug register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TX_PKTS | 27-23 | R | Tx bytes |
+| RX_PKTS | 22-18 | R | Tx bytes |
+| TX_BYTES | 17-9 | R | Tx bytes |
+| RX_BYTES | 8-0 | R | Rx bytes |
+
+==== GPI_TX_PAUSE_TIME (GPI_BASE + 0x05c) ====[pfe_gpi_reg_gpi_tx_pause_time]
+
+Tx pause frame time?
+
+|| Symbol | Bit range | R/W | Description ||
+| TXPAUSE | 15-0 | RW | Tx pause time? Time unit unknown. Typical value: 0xffff |
+
+==== GPI_LMEM_SEC_BUF_DATA_OFFSET (GPI_BASE + 0x060) ====[pfe_gpi_reg_gpi_lmem_sec_buf_data_offset]
+
+Purpose unknown. Maybe offset to additional security context?
+
+|| Symbol | Bit range | R/W | Description ||
+| DATA_OFFSET | 15-0 | RW | Typical value: 0x0 |
+
+==== GPI_DDR_SEC_BUF_DATA_OFFSET (GPI_BASE + 0x064) ====[pfe_gpi_reg_gpi_ddr_sec_buf_data_offset]
+
+Purpose unknown. Maybe offset to additional security context?
+
+|| Symbol | Bit range | R/W | Description ||
+| DATA_OFFSET | 15-0 | RW | Typical value: 0x0 |
+
+==== GPI_TOE_CHKSUM_EN (GPI_BASE + 0x068) ====[pfe_gpi_reg_gpi_toe_checksum_en]
+
+Control some kind of checksum offloading?
+
+|| Symbol | Bit range | R/W | Description ||
+| TOE_CHKSUM_EN | 0 | RW | Enable checksum ??? |
+
+==== GPI_OVERRUN_DROPCNT (GPI_BASE + 0x06c) ====[pfe_gpi_reg_gpi_overrun_dropcnt]
+
+Counter of dropped packets.
+
+|| Symbol | Bit range | R/W | Description ||
+| DROPCNT | 31-0 | RW | Number of dropped packets. |
+
+
 == Buffer Management Unit (BMU) ==[pfe_bmu]
 
 The buffer management unit (BMU) manages a buffer pool, allowing multiple
@@ -155,7 +405,7 @@ BMU silicon revision. 0x21 on my c2k chip.
 ==== BMU_CTRL (BMU_BASE + 0x004) ====[pfe_bmu_reg_bmu_ctrl]
 
 BMU control register. The ENABLE bit must be set prior attempting to access
-the other BMU registers (except BMU_VERSION), otherwise the transation may
+the other BMU registers (except BMU_VERSION), otherwise the transaction may
 hang forever (or until the watchdog kicks in).
 
 Performing a software reset will not reset the value of the configuration
