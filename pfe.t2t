@@ -40,7 +40,7 @@ The CBUS is shared by the ARM and all PEs.
 | 0x260000 | 0x10000 | ? | ARB |
 | 0x270000 | 0x10000 | ? | DDR_CONFIG |
 | 0x280000 | 0x10000 | ? | [HIF #pfe_hif] |
-| 0x290000 | 0x10000 | ? | HGPI |
+| 0x290000 | 0x10000 | ? | [HGPI #pfe_gpi] |
 | 0x300000 | 0x10000 | ? | LMEM |
 | 0x310000 | 0x10000 | ? | [TMU_CSR #pfe_tmu_csr] |
 | 0x320000 | 0x10000 | ? | [CLASS_CSR #pfe_class_csr] |
@@ -736,7 +736,7 @@ Interrupt coalesce control register
 
 
 
-== TMU control and status registers (TMU_CSR) ==
+== TMU control and status registers (TMU_CSR) ==[pfe_tmu_csr]
 
 == Class control and status registers (CLASS_CSR) ==[pfe_class_csr]
 
