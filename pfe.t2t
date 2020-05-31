@@ -87,6 +87,64 @@ All addresses are given for the Class PE address space.
 | 0xc3010000-0xc301ffff | 0x8000 | PE LMEM |
 | 0xc3020000-0xc302ffff | ? | CCU |
 
+== TMU PE memory map ==[pfe_tmu_memmap]
+
+All addresses are given for the TMU PE address space.
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0x00000000-0x0000ffff | 0x800 | DMEM (per PE data memory) |
+| 0x00010000-0x0001ffff | 0x2000 | PMEM (per PE program memory)
+| 0x00020000-0x85ffffff | ? | DDR + ACP + IRAM (not confirmed) |
+| 0xc0000000-0xc0ffffff | ? | CBUS |
+| 0xc1000000-0xc1ffffff | ? | TMU APB bus |
+
+=== TMU APB bus map ===[pfe_tmu_apb]
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0xc1000000-0xc100ffff | ? | GPT (General Purpose Timer) |
+| 0xc1010000-0xc101ffff | ? | UART |
+| 0xc1020000-0xc102ffff | ? | SHAPER0 |
+| 0xc1030000-0xc103ffff | ? | SHAPER1 |
+| 0xc1040000-0xc104ffff | ? | SHAPER2 |
+| 0xc1050000-0xc105ffff | ? | SHAPER3 |
+| 0xc1060000-0xc106ffff | ? | SHAPER4 |
+| 0xc1070000-0xc107ffff | ? | SHAPER5 |
+| 0xc1080000-0xc108ffff | ? | SHAPER6 |
+| 0xc1090000-0xc109ffff | ? | SHAPER7 |
+| 0xc10a0000-0xc10affff | ? | SHAPER8 |
+| 0xc10b0000-0xc10bffff | ? | SHAPER9 |
+| 0xc11c0000-0xc11cffff | ? | SCHED0 |
+| 0xc11d0000-0xc11dffff | ? | SCHED1 |
+| 0xc11e0000-0xc11effff | ? | SCHED2 |
+| 0xc11f0000-0xc11fffff | ? | SCHED3 |
+| 0xc1200000-0xc120ffff | ? | SCHED4 |
+| 0xc1210000-0xc121ffff | ? | SCHED5 |
+| 0xc1220000-0xc122ffff | ? | SCHED6 |
+| 0xc1230000-0xc123ffff | ? | SCHED7 |
+| 0xc1260000-0xc126ffff | ? | PHY_QUEUE |
+| 0xc1270000-0xc127ffff | ? | SHAPER_STATUS |
+
+== Util PE memory map ==[pfe_util_memmap]
+
+All addresses are given for the Util PE address space.
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0x00000000-0x0000ffff | 0x2000 | DMEM (per PE data memory) |
+| 0x00020000-0x85ffffff | ? | DDR + ACP + IRAM |
+| 0xc0000000-0xc0ffffff | ? | CBUS |
+| 0xc1000000-0xc1ffffff | ? | Util APB bus |
+
+=== Util APB bus map ===[pfe_util_apb]
+
+|| Region | Size (w/o mirrors) | Description ||
+| 0xc1000000-0xc100ffff | ? | GPT (General Purpose Timer) |
+| 0xc1010000-0xc101ffff | ? | UART |
+| 0xc1020000-0xc102ffff | ? | EAPE |
+| 0xc1030000-0xc103ffff | ? | INQ |
+| 0xc1040000-0xc104ffff | ? | EFET1 |
+| 0xc1050000-0xc105ffff | ? | EFET2 |
+| 0xc1060000-0xc106ffff | ? | EFET3 |
+
 == Gigabit Ethernet MAC (GEMAC) ==[pfe_gemac]
 
 == GPI ==[pfe_gpi]
@@ -738,6 +796,141 @@ Interrupt coalesce control register
 
 == TMU control and status registers (TMU_CSR) ==[pfe_tmu_csr]
 
+Various register for TMU hardware.
+
+=== TMU CSR registers ===[pfe_tmu_csr_regs]
+
+|| Base offset in CBUS | Seen from ARM | Seen from any PE ||
+| 0x00310000 | 0x9c310000 | 0xc0310000 |
+
+Registers:
+
+|| Offset | Symbol | Description ||
+| 0x0000 | [VERSION #pfe_tmu_csr_reg_version] | TMU silicon revision |
+| 0x0004 | INQ_WATERMARK |  |
+| 0x0008 | PHY_INQ_PKTPTR |  |
+| 0x000c | PHY_INQ_PKTINFO |  |
+| 0x0010 | PHY_INQ_FIFO_CNT |  |
+| 0x0014 | SYS_GENERIC_CONTROL |  |
+| 0x0018 | SYS_GENERIC_STATUS |  |
+| 0x001c | SYS_GEN_CON0 |  |
+| 0x0020 | SYS_GEN_CON1 |  |
+| 0x0024 | SYS_GEN_CON2 |  |
+| 0x0028 | SYS_GEN_CON3 |  |
+| 0x002c | SYS_GEN_CON4 |  |
+| 0x0030 | TEQ_DISABLE_DROPCHK |  |
+| 0x0034 | TEQ_CTRL |  |
+| 0x0038 | TEQ_QCFG |  |
+| 0x003c | TEQ_DROP_STAT |  |
+| 0x0040 | TEQ_QAVG |  |
+| 0x0044 | TEQ_WREG_PROB |  |
+| 0x0048 | TEQ_TRANS_STAT |  |
+| 0x004c | TEQ_HW_PROB_CFG0 |  |
+| 0x0050 | TEQ_HW_PROB_CFG1 |  |
+| 0x0054 | TEQ_HW_PROB_CFG2 |  |
+| 0x0058 | TEQ_HW_PROB_CFG3 |  |
+| 0x005c | TEQ_HW_PROB_CFG4 |  |
+| 0x0060 | TEQ_HW_PROB_CFG5 |  |
+| 0x0064 | TEQ_HW_PROB_CFG6 |  |
+| 0x0068 | TEQ_HW_PROB_CFG7 |  |
+| 0x006c | TEQ_HW_PROB_CFG8 |  |
+| 0x0070 | TEQ_HW_PROB_CFG9 |  |
+| 0x0074 | TEQ_HW_PROB_CFG10 |  |
+| 0x0078 | TEQ_HW_PROB_CFG11 |  |
+| 0x007c | TEQ_HW_PROB_CFG12 |  |
+| 0x0080 | TEQ_HW_PROB_CFG13 |  |
+| 0x0084 | TEQ_HW_PROB_CFG14 |  |
+| 0x0088 | TEQ_HW_PROB_CFG15 |  |
+| 0x008c | TEQ_HW_PROB_CFG16 |  |
+| 0x0090 | TEQ_HW_PROB_CFG17 |  |
+| 0x0094 | TEQ_HW_PROB_CFG18 |  |
+| 0x0098 | TEQ_HW_PROB_CFG19 |  |
+| 0x009c | TEQ_HW_PROB_CFG20 |  |
+| 0x00a0 | TEQ_HW_PROB_CFG21 |  |
+| 0x00a4 | TEQ_HW_PROB_CFG22 |  |
+| 0x00a8 | TEQ_HW_PROB_CFG23 |  |
+| 0x00ac | TEQ_HW_PROB_CFG24 |  |
+| 0x00b0 | TEQ_HW_PROB_CFG25 |  |
+| 0x00b4 | TDQ_IIFG_CFG |  |
+| 0x00b8 | TDQ0_SCH_CTRL |  |
+| 0x00bc | LLM_CTRL |  |
+| 0x00c0 | LLM_BASE_ADDR |  |
+| 0x00c4 | LLM_QUE_LEN |  |
+| 0x00c8 | LLM_QUE_HEADPTR |  |
+| 0x00cc | LLM_QUE_TAILPTR |  |
+| 0x00d0 | LLM_QUE_DROPCNT |  |
+| 0x00d4 | INT_EN |  |
+| 0x00d8 | INT_SRC |  |
+| 0x00dc | INQ_STAT |  |
+| 0x00e0 | [CTRL #pfe_tmu_csr_reg_ctrl] | Main TMU control register |
+| 0x00e4 | MEM_ACCESS_ADDR |  |
+| 0x00e8 | MEM_ACCESS_WDATA |  |
+| 0x00ec | MEM_ACCESS_RDATA |  |
+| 0x00f0 | PHY0_INQ_ADDR | PHY0 in queue address |
+| 0x00f4 | PHY1_INQ_ADDR | PHY1 in queue address |
+| 0x00f8 | PHY2_INQ_ADDR | PHY2 in queue address |
+| 0x00fc | PHY3_INQ_ADDR | PHY3 in queue address |
+| 0x0100 | BMU_INQ_ADDR | BMU address to use to free packets |
+| 0x0104 | [TX_CTRL #pfe_tmu_csr_reg_tx_ctrl] | Individual TMU PE enable register |
+| 0x0108 | BUS_ACCESS_WDATA |  |
+| 0x010c | BUS_ACCESS |  |
+| 0x0110 | BUS_ACCESS_RDATA |  |
+| 0x0114 | PE_SYS_CLK_RATIO |  |
+| 0x0118 | PE_STATUS |  |
+| 0x011c | TEQ_MAX_THRESHOLD |  |
+| 0x0134 | PHY4_INQ_ADDR | PHY4 in queue address |
+| 0x0138 | TDQ1_SCH_CTRL | Global scheduler enable for PHY1 |
+| 0x013c | TDQ2_SCH_CTRL | Global scheduler enable for PHY2 |
+| 0x0140 | TDQ3_SCH_CTRL | Global scheduler enable for PHY3 |
+| 0x0144 | BMU_BUF_SIZE |  |
+| 0x0148 | PHY5_INQ_ADDR | PHY5 in queue address |
+| 0x014c | ?_STAT | Undocumented |
+| 0x0150 | ? | Undocumented |
+| 0x0154 | ?_STAT | Undocumented |
+| 0x0158 | ? | Undocumented |
+| 0x015c | ? | Undocumented |
+| 0x0160 | ? | Undocumented |
+| 0x0164 | ? | Undocumented |
+| 0x0168 | ? | Undocumented |
+| 0x016c | ? | Undocumented |
+| 0x0170 | ? | Undocumented |
+| 0x0174 | ? | Undocumented |
+| 0x0178 | ? | Undocumented |
+
+==== VERSION (0x0000) ====[pfe_tmu_csr_reg_version]
+
+TMU silicon revision.
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | 31-0 | R | TMU silicon revision. (0x01011231) |
+
+==== CTRL (0x00e0) ====[pfe_tmu_csr_reg_ctrl]
+
+TMU reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| LLM_INIT_DONE | 9 | R | Status bit set when the LMEM initialization is complete. |
+| LLM_INIT | 8 | RW | Initialize the LMEM. LLM_INIT_DONE is set when init is complete. |
+| MEM_INIT_DONE | 7 | R | Status bit set when the TMU PE memory initialization is complete. |
+| MEM_INIT | 6 | RW | Initialize the PE memory. MEM_INIT_DONE is set when init is complete. |
+| PE_RESET | 5 | RW | Reset all TMU PEs. |
+| TDQ_RESET | 4 | RW | Reset TDQ block. |
+| TEQ_RESET | 3 | RW | Reset TEQ block. |
+| INQ_RESET | 2 | RW | Reset INQ block. |
+| ? | 1 | RW | Unknown. |
+| SW_RESET | 0 | RW | Global software reset. All TMU blocks are reset. |
+
+==== TX_CTRL (0x0104) ====[pfe_tmu_csr_reg_tx_ctrl]
+
+Individual TMU PE enable register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TMU3 | 3 | RW | Enable TMU3 PE core. |
+| TMU3 | 2 | RW | Enable TMU2 PE core. |
+| TMU1 | 1 | RW | Enable TMU1 PE core. |
+| TMU0 | 0 | RW | Enable TMU0 PE core. |
+
+
 == Class control and status registers (CLASS_CSR) ==[pfe_class_csr]
 
 Various control and registers for all the Class PEs.
@@ -1002,7 +1195,45 @@ Route table configuration.
 
 == Host Interface no copy (HIF nocpy) ==
 
-== Util control and status registers (UTIL_CSR) ==
+== Util control and status registers (UTIL_CSR) ==[pfe_util_csr]
+
+Various control and status registers for the Util PE.
+
+=== Util CSR registers ===[pfe_util_csr_regs]
+
+|| Base offset in CBUS | Seen from ARM | Seen from any PE ||
+| 0x00360000 | 0x9c360000 | 0xc0360000 |
+
+Registers:
+
+|| Offset | Symbol | Description ||
+| 0x0000 | [VERSION #pfe_util_csr_reg_version] | Util PE silicon revision |
+| 0x0004 | [TX_CTRL #pfe_util_csr_reg_tx_ctrl] | Util PE core control |
+| 0x0010 | INQ_PKTPTR |  |
+| 0x0014 | HDR_SIZE |  |
+| 0x0020 | PE0_QB_DM_ADDR0 | DMEM address of 1st and 2nd buffers on QB side |
+| 0x0024 | PE0_QB_DM_ADDR1 | DMEM address of 3rd and 4th buffers on QB side |
+| 0x0060 | PE0_RO_DM_ADDR0 | DMEM address of 1st and 2nd buffers on RO side |
+| 0x0064 | PE0_RO_DM_ADDR1 | DMEM address of 3rd and 4th buffers on RO side |
+| 0x0100 | [MEM_ACCESS_ADDR #pfe_util_csr_reg_mem_access_addr] | Util PE memory access command/address register |
+| 0x0104 | [MEM_ACCESS_WDATA #pfe_util_csr_reg_mem_access_wdata] | Data to write to Util PE memory |
+| 0x0108 | [MEM_ACCESS_RDATA #pfe_util_csr_reg_mem_access_rdata] | Data read from Util PE memory |
+| 0x0114 | TM_INQ_ADDR |  |
+| 0x0118 | PE_STATUS |  |
+| 0x0200 | [PE_SYS_CLK_RATIO #pfe_class_csr_reg_pe_sys_clk_ratio] | Core clock/bus clock ratio |
+| 0x0204 | AFULL_THRES |  |
+| 0x0208 | GAP_BETWEEN_READS |  |
+| 0x020c | MAX_BUF_CNT |  |
+| 0x0210 | TSQ_FIFO_THRES |  |
+| 0x0214 | TSQ_MAX_CNT |  |
+| 0x0218 | IRAM_DATA_0 |  |
+| 0x021c | IRAM_DATA_1 |  |
+| 0x0220 | IRAM_DATA_2 |  |
+| 0x0224 | IRAM_DATA_3 |  |
+| 0x0228 | [BUS_ACCESS_ADDR #pfe_util_csr_reg_bus_access_addr] | Util bus access command/address register |
+| 0x022c | [BUS_ACCESS_WDATA #pfe_util_csr_reg_bus_access_wdata] | Data to write to Util bus |
+| 0x0230 | [BUS_ACCESS_RDATA #pfe_util_csr_reg_bus_access_rdata] | Data read from Util bus |
+| 0x0234 | INQ_AFULL_THRES |  |
 
 == CBUS general purpose timer (CBUS_GPT) ==
 
