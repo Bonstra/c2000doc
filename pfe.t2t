@@ -34,9 +34,9 @@ running (bit 3 of [AXI_CLK_CNTRL_1 #clkcore_regs_axi_clk_cntrl1] set).
 | Any PE | 0xc0000000 |
 
 || Base offset in CBUS | Size | Size (w/o mirrors) | Description ||
-| 0x200000 | 0x10000 | ? | [EMAC1 #pfe_gemac] |
+| 0x200000 | 0x10000 | ? | [EMAC1 #pfe_emac] |
 | 0x210000 | 0x10000 | ? | [EGPI1 #pfe_gpi] |
-| 0x220000 | 0x10000 | ? | [EMAC2 #pfe_gemac] |
+| 0x220000 | 0x10000 | ? | [EMAC2 #pfe_emac] |
 | 0x230000 | 0x10000 | ? | [EGPI2 #pfe_gpi] |
 | 0x240000 | 0x10000 | 0x800 | [BMU1 #pfe_bmu] |
 | 0x250000 | 0x10000 | 0x800 | [BMU2 #pfe_bmu] |
@@ -47,7 +47,7 @@ running (bit 3 of [AXI_CLK_CNTRL_1 #clkcore_regs_axi_clk_cntrl1] set).
 | 0x300000 | 0x10000 | ? | LMEM |
 | 0x310000 | 0x10000 | ? | [TMU_CSR #pfe_tmu_csr] |
 | 0x320000 | 0x10000 | ? | [CLASS_CSR #pfe_class_csr] |
-| 0x330000 | 0x10000 | ? | [EMAC3 #pfe_gemac] |
+| 0x330000 | 0x10000 | ? | [EMAC3 #pfe_emac] |
 | 0x340000 | 0x10000 | ? | [EGPI3 #pfe_gpi] |
 | 0x350000 | 0x10000 | ? | HIF_NOCPY |
 | 0x360000 | 0x10000 | ? | [UTIL_CSR #pfe_util_csr] |
@@ -148,7 +148,7 @@ All addresses are given for the Util PE address space.
 | 0xc1050000-0xc105ffff | ? | EFET2 |
 | 0xc1060000-0xc106ffff | ? | EFET3 |
 
-%!include:pfe_gemac.t2t
+%!include:pfe_emac.t2t
 
 %!include:pfe_gpi.t2t
 
