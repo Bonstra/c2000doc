@@ -26,6 +26,9 @@ The Util PE is responsible for all the other tasks.
 
 The CBUS is shared by the ARM and all PEs.
 
+Warning: All CBUS accesses from the ARM require the PFE_SYS clock to be
+running (bit 3 of [AXI_CLK_CNTRL_1 #clkcore_regs_axi_clk_cntrl1] set).
+
 || Seen from | CBUS base address ||
 | ARM | 0x9c000000 |
 | Any PE | 0xc0000000 |
@@ -1083,8 +1086,15 @@ This register allows indirect access to a PE's internal memory. Writing a
 command into this register will trigger a read or write operation at the
 requested address.
 
+IMEM is only accessible when the Class cores are disabled
+([TX_CTRL #pfe_class_csr_reg_tx_ctrl] set to 0). DMEM is always accessible.
+
+Warning: The PFE core clock must be enabled using the
+[PFE_CLK_CNTRL #peri_clkcore_regs] register prior performing indirect memory
+access using this register, otherwise the transaction will hang.
+
 || Symbol | Bit range | R/W | Description ||
-| csr_pe_mem_cmd | 31 | RW | Read of write command. 0=read 1=write |
+| csr_pe_mem_cmd | 31 | RW | Read or write command. 0=read 1=write |
 | csr_pe_mem_wren | 27-24 | RW | Bit mask indicating which data bytes will be read/written, interpreted in big endian. |
 | csr_pe_mem_addr | 23-0 | RW | PE memory address to read/write. Address should be on a word boundary. |
 
@@ -1138,7 +1148,7 @@ this register will trigger a read or write operation at the requested address.
 
 || Symbol | Bit range | R/W | Description ||
 | CMD | 31 | RW | Read of write command. 0=read 1=write |
-| WIDTH | 27-24 | RW | Access width in bytes. 1=byte 2=hword 4=word. I suspect this field doesn't actually have any effect. |
+| WIDTH | 27-24 | RW | Access width in bytes. 1=byte 2=hword 4=word. |
 | ADDR | 23-0 | RW | Class bus address where the access will be performed. Bits 31-24 are stored in [BUS_ACCESS_BASE #pfe_class_csr_reg_bus_access_base]. |
 
 ==== BUS_ACCESS_WDATA (0x022c) ====[pfe_class_csr_reg_bus_access_wdata]
