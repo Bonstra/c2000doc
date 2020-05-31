@@ -1,0 +1,41 @@
+
+== Util control and status registers (UTIL_CSR) ==[pfe_util_csr]
+
+Various control and status registers for the Util PE.
+
+=== Util CSR registers ===[pfe_util_csr_regs]
+
+|| Base offset in CBUS | Seen from ARM | Seen from any PE ||
+| 0x00360000 | 0x9c360000 | 0xc0360000 |
+
+Registers:
+
+|| Offset | Symbol | Description ||
+| 0x0000 | [VERSION #pfe_util_csr_reg_version] | Util PE silicon revision |
+| 0x0004 | [TX_CTRL #pfe_util_csr_reg_tx_ctrl] | Util PE core control |
+| 0x0010 | INQ_PKTPTR |  |
+| 0x0014 | HDR_SIZE |  |
+| 0x0020 | PE0_QB_DM_ADDR0 | DMEM address of 1st and 2nd buffers on QB side |
+| 0x0024 | PE0_QB_DM_ADDR1 | DMEM address of 3rd and 4th buffers on QB side |
+| 0x0060 | PE0_RO_DM_ADDR0 | DMEM address of 1st and 2nd buffers on RO side |
+| 0x0064 | PE0_RO_DM_ADDR1 | DMEM address of 3rd and 4th buffers on RO side |
+| 0x0100 | [MEM_ACCESS_ADDR #pfe_util_csr_reg_mem_access_addr] | Util PE memory access command/address register |
+| 0x0104 | [MEM_ACCESS_WDATA #pfe_util_csr_reg_mem_access_wdata] | Data to write to Util PE memory |
+| 0x0108 | [MEM_ACCESS_RDATA #pfe_util_csr_reg_mem_access_rdata] | Data read from Util PE memory |
+| 0x0114 | TM_INQ_ADDR |  |
+| 0x0118 | PE_STATUS |  |
+| 0x0200 | [PE_SYS_CLK_RATIO #pfe_class_csr_reg_pe_sys_clk_ratio] | Core clock/bus clock ratio |
+| 0x0204 | AFULL_THRES |  |
+| 0x0208 | GAP_BETWEEN_READS |  |
+| 0x020c | MAX_BUF_CNT |  |
+| 0x0210 | TSQ_FIFO_THRES |  |
+| 0x0214 | TSQ_MAX_CNT |  |
+| 0x0218 | IRAM_DATA_0 |  |
+| 0x021c | IRAM_DATA_1 |  |
+| 0x0220 | IRAM_DATA_2 |  |
+| 0x0224 | IRAM_DATA_3 |  |
+| 0x0228 | [BUS_ACCESS_ADDR #pfe_util_csr_reg_bus_access_addr] | Util bus access command/address register |
+| 0x022c | [BUS_ACCESS_WDATA #pfe_util_csr_reg_bus_access_wdata] | Data to write to Util bus |
+| 0x0230 | [BUS_ACCESS_RDATA #pfe_util_csr_reg_bus_access_rdata] | Data read from Util bus |
+| 0x0234 | INQ_AFULL_THRES |  |
+

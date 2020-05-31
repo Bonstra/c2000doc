@@ -1,0 +1,137 @@
+
+== TMU control and status registers (TMU_CSR) ==[pfe_tmu_csr]
+
+Various register for TMU hardware.
+
+=== TMU CSR registers ===[pfe_tmu_csr_regs]
+
+|| Base offset in CBUS | Seen from ARM | Seen from any PE ||
+| 0x00310000 | 0x9c310000 | 0xc0310000 |
+
+Registers:
+
+|| Offset | Symbol | Description ||
+| 0x0000 | [VERSION #pfe_tmu_csr_reg_version] | TMU silicon revision |
+| 0x0004 | INQ_WATERMARK |  |
+| 0x0008 | PHY_INQ_PKTPTR |  |
+| 0x000c | PHY_INQ_PKTINFO |  |
+| 0x0010 | PHY_INQ_FIFO_CNT |  |
+| 0x0014 | SYS_GENERIC_CONTROL |  |
+| 0x0018 | SYS_GENERIC_STATUS |  |
+| 0x001c | SYS_GEN_CON0 |  |
+| 0x0020 | SYS_GEN_CON1 |  |
+| 0x0024 | SYS_GEN_CON2 |  |
+| 0x0028 | SYS_GEN_CON3 |  |
+| 0x002c | SYS_GEN_CON4 |  |
+| 0x0030 | TEQ_DISABLE_DROPCHK |  |
+| 0x0034 | TEQ_CTRL |  |
+| 0x0038 | TEQ_QCFG |  |
+| 0x003c | TEQ_DROP_STAT |  |
+| 0x0040 | TEQ_QAVG |  |
+| 0x0044 | TEQ_WREG_PROB |  |
+| 0x0048 | TEQ_TRANS_STAT |  |
+| 0x004c | TEQ_HW_PROB_CFG0 |  |
+| 0x0050 | TEQ_HW_PROB_CFG1 |  |
+| 0x0054 | TEQ_HW_PROB_CFG2 |  |
+| 0x0058 | TEQ_HW_PROB_CFG3 |  |
+| 0x005c | TEQ_HW_PROB_CFG4 |  |
+| 0x0060 | TEQ_HW_PROB_CFG5 |  |
+| 0x0064 | TEQ_HW_PROB_CFG6 |  |
+| 0x0068 | TEQ_HW_PROB_CFG7 |  |
+| 0x006c | TEQ_HW_PROB_CFG8 |  |
+| 0x0070 | TEQ_HW_PROB_CFG9 |  |
+| 0x0074 | TEQ_HW_PROB_CFG10 |  |
+| 0x0078 | TEQ_HW_PROB_CFG11 |  |
+| 0x007c | TEQ_HW_PROB_CFG12 |  |
+| 0x0080 | TEQ_HW_PROB_CFG13 |  |
+| 0x0084 | TEQ_HW_PROB_CFG14 |  |
+| 0x0088 | TEQ_HW_PROB_CFG15 |  |
+| 0x008c | TEQ_HW_PROB_CFG16 |  |
+| 0x0090 | TEQ_HW_PROB_CFG17 |  |
+| 0x0094 | TEQ_HW_PROB_CFG18 |  |
+| 0x0098 | TEQ_HW_PROB_CFG19 |  |
+| 0x009c | TEQ_HW_PROB_CFG20 |  |
+| 0x00a0 | TEQ_HW_PROB_CFG21 |  |
+| 0x00a4 | TEQ_HW_PROB_CFG22 |  |
+| 0x00a8 | TEQ_HW_PROB_CFG23 |  |
+| 0x00ac | TEQ_HW_PROB_CFG24 |  |
+| 0x00b0 | TEQ_HW_PROB_CFG25 |  |
+| 0x00b4 | TDQ_IIFG_CFG |  |
+| 0x00b8 | TDQ0_SCH_CTRL |  |
+| 0x00bc | LLM_CTRL |  |
+| 0x00c0 | LLM_BASE_ADDR |  |
+| 0x00c4 | LLM_QUE_LEN |  |
+| 0x00c8 | LLM_QUE_HEADPTR |  |
+| 0x00cc | LLM_QUE_TAILPTR |  |
+| 0x00d0 | LLM_QUE_DROPCNT |  |
+| 0x00d4 | INT_EN |  |
+| 0x00d8 | INT_SRC |  |
+| 0x00dc | INQ_STAT |  |
+| 0x00e0 | [CTRL #pfe_tmu_csr_reg_ctrl] | Main TMU control register |
+| 0x00e4 | MEM_ACCESS_ADDR |  |
+| 0x00e8 | MEM_ACCESS_WDATA |  |
+| 0x00ec | MEM_ACCESS_RDATA |  |
+| 0x00f0 | PHY0_INQ_ADDR | PHY0 in queue address |
+| 0x00f4 | PHY1_INQ_ADDR | PHY1 in queue address |
+| 0x00f8 | PHY2_INQ_ADDR | PHY2 in queue address |
+| 0x00fc | PHY3_INQ_ADDR | PHY3 in queue address |
+| 0x0100 | BMU_INQ_ADDR | BMU address to use to free packets |
+| 0x0104 | [TX_CTRL #pfe_tmu_csr_reg_tx_ctrl] | Individual TMU PE enable register |
+| 0x0108 | BUS_ACCESS_WDATA |  |
+| 0x010c | BUS_ACCESS |  |
+| 0x0110 | BUS_ACCESS_RDATA |  |
+| 0x0114 | PE_SYS_CLK_RATIO |  |
+| 0x0118 | PE_STATUS |  |
+| 0x011c | TEQ_MAX_THRESHOLD |  |
+| 0x0134 | PHY4_INQ_ADDR | PHY4 in queue address |
+| 0x0138 | TDQ1_SCH_CTRL | Global scheduler enable for PHY1 |
+| 0x013c | TDQ2_SCH_CTRL | Global scheduler enable for PHY2 |
+| 0x0140 | TDQ3_SCH_CTRL | Global scheduler enable for PHY3 |
+| 0x0144 | BMU_BUF_SIZE |  |
+| 0x0148 | PHY5_INQ_ADDR | PHY5 in queue address |
+| 0x014c | ?_STAT | Undocumented |
+| 0x0150 | ? | Undocumented |
+| 0x0154 | ?_STAT | Undocumented |
+| 0x0158 | ? | Undocumented |
+| 0x015c | ? | Undocumented |
+| 0x0160 | ? | Undocumented |
+| 0x0164 | ? | Undocumented |
+| 0x0168 | ? | Undocumented |
+| 0x016c | ? | Undocumented |
+| 0x0170 | ? | Undocumented |
+| 0x0174 | ? | Undocumented |
+| 0x0178 | ? | Undocumented |
+
+==== VERSION (0x0000) ====[pfe_tmu_csr_reg_version]
+
+TMU silicon revision.
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | 31-0 | R | TMU silicon revision. (0x01011231) |
+
+==== CTRL (0x00e0) ====[pfe_tmu_csr_reg_ctrl]
+
+TMU reset register.
+
+|| Symbol | Bit range | R/W | Description ||
+| LLM_INIT_DONE | 9 | R | Status bit set when the LMEM initialization is complete. |
+| LLM_INIT | 8 | RW | Initialize the LMEM. LLM_INIT_DONE is set when init is complete. |
+| MEM_INIT_DONE | 7 | R | Status bit set when the TMU PE memory initialization is complete. |
+| MEM_INIT | 6 | RW | Initialize the PE memory. MEM_INIT_DONE is set when init is complete. |
+| PE_RESET | 5 | RW | Reset all TMU PEs. |
+| TDQ_RESET | 4 | RW | Reset TDQ block. |
+| TEQ_RESET | 3 | RW | Reset TEQ block. |
+| INQ_RESET | 2 | RW | Reset INQ block. |
+| ? | 1 | RW | Unknown. |
+| SW_RESET | 0 | RW | Global software reset. All TMU blocks are reset. |
+
+==== TX_CTRL (0x0104) ====[pfe_tmu_csr_reg_tx_ctrl]
+
+Individual TMU PE enable register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TMU3 | 3 | RW | Enable TMU3 PE core. |
+| TMU3 | 2 | RW | Enable TMU2 PE core. |
+| TMU1 | 1 | RW | Enable TMU1 PE core. |
+| TMU0 | 0 | RW | Enable TMU0 PE core. |
+

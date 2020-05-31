@@ -1,0 +1,238 @@
+
+== Buffer Management Unit (BMU) ==[pfe_bmu]
+
+The buffer management unit (BMU) manages a buffer pool, allowing multiple
+peripherals to acquire and release buffers from the pool.
+
+The base address of the buffer pool is configurable, as well as the buffer
+size. The number of buffers in the pool is configurable too, to a limit of
+65535 buffers.
+
+The BMU does not perform any DMA transfers; the state of the buffer pool is
+kept in an internal memory which can be cleared by a software reset.
+
+The BMU can generate interrupt requests to notify a PE of buffer pool state
+changes.
+
+When a peripheral needs a buffer, it can allocate one by reading the
+BMU_ALLOC_CTRL register. If a buffer is available, its address will be returned
+and the BMU will mark this buffer as allocated. If no buffer is available, the
+address 0 will be returned.
+
+To free a previously allocated buffer, the peripheral must write the buffer
+address into the BMU_FREE_CTRL register. If the peripheral attempts to double
+free a buffer, the address of the offending free operation will be stored in
+the BMU_FREE_ERR_ADDR register.
+
+=== BMU registers ===[pfe_bmu_regs]
+
+|| BMU instance | Base offset in CBUS ||
+| BMU1 | 0x240000 |
+| BMU2 | 0x250000 |
+
+|| Symbol | Offset | Description ||
+| [BMU_VERSION #pfe_bmu_reg_bmu_version] | 0x000 | BMU version register (reads 0x21 on my hardware) |
+| [BMU_CTRL #pfe_bmu_reg_bmu_ctrl] | 0x004 | BMU control register (enable/reset) |
+| [BMU_UCAST_CONFIG #pfe_bmu_reg_bmu_ucast_config] | 0x008 | Number of buffers in the pool |
+| [BMU_UCAST_BASE_ADDR #pfe_bmu_reg_bmu_ucast_base_addr] | 0x00c | Base address to the buffer pool |
+| [BMU_BUF_SIZE #pfe_bmu_reg_bmu_buf_size] | 0x010 | Size of one buffer in the pool |
+| [BMU_BUF_CNT #pfe_bmu_reg_bmu_buf_cnt] | 0x014 | Not implemented? Always reads 0 and writes have no visible effect. |
+| [BMU_THRES #pfe_bmu_reg_bmu_thres] | 0x018 | BMU buffer count threshold |
+| [BMU_INT_SRC #pfe_bmu_reg_bmu_int_src] | 0x020 | BMU interrupt source register |
+| [BMU_INT_ENABLE #pfe_bmu_reg_bmu_int_enable] | 0x024 | BMU interrupt enable register |
+| [BMU_ALLOC_CTRL #pfe_bmu_reg_bmu_alloc_ctrl] | 0x030 | Allocates one buffer from the pool |
+| [BMU_FREE_CTRL #pfe_bmu_reg_bmu_free_ctrl] | 0x034 | Free one previously allocated buffer from the pool |
+| [BMU_FREE_ERR_ADDR #pfe_bmu_reg_bmu_free_err_addr] | 0x038 | Address of buffer used in invalid free operation |
+| [BMU_CURR_BUF_CNT #pfe_bmu_reg_bmu_curr_buf_cnt] | 0x03c | Number of buffers currently allocated |
+| [BMU_MCAST_CNT #pfe_bmu_reg_bmu_mcast_cnt] | 0x040 | Unknown |
+| [BMU_MCAST_ALLOC_CTRL #pfe_bmu_reg_bmu_mcast_alloc_ctrl] | 0x044 | Unknown |
+| [BMU_REM_BUF_CNT #pfe_bmu_reg_bmu_rem_buf_cnt] | 0x048 | Number of remaining free buffers in the pool |
+| [BMU_LOW_WATERMARK #pfe_bmu_reg_bmu_low_watermark] | 0x050 | Low watermark value |
+| [BMU_HIGH_WATERMARK #pfe_bmu_reg_bmu_high_watermark] | 0x054 | High watermark value |
+| [BMU_INT_MEM_ACCESS #pfe_bmu_reg_bmu_int_mem_access] | 0x100 | Internal memory access register |
+
+==== BMU_VERSION (BMU_BASE + 0x000) ====[pfe_bmu_reg_bmu_version]
+
+BMU silicon revision. 0x21 on my c2k chip.
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | ?-0 | R | BMU silicon revision |
+
+==== BMU_CTRL (BMU_BASE + 0x004) ====[pfe_bmu_reg_bmu_ctrl]
+
+BMU control register. The ENABLE bit must be set prior attempting to access
+the other BMU registers (except BMU_VERSION), otherwise the transaction may
+hang forever (or until the watchdog kicks in).
+
+Performing a software reset will not reset the value of the configuration
+registers, only the internal state will be cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| SW_RESET | 1 | RW | Perform software reset. Self-clearing. |
+| ENABLE | 0 | RW | BMU enable. 0=disable 1=enable |
+
+==== BMU_UCAST_CONFIG (BMU_BASE + 0x008) ====[pfe_bmu_reg_bmu_ucast_config]
+
+Number of buffers in the pool.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_COUNT | 15-0 | RW | Total number of buffers in the pool. |
+
+==== BMU_UCAST_BASE_ADDR (BMU_BASE + 0x00c) ====[pfe_bmu_reg_bmu_ucast_base_addr]
+
+Base address of the buffer pool.
+
+The BASE_ADDRESS value is only used to convert between the buffer index, used
+internally, and the full physical address, used for the BMU_ALLOC_CTRL and
+BMU_FREE_CTRL registers.
+
+|| Symbol | Bit range | R/W | Description ||
+| BASE_ADDRESS | 31-0 | RW | Base address of the buffer pool. |
+
+==== BMU_BUF_SIZE (BMU_BASE + 0x010) ====[pfe_bmu_reg_bmu_buf_size]
+
+Size of one buffer in the pool.
+
+The size in bytes is computed as follow:
+
+```
+BUF_SIZE_BYTES = 1 << BUF_SIZE
+```
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_SIZE | 15-0 | RW | Buffer size in powers of 2 (the BUF_SIZE value from above formula). |
+
+==== BMU_BUF_CNT (BMU_BASE + 0x014) ====[pfe_bmu_reg_bmu_buf_cnt]
+
+Unknown. Always reads 0. Writes have no visible effect.
+
+==== BMU_THRES (BMU_BASE + 0x18) ====[pfe_bmu_reg_bmu_thres]
+
+Number of allocated buffer threshold at which an interrupt request should be
+generated.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-16 | RW | Purpose unknown. |
+| THRES | 15-0 | RW | An interrupt request is generated as long as the number of allocated buffer is greater or equal than THRES. |
+
+==== BMU_INT_SRC (BMU_BASE + 0x20) ====[pfe_bmu_reg_bmu_int_src]
+
+Interrupt source pending and acknowledge register.
+
+Reading from this register shows the pending interrupt requests.
+
+Writing into this registers acknowledges the interrupt requests which have
+their bit set in the value written.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 8 | RW | ? |
+| ? | 7 | RW | ? |
+| ? | 6 | RW | ? |
+| ? | 5 | RW | ? |
+| INVALID_FREE | 4 | RW | Set when freeing an already free buffer, or freeing a buffer outside the pool. |
+| THRES | 3 | RW | Set when the number of allocated buffers is greater or equal to the THRES value set in the BMU_THRES register. |
+| FULL | 2 | RW | Set when all buffers are allocated. |
+| EMPTY | 1 | RW | Set when no buffer is allocated. |
+| ? | 0 | RW | ? |
+
+==== BMU_INT_ENABLE (BMU_BASE + 0x24) ====[pfe_bmu_reg_bmu_int_enable]
+
+Interrupt source enable register.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 8 | RW | ? |
+| ? | 7 | RW | ? |
+| ? | 6 | RW | ? |
+| ? | 5 | RW | ? |
+| INVALID_FREE | 4 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| THRES | 3 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| FULL | 2 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| EMPTY | 1 | RW | See description in BMU_INT_SRC. 0=disable 1=enable |
+| ? | 0 | RW | ? |
+
+==== BMU_ALLOC_CTRL (BMU_BASE + 0x30) ====[pfe_bmu_reg_bmu_alloc_ctrl]
+
+Buffer allocation register.
+
+Reading from this register will allocate one buffer from the pool and return
+its address. If no free buffer is available, the value 0 is returned.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_ADDR | 31-0 | R | Address of the buffer just allocated. |
+
+==== BMU_FREE_CTRL (BMU_BASE + 0x34) ====[pfe_bmu_reg_bmu_free_ctrl]
+
+Buffer free register.
+
+Writing an address into this register will free the previously-allocated buffer
+with that address.
+
+If the address does not match any allocated buffer, an error will be reported
+via the INVALID_FREE interrupt source, and the offending address will be stored
+(at some point) in the BMU_FREE_ERR_ADDR register.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_ADDR | 31-0 | W | Address of the buffer to free. |
+
+==== BMU_FREE_ERR_ADDR (BMU_BASE + 0x38) ====[pfe_bmu_reg_bmu_free_err_addr]
+
+Buffer free error address register (buggy, see below).
+
+This register should contain the address which was last written into
+BMU_FREE_CTRL if that address was not a valid allocated buffer.
+
+It appears the hardware is buggy, and the correct value will not appear unless
+a few other invalid free attempts are made.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_ADDR | 31-0 | R | Address of the invalid buffer free attempt. |
+
+==== BMU_CURR_BUF_CNT (BMU_BASE + 0x3c) ====[pfe_bmu_reg_bmu_curr_buf_cnt]
+
+Number of buffers currently allocated.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_CNT | 15-0 | R | Number of allocated buffers. |
+
+==== BMU_MCAST_CNT (BMU_BASE + 0x40) ====[pfe_bmu_reg_bmu_mcast_cnt]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 2-0 | RW | Unknown |
+
+==== BMU_MCAST_ALLOC_CTRL (BMU_BASE + 0x44) ====[pfe_bmu_reg_bmu_mcast_alloc_ctrl]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | R | Unknown |
+
+==== BMU_REM_BUF_CNT (BMU_BASE + 0x48) ====[pfe_bmu_reg_bmu_rem_buf_cnt]
+
+Number of remaining free buffers in the pool.
+
+|| Symbol | Bit range | R/W | Description ||
+| BUF_CNT | 15-0 | R | Number of free buffers. |
+
+==== BMU_LOW_WATERMARK (BMU_BASE + 0x50) ====[pfe_bmu_reg_bmu_low_watermark]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 15-0 | RW | Unknown. Default value: 0x0000 |
+
+==== BMU_HIGH_WATERMARK (BMU_BASE + 0x54) ====[pfe_bmu_reg_bmu_high_watermark]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 15-0 | RW | Unknown. Default value: 0xffff |
+
+==== BMU_INT_MEM_ACCESS (BMU_BASE + 0x100) ====[pfe_bmu_reg_bmu_int_mem_access]
+
+Internal memory access register.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | R | Unknown. Value changes as buffers are allocated/freed. |
+

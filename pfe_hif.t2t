@@ -1,0 +1,154 @@
+
+== Host Interface (HIF) ==[pfe_hif]
+
+Send interrupt requests to the host to signal new packets.
+
+=== HIF registers ===[pfe_hif_regs]
+
+|| HIF instance | Base offset in CBUS ||
+| HIF | 0x280000 |
+
+|| Symbol | Offset | Description ||
+| [HIF_VERSION #pfe_hif_reg_hif_version] | 0x000 | HIF version register (reads 0x10 on my hardware) |
+| [HIF_TX_CTRL #pfe_hif_reg_hif_tx_ctrl] | 0x004 | HIF Tx control register |
+| [HIF_TX_CURR_BD_ADDR #pfe_hif_reg_hif_tx_curr_bd_addr] | 0x008 | HIF Tx current buffer descriptor address |
+| [HIF_TX_ALLOC #pfe_hif_reg_hif_tx_alloc] | 0x00c | HIF Tx allocation register? |
+| [HIF_TX_BDP_ADDR #pfe_hif_reg_hif_tx_bdp_addr] | 0x010 | HIF Tx buffer descriptor pool address |
+| [HIF_TX_STATUS #pfe_hif_reg_hif_tx_status] | 0x014 | HIF Tx status register |
+| [HIF_RX_CTRL #pfe_hif_reg_hif_rx_ctrl] | 0x020 | HIF Rx status register |
+| [HIF_RX_BDP_ADDR #pfe_hif_reg_hif_rx_bdp_addr] | 0x024 | HIF Rx buffer descriptor pool address |
+| [HIF_RX_STATUS #pfe_hif_reg_hif_rx_status] | 0x030 | HIF Rx status |
+| [HIF_INT_SRC #pfe_hif_reg_hif_int_src] | 0x034 | HIF interrupt source status register |
+| [HIF_INT_ENABLE #pfe_hif_reg_hif_int_enable] | 0x038 | HIF interrupt enable register |
+| [HIF_POLL_CTRL #pfe_hif_reg_hif_poll_ctrl] | 0x03c | HIF polling control register |
+| [HIF_RX_CURR_BD_ADDR #pfe_hif_reg_hif_rx_curr_bd_addr] | 0x040 | HIF Rx current buffer descriptor address |
+| [HIF_RX_ALLOC #pfe_hif_reg_hif_rx_alloc] | 0x044 | HIF Rx allocation register? |
+| [HIF_TX_DMA_STATUS #pfe_hif_reg_hif_tx_dma_status] | 0x048 | HIF Tx DMA status register |
+| [HIF_RX_DMA_STATUS #pfe_hif_reg_hif_rx_dma_status] | 0x04c | HIF Rx DMA status register |
+| [HIF_INT_COAL #pfe_hif_reg_hif_int_coal] | 0x050 | HIF interrupt coalesce control register |
+
+==== HIF_VERSION (HIF_BASE + 0x000) ====[pfe_hif_reg_hif_version]
+
+HIF silicon revision. 0x10 on my c2k chip.
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | ?-0 | R | HIF silicon revision |
+
+==== HIF_TX_CTRL (HIF_BASE + 0x004) ====[pfe_hif_reg_hif_tx_ctrl]
+
+|| Symbol | Bit range | R/W | Description ||
+| BDP_CH_START_WSTB | 2 | RW | Enable buffer descriptor pool start write strobe? |
+| BDP_POLL_CTRL_EN | 1 | RW | Enable polling the buffer descriptor pool? |
+| DMA_EN | 0 | RW | Enable DMA operation |
+
+==== HIF_TX_CURR_BD_ADDR (HIF_BASE + 0x008) ====[pfe_hif_reg_hif_tx_curr_bd_addr]
+
+|| Symbol | Bit range | R/W | Description ||
+| CURR_BD_ADDR | 31-0 | R | Address of the current buffer descriptor |
+
+==== HIF_TX_ALLOC (HIF_BASE + 0x00c) ====[pfe_hif_reg_hif_tx_alloc]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | W | ? |
+
+==== HIF_TX_BDP_ADDR (HIF_BASE + 0x010) ====[pfe_hif_reg_hif_tx_bdp_addr]
+
+Get or set the address of the Tx buffer descriptor pool.
+
+Writing a new value will reset the Tx current buffer descriptor.
+
+|| Symbol | Bit range | R/W | Description ||
+| BDP_ADDR | 31-0 | RW | Address of the buffer descriptor pool |
+
+==== HIF_TX_STATUS (HIF_BASE + 0x014) ====[pfe_hif_reg_hif_tx_status]
+
+Contents unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+
+==== HIF_RX_CTRL (HIF_BASE + 0x020) ====[pfe_hif_reg_hif_rx_ctrl]
+
+|| Symbol | Bit range | R/W | Description ||
+| BDP_CH_START_WSTB | 2 | RW | Enable buffer descriptor pool start write strobe? |
+| BDP_POLL_CTRL_EN | 1 | RW | Enable polling the buffer descriptor pool? |
+| DMA_EN | 0 | RW | Enable DMA operation |
+
+==== HIF_RX_BDP_ADDR (HIF_BASE + 0x024) ====[pfe_hif_reg_hif_rx_bdp_addr]
+
+Get or set the address of the Rx buffer descriptor pool.
+
+Writing a new value will reset the Rx current buffer descriptor.
+
+|| Symbol | Bit range | R/W | Description ||
+| BDP_ADDR | 31-0 | RW | Address of the buffer descriptor pool |
+
+==== HIF_RX_STATUS (HIF_BASE + 0x030) ====[pfe_hif_reg_hif_rx_status]
+
+Contents unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+
+==== HIF_INT_SRC (HIF_BASE + 0x034) ====[pfe_hif_reg_hif_int_src]
+
+Interrupt source status register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TXPKT_INT | 4 | R | Tx packet ??? interrupt |
+| TXBD_INT | 3 | R | Tx buffer descriptor ??? interrupt |
+| RXPKT_INT | 2 | R | Rx packet ??? interrupt |
+| RXBD_INT | 1 | R | Rx buffer descriptor ??? interrupt |
+| INT | 0 | R | Global interrupt? |
+
+==== HIF_INT_ENABLE (HIF_BASE + 0x038) ====[pfe_hif_reg_hif_int_enable]
+
+Interrupt source enable register.
+
+|| Symbol | Bit range | R/W | Description ||
+| TXPKT_INT | 4 | RW | Tx packet ??? interrupt enable |
+| TXBD_INT | 3 | RW | Tx buffer descriptor ??? interrupt enable |
+| RXPKT_INT | 2 | RW | Rx packet ??? interrupt enable |
+| RXBD_INT | 1 | RW | Rx buffer descriptor ??? interrupt enable |
+| INT | 0 | RW | Global interrupt enable? |
+
+==== HIF_POLL_CTRL (HIF_BASE + 0x03c) ====[pfe_hif_reg_hif_poll_ctrl]
+
+Polling control register
+
+|| Symbol | Bit range | R/W | Description ||
+| 31-16 | RX_POLL_CTRL_CYCLE | RW | Number of pfe_sys clock cycles between Rx buffer descriptor pool poll attempts |
+| 15-0 | TX_POLL_CTRL_CYCLE | RW | Number of pfe_sys clock cycles between Tx buffer descriptor pool poll attempts |
+
+==== HIF_RX_CURR_BD_ADDR (HIF_BASE + 0x040) ====[pfe_hif_reg_hif_rx_curr_bd_addr]
+
+|| Symbol | Bit range | R/W | Description ||
+| CURR_BD_ADDR | 31-0 | R | Address of the current buffer descriptor |
+
+==== HIF_RX_ALLOC (HIF_BASE + 0x044) ====[pfe_hif_reg_hif_rx_alloc]
+
+Purpose unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | W | ? |
+
+==== HIF_TX_DMA_STATUS (HIF_BASE + 0x048) ====[pfe_hif_reg_hif_tx_dma_status]
+
+Contents unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+
+==== HIF_RX_DMA_STATUS (HIF_BASE + 0x04c) ====[pfe_hif_reg_hif_rx_dma_status]
+
+Contents unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+
+==== HIF_INT_COAL (HIF_BASE + 0x050) ====[pfe_hif_reg_hif_int_coal]
+
+Interrupt coalesce control register
+
+|| Symbol | Bit range | R/W | Description ||
+| 31 | INT_COAL_ENABLE | RW | Enable interrupt coalesce |
+| 30-0 | TX_POLL_CTRL_CYCLE | RW | Minimum number of pfe_sys clock cycles between interrupts |
+
