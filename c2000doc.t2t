@@ -1,9 +1,9 @@
 MindSpeed Comcerto 2000 (unofficial) documentation
 Hugo "Bonstra" Grostabussiat
-%%date(%Y-%m-%d)
+2021-03-27
 %!target:html
 %!encoding:UTF-8
-%!options(html):--toc --toc-level 3 --enum-title
+%!options(html):--toc --enum-title
 
 = About this document =
 
