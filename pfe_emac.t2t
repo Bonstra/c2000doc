@@ -1,3 +1,11 @@
 
 == Ethernet MAC (EMAC) ==[pfe_emac]
 
+The EMAC is a Cadence Gigabit Ethernet MAC IP.
+
+A driver exist in mainline Linux, but it cannot be used directly with this EMAC
+implementation as there is no CPU interface.
+
+Each EMAC instance has a matching EGPI block which handles the the Rx and Tx
+queues. The EGPI blocks make use of the BMU blocks to allocate/free buffers
+from the buffer pools.

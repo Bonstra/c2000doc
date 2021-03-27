@@ -11,6 +11,12 @@ Generic Packet Interface?
 | HGPI | 0x290000 |
 | EGPI3 | 0x340000 |
 
+|| GPI | Associated 'PHY' ||
+| EGPI1 | EMAC1 |
+| EGPI2 | EMAC2 |
+| EGPI3 | EMAC3 |
+| HGPI | HIF |
+
 || Symbol | Offset | Description ||
 | [GPI_VERSION #pfe_gpi_reg_gpi_version] | 0x000 | GPI silicon revision register |
 | [GPI_CTRL #pfe_gpi_reg_gpi_ctrl] | 0x004 | GPI control register |
@@ -24,7 +30,7 @@ Generic Packet Interface?
 | [GPI_CLASS_ADDR #pfe_gpi_reg_gpi_class_addr] | 0x024 | GPI CLASS address register |
 | [GPI_DRX_FIFO #pfe_gpi_reg_gpi_drx_fifo] | 0x028 |  |
 | [GPI_TRX_FIFO #pfe_gpi_reg_gpi_trx_fifo] | 0x02c |  |
-| [GPI_INQ_PKTPTR #pfe_gpi_reg_gpi_inq_pktptr] | 0x030 | GPI packet input FIFO? |
+| [GPI_INQ_PKTPTR #pfe_gpi_reg_gpi_inq_pktptr] | 0x030 | GPI packet IN Queue FIFO |
 | [GPI_DDR_DATA_OFFSET #pfe_gpi_reg_gpi_ddr_data_offset] | 0x034 | GPI data offset for DDR packets |
 | [GPI_LMEM_DATA_OFFSET #pfe_gpi_reg_gpi_lmem_data_offset] | 0x038 | GPI data offset for LMEM packets |
 | [GPI_TMLF_TX #pfe_gpi_reg_gpi_tmlf_tx] | 0x04c |  |
@@ -55,7 +61,7 @@ registers, only the internal state will be cleared.
 
 || Symbol | Bit range | R/W | Description ||
 | SW_RESET | 1 | RW | Perform software reset. Self-clearing. |
-| ENABLE | 0 | RW | BMU enable. 0=disable 1=enable |
+| ENABLE | 0 | RW | GPI enable. 0=disable 1=enable |
 
 ==== GPI_RX_CONFIG (GPI_BASE + 0x008) ====[pfe_gpi_reg_gpi_rx_config]
 
