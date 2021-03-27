@@ -1,3 +1,153 @@
 
-== Host Interface no copy (HIF nocpy) ==
+== Host Interface no copy (HIF nocpy) ==[pfe_hif_nocpy]
+
+Manage and monitor a buffer descriptor pool and signal Rx/Tx events to the
+host using interrupt requests.
+
+=== HIF_NOCPY registers ===[pfe_hif_nocpy_regs]
+
+|| HIF_NOCPY instance | Base offset in CBUS ||
+| HIF_NOCPY | 0x350000 |
+
+|| Symbol | Offset | Description ||
+| [VERSION #pfe_hif_nocpy_reg_version] | 0x000 | Silicon revision register (reads 0x10 on my hardware) |
+| [TX_CTRL #pfe_hif_nocpy_reg_tx_ctrl] | 0x004 | Tx control register |
+| [TX_CURR_BD_ADDR #pfe_hif_nocpy_reg_tx_curr_bd_addr] | 0x008 | Current Tx buffer descriptor address |
+| [TX_ALLOC #pfe_hif_nocpy_reg_tx_alloc] | 0x00c | Tx allocation register? |
+| [TX_BDP_ADDR #pfe_hif_nocpy_reg_tx_bdp_addr] | 0x010 | Tx buffer descriptor pool address |
+| [TX_STATUS #pfe_hif_nocpy_reg_tx_status] | 0x014 | Tx status register |
+| [RX_CTRL #pfe_hif_nocpy_reg_rx_ctrl] | 0x020 | Rx status register |
+| [RX_BDP_ADDR #pfe_hif_nocpy_reg_rx_bdp_addr] | 0x024 | Rx buffer descriptor pool address |
+| [RX_STATUS #pfe_hif_nocpy_reg_rx_status] | 0x030 | Rx status |
+| [INT_SRC #pfe_hif_nocpy_reg_int_src] | 0x034 | Interrupt source status register |
+| [INT_ENABLE #pfe_hif_nocpy_reg_int_enable] | 0x038 | Interrupt enable register |
+| [POLL_CTRL #pfe_hif_nocpy_reg_poll_ctrl] | 0x03c | Polling control register |
+| [RX_CURR_BD_ADDR #pfe_hif_nocpy_reg_rx_curr_bd_addr] | 0x040 | Current Rx buffer descriptor address |
+| [RX_ALLOC #pfe_hif_nocpy_reg_rx_alloc] | 0x044 | Rx allocation register? |
+| [TX_DMA_STATUS #pfe_hif_nocpy_reg_tx_dma_status] | 0x048 | Tx DMA status register |
+| [RX_DMA_STATUS #pfe_hif_nocpy_reg_rx_dma_status] | 0x04c | Rx DMA status register |
+| [RX_INQ0_PKTPTR #pfe_hif_nocpy_reg_rx_inq0_pktptr] | 0x050 |  |
+| [RX_INQ1_PKTPTR #pfe_hif_nocpy_reg_rx_inq1_pktptr] | 0x054 |  |
+| [TX_PORT_NO #pfe_hif_nocpy_reg_tx_port_no] | 0x060 |  |
+| [LMEM_ALLOC_ADDR #pfe_hif_nocpy_reg_lmem_alloc_addr] | 0x064 |  |
+| [TMU_PORT0_ADDR #pfe_hif_nocpy_reg_tmu_port0_addr] | 0x070 |  |
+| [TMU_PORT1_ADDR #pfe_hif_nocpy_reg_tmu_port1_addr] | 0x074 |  |
+| [TMU_PORT2_ADDR #pfe_hif_nocpy_reg_tmu_port2_addr] | 0x07c |  |
+| [TMU_PORT3_ADDR #pfe_hif_nocpy_reg_tmu_port3_addr] | 0x080 |  |
+| [TMU_PORT4_ADDR #pfe_hif_nocpy_reg_tmu_port4_addr] | 0x084 |  |
+| [INT_COAL #pfe_hif_nocpy_reg_int_coal] | 0x090 | Interrupt coalesce control register |
+
+==== VERSION (HIF_NOCPY_BASE + 0x000) ====[pfe_hif_nocpy_reg_version]
+
+HIF_NOCPY silicon revision. 0x10 on my c2k chip.
+
+|| Symbol | Bit range | R/W | Description ||
+| VERSION | ?-0 | R | HIF_NOCPY silicon revision |
+
+==== TX_CTRL (HIF_NOCPY_BASE + 0x004) ====[pfe_hif_nocpy_reg_tx_ctrl]
+
+Same as [HIF TX_CTRL #pfe_hif_reg_tx_ctrl].
+
+==== TX_CURR_BD_ADDR (HIF_NOCPY_BASE + 0x008) ====[pfe_hif_nocpy_reg_tx_curr_bd_addr]
+
+Same as [HIF TX_CURR_BD_ADDR #pfe_hif_reg_tx_curr_bd_addr].
+
+==== TX_ALLOC (HIF_NOCPY_BASE + 0x00c) ====[pfe_hif_nocpy_reg_tx_alloc]
+
+Same as [HIF TX_ALLOC #pfe_hif_reg_tx_alloc].
+
+==== TX_BDP_ADDR (HIF_NOCPY_BASE + 0x010) ====[pfe_hif_nocpy_reg_tx_bdp_addr]
+
+Same as [HIF TX_BDP_ADDR #pfe_hif_reg_tx_bdp_addr].
+
+==== TX_STATUS (HIF_NOCPY_BASE + 0x014) ====[pfe_hif_nocpy_reg_tx_status]
+
+Same as [HIF TX_STATUS #pfe_hif_reg_tx_status].
+
+==== RX_CTRL (HIF_NOCPY_BASE + 0x020) ====[pfe_hif_nocpy_reg_rx_ctrl]
+
+Same as [HIF RX_CTRL #pfe_hif_reg_rx_ctrl].
+
+==== RX_BDP_ADDR (HIF_NOCPY_BASE + 0x024) ====[pfe_hif_nocpy_reg_rx_bdp_addr]
+
+Same as [HIF RX_BDP_ADDR #pfe_hif_reg_rx_bdp_addr].
+
+==== RX_STATUS (HIF_NOCPY_BASE + 0x030) ====[pfe_hif_nocpy_reg_rx_status]
+
+Same as [HIF RX_STATUS #pfe_hif_reg_rx_status].
+
+==== INT_SRC (HIF_NOCPY_BASE + 0x034) ====[pfe_hif_nocpy_reg_int_src]
+
+Same as [HIF INT_SRC #pfe_hif_reg_int_src].
+
+==== INT_ENABLE (HIF_NOCPY_BASE + 0x038) ====[pfe_hif_nocpy_reg_int_enable]
+
+Same as [HIF INT_ENABLE #pfe_hif_reg_int_enable].
+
+==== POLL_CTRL (HIF_NOCPY_BASE + 0x03c) ====[pfe_hif_nocpy_reg_poll_ctrl]
+
+Same as [HIF POLL_CTRL #pfe_hif_reg_poll_ctrl].
+
+==== RX_CURR_BD_ADDR (HIF_NOCPY_BASE + 0x040) ====[pfe_hif_nocpy_reg_rx_curr_bd_addr]
+
+Same as [HIF RX_CURR_BD_ADDR #pfe_hif_reg_rx_curr_bd_addr].
+
+==== RX_ALLOC (HIF_NOCPY_BASE + 0x044) ====[pfe_hif_nocpy_reg_rx_alloc]
+
+Same as [HIF RX_ALLOC #pfe_hif_reg_rx_alloc].
+
+==== TX_DMA_STATUS (HIF_NOCPY_BASE + 0x048) ====[pfe_hif_nocpy_reg_tx_dma_status]
+
+Same as [HIF TX_DMA_STATUS #pfe_hif_reg_tx_dma_status].
+
+==== RX_DMA_STATUS (HIF_NOCPY_BASE + 0x04c) ====[pfe_hif_nocpy_reg_rx_dma_status]
+
+Same as [HIF RX_DMA_STATUS #pfe_hif_reg_rx_dma_status].
+
+==== RX_INQ0_PKTPTR (HIF_NOCPY_BASE + 0x50) ====[pfe_hif_nocpy_reg_rx_inq0_pktptr]
+
+Incoming packet pointer INQ0 FIFO.
+
+Software configures TMU_CSR to deliver packets for PHY4 here.
+
+|| Symbol | Bit range | R/W | Description ||
+| PKTPTR | 31-0 | RW | Pointer to received packet buffer |
+
+==== RX_INQ1_PKTPTR (HIF_NOCPY_BASE + 0x54) ====[pfe_hif_nocpy_reg_rx_inq1_pktptr]
+
+Incoming packet pointer INQ1 FIFO.
+
+|| Symbol | Bit range | R/W | Description ||
+| PKTPTR | 31-0 | RW | Pointer to received packet buffer |
+
+==== TX_PORT_NO (HIF_NOCPY_BASE + 0x60) ====[pfe_hif_nocpy_reg_tx_port_no]
+
+Hardware port number to use for Tx packets.
+
+Unused code in driver suggests that a valid value could be 4 (TMU PHY4).
+
+|| Symbol | Bit range | R/W | Description ||
+| PORT_NO | 15-0 | RW | Hardware port number to use in outgoing packets |
+
+==== LMEM_ALLOC_ADDR (HIF_NOCPY_BASE + 0x64) ====[pfe_hif_nocpy_reg_lmem_alloc_addr]
+
+Address of the BMU register to read to allocate a LMEM buffer.
+
+Software would set it to BMU1 [BMU_ALLOC_CTRL #pfe_bmu_reg_bmu_alloc_ctrl].
+
+|| Symbol | Bit range | R/W | Description ||
+| ADDR | 31-0 | RW | Address to the BMU_ALLOC_CTRL register of the BMU managing LMEM buffer pool. |
+
+==== TMU_PORT0_ADDR (HIF_NOCPY_BASE + 0x70) ====[pfe_hif_nocpy_reg_tmu_port0_addr]
+
+Address of the TMU IN Queue FIFO.
+
+Software would set it to the address of [TMU PHY_INQ_PKTPTR #pfe_tmu_csr_reg_phy_inq_pktptr].
+
+|| Symbol | Bit range | R/W | Description ||
+| ADDR | 31-0 | RW | Address of the IN queue FIFO register of the TMU (or compatible) block. |
+
+==== INT_COAL (HIF_NOCPY_BASE + 0x090) ====[pfe_hif_nocpy_reg_int_coal]
+
+Same as [HIF INT_COAL #pfe_hif_reg_int_coal].
 

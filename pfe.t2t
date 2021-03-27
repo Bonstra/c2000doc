@@ -49,7 +49,7 @@ running (bit 3 of [AXI_CLK_CNTRL_1 #clkcore_regs_axi_clk_cntrl1] set).
 | 0x320000 | 0x10000 | ? | [CLASS_CSR #pfe_class_csr] |
 | 0x330000 | 0x10000 | ? | [EMAC3 #pfe_emac] |
 | 0x340000 | 0x10000 | ? | [EGPI3 #pfe_gpi] |
-| 0x350000 | 0x10000 | ? | HIF_NOCPY |
+| 0x350000 | 0x10000 | ? | [HIF_NOCPY #pfe_hif_nocpy] |
 | 0x360000 | 0x10000 | ? | [UTIL_CSR #pfe_util_csr] |
 | 0x370000 | 0x10000 | ? | CBUS_GPT |
 
