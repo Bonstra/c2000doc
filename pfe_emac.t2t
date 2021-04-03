@@ -9,3 +9,28 @@ implementation as there is no CPU interface.
 Each EMAC instance has a matching EGPI block which handles the the Rx and Tx
 queues. The EGPI blocks make use of the BMU blocks to allocate/free buffers
 from the buffer pools.
+
+Note: Reading a statistics register will reset its value to 0.
+
+=== EMAC registers ===[pfe_emac_regs]
+
+|| EMAC instance | Base offset in CBUS ||
+| EMAC1 | 0x200000 |
+| EMAC2 | 0x220000 |
+| EMAC3 | 0x330000 |
+
+|| EMAC instance | Associated GPI ||
+| EMAC1 | EGPI1 |
+| EMAC2 | EGPI2 |
+| EMAC3 | EGPI3 |
+
+|| Symbol | Offset | Description ||
+| [NETWORK_CONTROL #pfe_emac_reg_network_control] | 0x000 | Network control register |
+
+==== NETWORK_CONTROL (EMAC_BASE + 0x000) ====[pfe_emac_reg_network_control]
+
+Network control register
+
+|| Symbol | Bit range | R/W | Description ||
+|  | ?-0 | R | ? |
+
