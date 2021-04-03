@@ -3,6 +3,97 @@
 
 Generic Packet Interface?
 
+The GPI is the interface between memory and a peripheral. For EGPIs, that
+peripheral is an EMAC block (ethernet MAC). For HGPI, it is the HIF.
+
+On the Rx path, the GPI reads packets from the peripheral, allocates one or
+more buffers depending on the size of the packet, and writes data and metadata
+into those buffers.
+
+The GPI can use either DDR buffers, LMEM buffers, or both, depending on the
+configuration in [GPI_RX_CONFIG #pfe_gpi_reg_rx_config].
+
+On the Tx path, TODO.
+
+=== GPI Rx buffer format ===[pfe_gpi_rx_buf_format]
+
+Large packets are split into fragments; each fragment is stored in its own
+allocated buffer, and starts with a [header #pfe_gpi_rx_buf_header] indicating
+where the next fragment is located. The header of the first fragment contains
+the packet metadata, such as packet length. That metadata is not repeated in
+the next segments. Also, the header is not written at all in the last fragment
+(it contains whatever garbage was last written there), so you must rely on the
+packet length from the header of the first fragment to know when you have
+reached the last fragment.
+
+When both LMEM and DDR buffers are used, the first fragment is always stored in
+LMEM for fast processing by the PEs, while the next fragments are stored in DDR
+buffers. Also, in that mode of operation, at least one DDR buffer is allocated,
+even if the packet is small enough to be entirely stored in a single LMEM
+buffer; that DDR buffer will not be used by the GPI in that case.
+
+GPI Rx fragments are stored into memory in the following format.
+
+|| Offset | Size | Description ||
+| 0x0 | HDR_SIZE | [Fragment Rx header #pfe_gpi_rx_buf_header] |
+| HDR_SIZE | DATA_OFFSET - HDR_SIZE | Free space for PE use |
+| DATA_OFFSET | BUF_SIZE - DATA_OFFSET | Fragment data |
+
+HDR_SIZE, BUF_SIZE and DATA_OFFSET can be configured using registers
+[HDR_SIZE #pfe_gpi_reg_hdr_size], [BUF_SIZE #pfe_gpi_reg_buf_size],
+[DDR_DATA_OFFSET #pfe_gpi_reg_ddr_data_offset] and
+[LMEM_DATA_OFFSET #pfe_gpi_reg_lmem_data_offset].
+
+==== GPI Rx fragment header ====[pfe_gpi_rx_buf_header]
+
+Byte order is big-endian.
+
+|| Name | Offset | Size | Description ||
+| next_ptr | 0x0 | 4 | Pointer to the buffer containing the next fragment of the packet data that didn't fit into this buffer. Not written in last fragment. |
+| length | 0x4 | 2 | (First fragment only) Total packet length. Depending on the GEMAC configuration, it may include the FCS. |
+| phyno | 0x6 | 2 | (First fragment only) Input physical port number. 0=EGPI1, 1=EGPI2, other values unknown |
+| status | 0x8 | 4 | (First fragment only) GEMAC status bits [63:32] |
+| status2 | 0xc | 4 | (First fragment only) GEMAC status bits [31:0] |
+
+GEMAC status bits:
+
+|| Name | Bit range | Description ||
+| IP_CHECKSUM_CORRECT? | 57 | IP checksum is correct? |
+| ? | 55 | ? |
+| SPEC32_ADD_MATCH | 31 | Destination address matches the one programmed in SPEC32_ADD_[BOT|TOP] registers |
+| SPEC31_ADD_MATCH | 30 | Destination address matches the one programmed in SPEC31_ADD_[BOT|TOP] registers |
+| SPEC30_ADD_MATCH | 29 | Destination address matches the one programmed in SPEC30_ADD_[BOT|TOP] registers |
+| SPEC29_ADD_MATCH | 28 | Destination address matches the one programmed in SPEC29_ADD_[BOT|TOP] registers |
+| SPEC28_ADD_MATCH | 27 | Destination address matches the one programmed in SPEC28_ADD_[BOT|TOP] registers |
+| SPEC27_ADD_MATCH | 26 | Destination address matches the one programmed in SPEC27_ADD_[BOT|TOP] registers |
+| SPEC26_ADD_MATCH | 25 | Destination address matches the one programmed in SPEC26_ADD_[BOT|TOP] registers |
+| SPEC25_ADD_MATCH | 24 | Destination address matches the one programmed in SPEC25_ADD_[BOT|TOP] registers |
+| SPEC24_ADD_MATCH | 23 | Destination address matches the one programmed in SPEC24_ADD_[BOT|TOP] registers |
+| SPEC23_ADD_MATCH | 22 | Destination address matches the one programmed in SPEC23_ADD_[BOT|TOP] registers |
+| SPEC22_ADD_MATCH | 21 | Destination address matches the one programmed in SPEC22_ADD_[BOT|TOP] registers |
+| SPEC21_ADD_MATCH | 20 | Destination address matches the one programmed in SPEC21_ADD_[BOT|TOP] registers |
+| SPEC20_ADD_MATCH | 19 | Destination address matches the one programmed in SPEC20_ADD_[BOT|TOP] registers |
+| SPEC19_ADD_MATCH | 18 | Destination address matches the one programmed in SPEC19_ADD_[BOT|TOP] registers |
+| SPEC18_ADD_MATCH | 17 | Destination address matches the one programmed in SPEC18_ADD_[BOT|TOP] registers |
+| SPEC17_ADD_MATCH | 16 | Destination address matches the one programmed in SPEC17_ADD_[BOT|TOP] registers |
+| SPEC16_ADD_MATCH | 15 | Destination address matches the one programmed in SPEC16_ADD_[BOT|TOP] registers |
+| SPEC15_ADD_MATCH | 14 | Destination address matches the one programmed in SPEC15_ADD_[BOT|TOP] registers |
+| SPEC14_ADD_MATCH | 13 | Destination address matches the one programmed in SPEC14_ADD_[BOT|TOP] registers |
+| SPEC13_ADD_MATCH | 12 | Destination address matches the one programmed in SPEC13_ADD_[BOT|TOP] registers |
+| SPEC12_ADD_MATCH | 11 | Destination address matches the one programmed in SPEC12_ADD_[BOT|TOP] registers |
+| SPEC11_ADD_MATCH | 10 | Destination address matches the one programmed in SPEC11_ADD_[BOT|TOP] registers |
+| SPEC10_ADD_MATCH | 9 | Destination address matches the one programmed in SPEC10_ADD_[BOT|TOP] registers |
+| SPEC9_ADD_MATCH | 8 | Destination address matches the one programmed in SPEC9_ADD_[BOT|TOP] registers |
+| SPEC8_ADD_MATCH | 7 | Destination address matches the one programmed in SPEC8_ADD_[BOT|TOP] registers |
+| SPEC7_ADD_MATCH | 6 | Destination address matches the one programmed in SPEC7_ADD_[BOT|TOP] registers |
+| SPEC6_ADD_MATCH | 5 | Destination address matches the one programmed in SPEC6_ADD_[BOT|TOP] registers |
+| SPEC5_ADD_MATCH | 4 | Destination address matches the one programmed in SPEC5_ADD_[BOT|TOP] registers |
+| SPEC4_ADD_MATCH | 3 | Destination address matches the one programmed in SPEC4_ADD_[BOT|TOP] registers |
+| SPEC3_ADD_MATCH | 2 | Destination address matches the one programmed in SPEC3_ADD_[BOT|TOP] registers |
+| SPEC2_ADD_MATCH | 1 | Destination address matches the one programmed in SPEC2_ADD_[BOT|TOP] registers |
+| SPEC1_ADD_MATCH | 0 | Destination address matches the one programmed in SPEC1_ADD_[BOT|TOP] registers |
+
+
 === GPI registers ===[pfe_gpi_regs]
 
 || GPI instance | Base offset in CBUS ||
