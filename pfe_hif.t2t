@@ -72,7 +72,7 @@ Contents unknown.
 ==== RX_CTRL (HIF_BASE + 0x020) ====[pfe_hif_reg_rx_ctrl]
 
 || Symbol | Bit range | R/W | Description ||
-| BDP_CH_START_WSTB | 2 | RW | Enable buffer descriptor pool start write strobe? |
+| BDP_CH_START_WSTB | 2 | RW | Enable buffer descriptor pool start write strobe? Self-clearing. Can be set to resume Rx in case of overrun. |
 | BDP_POLL_CTRL_EN | 1 | RW | Enable polling the buffer descriptor pool? |
 | DMA_EN | 0 | RW | Enable DMA operation |
 
@@ -94,6 +94,9 @@ Contents unknown.
 ==== INT_SRC (HIF_BASE + 0x034) ====[pfe_hif_reg_int_src]
 
 Interrupt source status register.
+
+An interrupt can be acknowledged by writing a value with the corresponding
+bit set.
 
 || Symbol | Bit range | R/W | Description ||
 | TXPKT_INT | 4 | R | Tx packet ??? interrupt |

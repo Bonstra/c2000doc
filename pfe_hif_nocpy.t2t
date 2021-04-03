@@ -4,6 +4,37 @@
 Manage and monitor a buffer descriptor pool and signal Rx/Tx events to the
 host using interrupt requests.
 
+=== HIF_NOCPY buffer descriptor format ===[pfe_hif_nocpy_bd_format]
+
+|| Name | Offset | Size | Description ||
+| ctrl | 0x0 | 4 | [Control word #pfe_hif_nocpy_bd_fields] |
+| status | 0x4 | 4 | [Status word #pfe_hif_nocpy_bd_fields] |
+| data | 0x8 | 4 | Data address word |
+| next | 0xc | 4 | Address of next descriptor. Last descriptor should link back to the first one. |
+
+==== Buffer descriptor fields ====[pfe_hif_nocpy_bd_fields]
+
+Control word:
+
+|| Name | Bit range | Description ||
+| DESC_EN | 31 | Descriptor is enabled |
+| RTFETCH_DISABLE | 27 | ? Only effective if LIFM is set. |
+| BRFETCH_DISABLE | 26 | ? Only effective if LIFM is set. |
+| PARSE_DISABLE | 25 | Disable frame header parsing? Only effective if LIFM is set. |
+| PKT_XFER | 24 | Packet was transferred (Rx done)? |
+| LMEM_CPY | 21 | Only for HIF_NOCPY. Copy from LMEM to DDR? |
+| DIR | 20 | Direction 0=Tx 1=Rx |
+| LAST_BD | 19 | Last buffer descriptor in the list? |
+| LIFM | 18 | Last buffer in frame |
+| PKT_INT_EN | 17 | Trigger interrupt when packet is sent on the wire? |
+| CBD_INT_EN | 16 | Trigger interrupt when buffer starts being processed? |
+| BUF_LEN | 13-0 | Length of associated buffer. Filled by CPU on Tx, empty on Rx. |
+
+Status word:
+
+|| Name | Bit range | Description ||
+
+
 === HIF_NOCPY registers ===[pfe_hif_nocpy_regs]
 
 || HIF_NOCPY instance | Base offset in CBUS ||
@@ -133,7 +164,7 @@ Unused code in driver suggests that a valid value could be 4 (TMU PHY4).
 
 Address of the BMU register to read to allocate a LMEM buffer.
 
-Software would set it to BMU1 [BMU_ALLOC_CTRL #pfe_bmu_reg_bmu_alloc_ctrl].
+Software would set it to BMU1 [BMU_ALLOC_CTRL #pfe_bmu_reg_alloc_ctrl].
 
 || Symbol | Bit range | R/W | Description ||
 | ADDR | 31-0 | RW | Address to the BMU_ALLOC_CTRL register of the BMU managing LMEM buffer pool. |
