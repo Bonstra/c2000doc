@@ -29,6 +29,12 @@ The CBUS is shared by the ARM and all PEs.
 Warning: All CBUS accesses from the ARM require the PFE_SYS clock to be
 running (bit 3 of [AXI_CLK_CNTRL_1 #clkcore_regs_axi_clk_cntrl1] set).
 
+Warning: ARM data accesses to the CBUS are byte-swapped on a 4 bytes boundary.
+That means that reading from 32-bit CBUS registers from the ARM directly
+returns the value in little-endian byte order. However, this becomes an issue
+when accessing memories, such as the LMEM, because every group of 4 bytes will
+be byte-swapped, even on non 32 bit accesses.
+
 || Seen from | CBUS base address ||
 | ARM | 0x9c000000 |
 | Any PE | 0xc0000000 |
