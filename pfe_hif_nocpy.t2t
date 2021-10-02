@@ -6,6 +6,8 @@ host using interrupt requests.
 
 === HIF_NOCPY buffer descriptor format ===[pfe_hif_nocpy_bd_format]
 
+Byte order is little-endian.
+
 || Name | Offset | Size | Description ||
 | ctrl | 0x0 | 4 | [Control word #pfe_hif_nocpy_bd_fields] |
 | status | 0x4 | 4 | [Status word #pfe_hif_nocpy_bd_fields] |
@@ -21,18 +23,26 @@ Control word:
 | RTFETCH_DISABLE | 27 | ? Only effective if LIFM is set. |
 | BRFETCH_DISABLE | 26 | ? Only effective if LIFM is set. |
 | PARSE_DISABLE | 25 | Disable frame header parsing? Only effective if LIFM is set. |
-| PKT_XFER | 24 | Packet was transferred (Rx done)? |
-| LMEM_CPY | 21 | Only for HIF_NOCPY. Copy from LMEM to DDR? |
+| PKT_XFER | 24 | Packet was transferred (Rx/Tx done)? |
+| LMEM_CPY | 21 | Only for HIF_NOCPY. Allocate a LMEM buffer and write stuff in it? |
 | DIR | 20 | Direction 0=Tx 1=Rx |
 | LAST_BD | 19 | Last buffer descriptor in the list? |
 | LIFM | 18 | Last buffer in frame |
 | PKT_INT_EN | 17 | Trigger interrupt when packet is sent on the wire? |
 | CBD_INT_EN | 16 | Trigger interrupt when buffer starts being processed? |
-| BUF_LEN | 13-0 | Length of associated buffer. Filled by CPU on Tx, empty on Rx. |
+| BUF_LEN | 13-0 | Length of associated buffer. Unused? |
 
 Status word:
 
+Probably only valid in the HIF buffer descriptors, not in HIF_NOCPY.
+
 || Name | Bit range | Description ||
+| CHKSUM_EN | 22 | ? |
+| LE_DATA | 21 | ? |
+| PROC_ID | 20-18 | ? |
+| CONN_ID_EN | 17 | ? |
+| DIR_PROC_ID | 16 | ? |
+| CONN_ID | 15-0 | ? |
 
 
 === HIF_NOCPY registers ===[pfe_hif_nocpy_regs]
@@ -61,6 +71,7 @@ Status word:
 | [RX_INQ1_PKTPTR #pfe_hif_nocpy_reg_rx_inq1_pktptr] | 0x054 |  |
 | [TX_PORT_NO #pfe_hif_nocpy_reg_tx_port_no] | 0x060 |  |
 | [LMEM_ALLOC_ADDR #pfe_hif_nocpy_reg_lmem_alloc_addr] | 0x064 |  |
+| [CLASS_ADDR #pfe_hif_nocpy_reg_class_addr] | 0x068 |  |
 | [TMU_PORT0_ADDR #pfe_hif_nocpy_reg_tmu_port0_addr] | 0x070 |  |
 | [TMU_PORT1_ADDR #pfe_hif_nocpy_reg_tmu_port1_addr] | 0x074 |  |
 | [TMU_PORT2_ADDR #pfe_hif_nocpy_reg_tmu_port2_addr] | 0x07c |  |
@@ -166,8 +177,14 @@ Address of the BMU register to read to allocate a LMEM buffer.
 
 Software would set it to BMU1 [BMU_ALLOC_CTRL #pfe_bmu_reg_alloc_ctrl].
 
+This is used only when a buffer descriptor has control flag LMEM_CPY set.
+
 || Symbol | Bit range | R/W | Description ||
 | ADDR | 31-0 | RW | Address to the BMU_ALLOC_CTRL register of the BMU managing LMEM buffer pool. |
+
+==== CLASS_ADDR (HIF_NOCPY_BASE + 0x68) ====[pfe_hif_nocpy_reg_class_addr]
+
+Probably unused.
 
 ==== TMU_PORT0_ADDR (HIF_NOCPY_BASE + 0x70) ====[pfe_hif_nocpy_reg_tmu_port0_addr]
 

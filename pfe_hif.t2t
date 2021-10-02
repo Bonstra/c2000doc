@@ -68,6 +68,7 @@ Writing a new value will reset the Tx current buffer descriptor.
 Contents unknown.
 
 || Symbol | Bit range | R/W | Description ||
+| CTRL | 15-0 | R | Bit 31-16 from last Tx buffer descriptor control word |
 
 ==== RX_CTRL (HIF_BASE + 0x020) ====[pfe_hif_reg_rx_ctrl]
 
@@ -90,6 +91,7 @@ Writing a new value will reset the Rx current buffer descriptor.
 Contents unknown.
 
 || Symbol | Bit range | R/W | Description ||
+| BDP_CSR_RX_DMA_ACTV | 16 | R | Rx BDP busy |
 
 ==== INT_SRC (HIF_BASE + 0x034) ====[pfe_hif_reg_int_src]
 
@@ -147,6 +149,7 @@ Contents unknown.
 Contents unknown.
 
 || Symbol | Bit range | R/W | Description ||
+| BUF_LEN | 13-0 | R | Length of last buffer transferred (same as the BUF_LEN value from the buffer descriptor) |
 
 ==== INT_COAL (HIF_BASE + 0x050) ====[pfe_hif_reg_int_coal]
 

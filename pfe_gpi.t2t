@@ -58,8 +58,19 @@ Byte order is big-endian.
 GEMAC status bits:
 
 || Name | Bit range | Description ||
+| OVERFLOW_ERR? | 60 | ? |
+| UDP_CHECKSUM_CORRECT? | 59 | UDP checksum is correct? |
+| TCP_CHECKSUM_CORRECT? | 58 | TCP checksum is correct? |
 | IP_CHECKSUM_CORRECT? | 57 | IP checksum is correct? |
-| ? | 55 | ? |
+| UNICAST_HASH_MATCH? | 56 | ? |
+| CUMULATIVE_ARC_HIT? | 55 | ? |
+| MC_HASH_MATCH? | 54 | ? |
+| CODE_ERR? | 53 | ? |
+| TOO_LONG_ERR? | 52 | ? |
+| TOO_SHORT_ERR? | 51 | ? |
+| CRC_ERR? | 50 | ? |
+| LENGTH_ERR? | 49 | ? |
+| CUMULATIVE_ERR? (also called BAD_FRAME_ERR) | 48 | ? |
 | SPEC32_ADD_MATCH | 31 | Destination address matches the one programmed in SPEC32_ADD_[BOT|TOP] registers |
 | SPEC31_ADD_MATCH | 30 | Destination address matches the one programmed in SPEC31_ADD_[BOT|TOP] registers |
 | SPEC30_ADD_MATCH | 29 | Destination address matches the one programmed in SPEC30_ADD_[BOT|TOP] registers |
@@ -92,6 +103,32 @@ GEMAC status bits:
 | SPEC3_ADD_MATCH | 2 | Destination address matches the one programmed in SPEC3_ADD_[BOT|TOP] registers |
 | SPEC2_ADD_MATCH | 1 | Destination address matches the one programmed in SPEC2_ADD_[BOT|TOP] registers |
 | SPEC1_ADD_MATCH | 0 | Destination address matches the one programmed in SPEC1_ADD_[BOT|TOP] registers |
+
+
+=== GPI Tx buffer format ===[pfe_gpi_tx_buf_format]
+
+
+==== GPI Tx pre-header ====[pfe_gpi_tx_buf_preheader]
+
+Byte order is big-endian.
+
+|| Name | Offset | Size | Description ||
+| start_data_off | 0x0 | 1 | Packet data start offset, relative to the start of this pre-header. |
+| start_buf_off | 0x1 | 1 | This Tx pre-header start, relative to the start of the DDR buffer. |
+| pkt_length | 0x2 | 2 | Total packet length |
+| act_phyno | 0x4 | 1 | action / PHY number. 7-4: action low nibble 3-0: PHY number |
+| queueno | 0x5 | 1 | action / queue number. 7-4: action high nibble 3-0: queue number |
+| unused | 0x6 | 2 | Unused |
+
+Action bitfield:
+
+|| Name | Bit range | Description ||
+| IPCHKSUM_REPLACE | 6 |  |
+| DONT_FREE_BUFFER | 5 | Do not free the buffer after Tx completion |
+| VLAN_REPLACE | 3 |  |
+| TCPCHKSUM_REPLACE | 2 |  |
+| VLAN_ADD | 1 |  |
+| SRC_MAC_REPLACE | 0 |  |
 
 
 === GPI registers ===[pfe_gpi_regs]

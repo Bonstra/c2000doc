@@ -3,12 +3,17 @@
 
 The EMAC is a Cadence Gigabit Ethernet MAC IP.
 
+The register documentation comes from the Xilinx Zynq-7000 SoC Technical
+Reference Manual (ug585-Zynq-7000-TRM.pdf).
+
 A driver exist in mainline Linux, but it cannot be used directly with this EMAC
 implementation as there is no CPU interface.
 
 Each EMAC instance has a matching EGPI block which handles the the Rx and Tx
 queues. The EGPI blocks make use of the BMU blocks to allocate/free buffers
 from the buffer pools.
+
+To be able to transmit packets, the 125 MHz ``gemtx`` clock must be enabled.
 
 Note: Reading a statistics register will reset its value to 0.
 
@@ -26,11 +31,1530 @@ Note: Reading a statistics register will reset its value to 0.
 
 || Symbol | Offset | Description ||
 | [NETWORK_CONTROL #pfe_emac_reg_network_control] | 0x000 | Network control register |
+| [NETWORK_CONFIG #pfe_emac_reg_network_config] | 0x004 | Network config register |
+| [NETWORK_STATUS #pfe_emac_reg_network_status] | 0x008 | Network status register |
+| [DMA_CONFIG #pfe_emac_reg_dma_config] | 0x010 | DMA configuration register |
+| [TXSR #pfe_emac_reg_txsr] | 0x014 | Tx status register |
+| [RXQBASE #pfe_emac_reg_rxqbase] | 0x018 | Rx queue base address (not implemented) |
+| [TXQBASE #pfe_emac_reg_txqbase] | 0x01c | Tx queue base address (not implemented) |
+| [RXSR #pfe_emac_reg_rxsr] | 0x020 | Rx status register |
+| [ISR #pfe_emac_reg_isr] | 0x024 | Interrupt status register |
+| [IER #pfe_emac_reg_ier] | 0x028 | Interrupt enable register |
+| [IDR #pfe_emac_reg_idr] | 0x02c | Interrupt disable register |
+| [IMR #pfe_emac_reg_imr] | 0x030 | Interrupt mask status register |
+| [PHY_MANAGEMENT #pfe_emac_reg_phy_management] | 0x034 | PHY management register |
+| [RXPAUSE #pfe_emac_reg_rxpause] | 0x038 | Received pause quantum |
+| [TXPAUSE #pfe_emac_reg_txpause] | 0x03c | Transmit pause quantum |
+| [HASH_BOT #pfe_emac_reg_hash_bot] | 0x080 | Hash register bottom |
+| [HASH_TOP #pfe_emac_reg_hash_top] | 0x084 | Hash register top |
+| [SPEC1_ADD_BOT #pfe_emac_reg_spec1_add_bot] | 0x088 | Specific address 1 bottom |
+| [SPEC1_ADD_TOP #pfe_emac_reg_spec1_add_top] | 0x08c | Specific address 1 top |
+| [SPEC2_ADD_BOT #pfe_emac_reg_spec2_add_bot] | 0x090 | Specific address 2 bottom |
+| [SPEC2_ADD_TOP #pfe_emac_reg_spec2_add_top] | 0x094 | Specific address 2 top |
+| [SPEC3_ADD_BOT #pfe_emac_reg_spec3_add_bot] | 0x098 | Specific address 3 bottom |
+| [SPEC3_ADD_TOP #pfe_emac_reg_spec3_add_top] | 0x09c | Specific address 3 top |
+| [SPEC4_ADD_BOT #pfe_emac_reg_spec4_add_bot] | 0x0a0 | Specific address 4 bottom |
+| [SPEC4_ADD_TOP #pfe_emac_reg_spec4_add_top] | 0x0a4 | Specific address 4 top |
+| [MATCH1 #pfe_emac_reg_match1] | 0x0a8 | Type ID match 1 |
+| [MATCH2 #pfe_emac_reg_match2] | 0x0ac | Type ID match 2 |
+| [MATCH3 #pfe_emac_reg_match3] | 0x0b0 | Type ID match 3 |
+| [MATCH4 #pfe_emac_reg_match4] | 0x0b4 | Type ID match 4 |
+| [WOL_ENABLE #pfe_emac_reg_wol_enable] | 0x0b8 | Wake on LAN configuration register |
+| [STRETCH #pfe_emac_reg_stretch] | 0x0bc | IPG stretch register |
+| [STACKED_VLAN #pfe_emac_reg_stacked_vlan] | 0x0c0 | Stacked VLAN register |
+| [TX_PFC_PAUSE #pfe_emac_reg_tx_pfc_pause] | 0x0c4 | Transmit PFC pause register |
+| [SPEC1_ADD_MASK_BOT #pfe_emac_reg_spec1_add_mask_bot] | 0x0c8 | Specific address 1 mask bottom |
+| [SPEC1_ADD_MASK_TOP #pfe_emac_reg_spec1_add_mask_top] | 0x0cc | Specific address 1 mask top |
+| [EFTSH #pfe_emac_reg_eftsh] | 0x0e8 | PTP Event Frame Transmitted Seconds Register |
+| [EFRSH #pfe_emac_reg_efrsh] | 0x0ec | PTP Event Frame Received Seconds Register |
+| [PEFTSH #pfe_emac_reg_peftsh] | 0x0f0 | PTP Peer Event Frame Transmitted Seconds Register |
+| [PEFRSH #pfe_emac_reg_pefrsh] | 0x0f4 | PTP Peer Event Frame Received Seconds Register |
+| [MODULE_ID #pfe_emac_reg_module_id] | 0x0fc | Module ID |
+| [OCTETS_TX_BOT #pfe_emac_reg_octets_tx_bot] | 0x100 | Octets transmitted 31:0] (in frames without error) |
+| [OCTETS_TX_TOP #pfe_emac_reg_octets_tx_top] | 0x104 | Octets transmitted [47:32] (in frames without error) |
+| [FRAMES_TX #pfe_emac_reg_frames_tx] | 0x108 | Frames transmitted |
+| [BROADCAST_TX #pfe_emac_reg_broadcast_tx] | 0x10c | Broadcast frames Tx |
+| [MULTICAST_TX #pfe_emac_reg_multicast_tx] | 0x110 | Multicast frames Tx |
+| [PAUSE_TX #pfe_emac_reg_pause_tx] | 0x114 | Pause frames Tx |
+| [FRAME64_TX #pfe_emac_reg_frame64_tx] | 0x118 | Frames Tx, 64-byte length |
+| [FRAME65_127_TX #pfe_emac_reg_frame65_127_tx] | 0x11c | Frames Tx, 65 to 127-byte length |
+| [FRAME128_255_TX #pfe_emac_reg_frame128_255_tx] | 0x120 | Frames Tx, 128 to 255-byte length |
+| [FRAME256_511_TX #pfe_emac_reg_frame256_511_tx] | 0x124 | Frames Tx, 256 to 511-byte length |
+| [FRAME512_1023_TX #pfe_emac_reg_frame512_1023_tx] | 0x128 | Frames Tx, 512 to 1023-byte length |
+| [FRAME1024_1518_TX #pfe_emac_reg_frame1024_1518_tx] | 0x12c | Frame Tx, 1024 to 1518-byte length |
+| [FRAME1519_TX #pfe_emac_reg_frame1519_tx] | 0x130 | Frame Tx, 1519-byte length or more |
+| [TX_URUN #pfe_emac_reg_tx_urun] | 0x134 | Transmit under runs |
+| [SINGLE_COL #pfe_emac_reg_single_col] | 0x138 | Single collision frames |
+| [MULTI_COL #pfe_emac_reg_multiple_col] | 0x13c | Multiple collision frames |
+| [EXCESS_COL #pfe_emac_reg_excess_col] | 0x140 | Excessive collisions |
+| [LATE_COL #pfe_emac_reg_late_col] | 0x144 | Late collisions |
+| [DEF_TX #pfe_emac_reg_def_tx] | 0x148 | Deferred transmission frames |
+| [CRS_ERRORS #pfe_emac_reg_crs_errors] | 0x14c | Carrier sense errors |
+| [OCTETS_RX_BOT #pfe_emac_reg_octets_rx_bot] | 0x150 | Octets received [31:0] |
+| [OCTETS_RX_TOP #pfe_emac_reg_octets_rx_top] | 0x154 | Octets receives [47:32] |
+| [FRAMES_RX #pfe_emac_reg_frames_rx] | 0x158 | Frames received |
+| [BROADCAST_RX #pfe_emac_reg_broadcast_rx] | 0x15c | Broadcast frames Rx |
+| [MULTICAST_RX #pfe_emac_reg_multicast_rx] | 0x160 | Multicast frames Rx |
+| [PAUSE_RX #pfe_emac_reg_pause_rx] | 0x164 | Pause frames Rx |
+| [FRAME64_RX #pfe_emac_reg_frames64_rx] | 0x168 | Frames Rx, 64-byte length |
+| [FRAME65_127_RX #pfe_emac_reg_frame65_127_rx] | 0x16c | Frames Rx, 65 to 127-byte length |
+| [FRAME128_255_RX #pfe_emac_reg_frame128_255_rx] | 0x170 | Frames Rx, 128 to 255-byte length |
+| [FRAME256_511_RX #pfe_emac_reg_frame256_511_rx] | 0x174 | Frames Rx, 256 to 511-byte length |
+| [FRAME512_1023_RX #pfe_emac_reg_frame512_1023_rx] | 0x178 | Frames Rx, 512 to 1023-byte length |
+| [FRAME1024_1518_RX #pfe_emac_reg_frame1024_1518_rx] | 0x17c | Frames Rx, 1024 to 1518-byte length |
+| [FRAME1519_RX #pfe_emac_reg_frame1519_rx] | 0x180 | Frames Rx, 1519 byte length or more |
+| [USIZE_FRAMES #pfe_emac_reg_usize_frames] | 0x184 | Undersize frames received |
+| [EXCESS_LENGTH #pfe_emac_reg_excess_length] | 0x188 | Oversize frames received |
+| [JABBERS #pfe_emac_reg_jabbers] | 0x18c | Jabbers received |
+| [FCS_ERRORS #pfe_emac_reg_fcs_errors] | 0x190 | Frame check sequence errors |
+| [LENGTH_CHECK_ERRORS #pfe_emac_reg_length_check_errors] | 0x194 | Length field frame errors |
+| [RX_SYMBOL_ERRORS #pfe_emac_reg_rx_symbol_errors] | 0x198 | Receive symbol errors |
+| [ALIGN_ERRORS #pfe_emac_reg_align_errors] | 0x19c | Alignment errors |
+| [RX_RES_ERRORS #pfe_emac_reg_rx_res_errors] | 0x1a0 | Receive resource errors |
+| [RX_ORUN #pfe_emac_reg_rx_orun] | 0x1a4 | Receive overrun errors |
+| [IP_CKSUM #pfe_emac_reg_ip_cksum] | 0x1a8 | IP header checksum errors |
+| [TCP_CKSUM #pfe_emac_reg_tcp_cksum] | 0x1ac | TCP checksum errors |
+| [UDP_CKSUM #pfe_emac_reg_udp_cksum] | 0x1b0 | UDP checksum error |
+| [TISUBN #pfe_emac_reg_tisubn] | 0x01bc | 1588 Timer Increment Sub-ns |
+| [TSH #pfe_emac_reg_tsh] | 0x01c0 | 1588 Timer Seconds High |
+| [TSL #pfe_emac_reg_tsl] | 0x01d0 | 1588 Timer Seconds Low |
+| [TN #pfe_emac_reg_tn] | 0x01d4 | 1588 Timer Nanoseconds |
+| [TA #pfe_emac_reg_ta] | 0x01d8 | 1588 Timer Adjust |
+| [TI #pfe_emac_reg_ti] | 0x01dc | 1588 Timer Increment |
+| [EFTSL #pfe_emac_reg_eftsl] | 0x01e0 | PTP Event Frame Tx Seconds Low |
+| [EFTN #pfe_emac_reg_eftn] | 0x01e4 | PTP Event Frame Tx Nanoseconds |
+| [EFRSL #pfe_emac_reg_efrsl] | 0x01e8 | PTP Event Frame Rx Seconds Low |
+| [EFRN #pfe_emac_reg_efrn] | 0x01ec | PTP Event Frame Rx Nanoseconds |
+| [PEFTSL #pfe_emac_reg_peftsl] | 0x01f0 | PTP Peer Event Frame Tx Secs Low |
+| [PEFTN #pfe_emac_reg_peftn] | 0x01f4 | PTP Peer Event Frame Tx Ns |
+| [PEFRSL #pfe_emac_reg_pefrsl] | 0x01f8 | PTP Peer Event Frame Rx Sec Low |
+| [PEFRN #pfe_emac_reg_pefrn] | 0x01fc | PTP Peer Event Frame Rx Ns |
+| [PCSCNTRL #pfe_emac_reg_pcscntrl] | 0x0200 | PCS Control |
+| [PCSSTS #pfe_emac_reg_pcssts] | 0x0204 | PCS Status |
+| [PCSPHYTOPID #pfe_emac_reg_pcsphytopid] | 0x0208 | PCS PHY Top ID |
+| [PCSPHYBOTID #pfe_emac_reg_pcsphybotid] | 0x020c | PCS PHY Bottom ID |
+| [PCSANADV #pfe_emac_reg_pcsanadv] | 0x0210 | PCS AN Advertisement |
+| [PCSANLPBASE #pfe_emac_reg_pcsanlpbase] | 0x0214 | PCS AN Link Partner Base |
+| [PCSANEXP #pfe_emac_reg_pcsanexp] | 0x0218 | PCS AN Expansion |
+| [PCSANNPTX #pfe_emac_reg_pcsannptx] | 0x021c | PCS AN Next Page TX |
+| [PCSANNPLP #pfe_emac_reg_pcsannplp] | 0x0220 | PCS AN Next Page LP |
+| [PCSANEXTSTS #pfe_emac_reg_pcsanextsts] | 0x023c | PCS AN Extended Status |
+| [DESIGN_CFG1 #pfe_emac_reg_design_cfg1] | 0x280 | Design configuration 1 |
+| [DESIGN_CFG2 #pfe_emac_reg_design_cfg2] | 0x284 | Design configuration 2 |
+| [DESIGN_CFG3 #pfe_emac_reg_design_cfg3] | 0x288 | Design configuration 3 |
+| [DESIGN_CFG4 #pfe_emac_reg_design_cfg4] | 0x28c | Design configuration 4 |
+| [DESIGN_CFG5 #pfe_emac_reg_design_cfg5] | 0x290 | Design configuration 5 |
+| [DESIGN_CFG6 #pfe_emac_reg_design_cfg6] | 0x294 | Design configuration 6 |
+| [SPEC5_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x300 | Specific address 5 bottom |
+| [SPEC5_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x304 | Specific address 5 top |
+| [SPEC6_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x308 | Specific address 6 bottom |
+| [SPEC6_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x30c | Specific address 6 top |
+| [SPEC7_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x310 | Specific address 7 bottom |
+| [SPEC7_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x314 | Specific address 7 top |
+| [SPEC8_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x318 | Specific address 8 bottom |
+| [SPEC8_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x31c | Specific address 8 top |
+| [SPEC9_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x320 | Specific address 9 bottom |
+| [SPEC9_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x324 | Specific address 9 top |
+| [SPEC10_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x328 | Specific address 10 bottom |
+| [SPEC10_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x32c | Specific address 10 top |
+| [SPEC11_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x330 | Specific address 11 bottom |
+| [SPEC11_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x334 | Specific address 11 top |
+| [SPEC12_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x338 | Specific address 12 bottom |
+| [SPEC12_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x33c | Specific address 12 top |
+| [SPEC13_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x340 | Specific address 13 bottom |
+| [SPEC13_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x344 | Specific address 13 top |
+| [SPEC14_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x348 | Specific address 14 bottom |
+| [SPEC14_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x34c | Specific address 14 top |
+| [SPEC15_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x350 | Specific address 15 bottom |
+| [SPEC15_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x354 | Specific address 15 top |
+| [SPEC16_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x358 | Specific address 16 bottom |
+| [SPEC16_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x35c | Specific address 16 top |
+| [SPEC17_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x360 | Specific address 17 bottom |
+| [SPEC17_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x364 | Specific address 17 top |
+| [SPEC18_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x368 | Specific address 18 bottom |
+| [SPEC18_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x36c | Specific address 18 top |
+| [SPEC19_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x370 | Specific address 19 bottom |
+| [SPEC19_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x374 | Specific address 19 top |
+| [SPEC20_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x378 | Specific address 20 bottom |
+| [SPEC20_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x37c | Specific address 20 top |
+| [SPEC21_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x380 | Specific address 21 bottom |
+| [SPEC21_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x384 | Specific address 21 top |
+| [SPEC22_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x388 | Specific address 22 bottom |
+| [SPEC22_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x38c | Specific address 22 top |
+| [SPEC23_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x390 | Specific address 23 bottom |
+| [SPEC23_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x394 | Specific address 23 top |
+| [SPEC24_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x398 | Specific address 24 bottom |
+| [SPEC24_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x39c | Specific address 24 top |
+| [SPEC25_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3a0 | Specific address 25 bottom |
+| [SPEC25_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3a4 | Specific address 25 top |
+| [SPEC26_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3a8 | Specific address 26 bottom |
+| [SPEC26_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3ac | Specific address 26 top |
+| [SPEC27_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3b0 | Specific address 27 bottom |
+| [SPEC27_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3b4 | Specific address 27 top |
+| [SPEC28_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3b8 | Specific address 28 bottom |
+| [SPEC28_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3bc | Specific address 28 top |
+| [SPEC29_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3c0 | Specific address 29 bottom |
+| [SPEC29_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3c4 | Specific address 29 top |
+| [SPEC30_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3c8 | Specific address 30 bottom |
+| [SPEC30_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3cc | Specific address 30 top |
+| [SPEC31_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3d0 | Specific address 31 bottom |
+| [SPEC31_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3d4 | Specific address 31 top |
+| [SPEC32_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3d8 | Specific address 32 bottom |
+| [SPEC32_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3dc | Specific address 32 top |
+| [CONTROL #pfe_emac_reg_control] | 0x7a0 |  |
 
 ==== NETWORK_CONTROL (EMAC_BASE + 0x000) ====[pfe_emac_reg_network_control]
 
 Network control register
 
+The network control register contains general MAC control functions for both
+receiver and transmitter.
+
 || Symbol | Bit range | R/W | Description ||
-|  | ?-0 | R | ? |
+| reserved | 31-19 | R | Reserved. Read as zero. |
+| flush_next_rx_dpram_pkt | 18 | W | Flush the next packet from the external RX DPRAM. Writing one to this bit will only have an effect if the DMA is not currently writing a packet already stored in the DPRAM to memory. |
+| tx_pfc_pri_pri_pause_frame | 17 | W | Transmit PFC Priority Based Pause Frame. Takes the values stored in the Transmit PFC Pause Register |
+| en_pfc_pri_pause_rx | 16 | W | Enable PFC Priority Based Pause Reception capabilities. Setting this bit will enable PFC negotiation and recognition of priority based pause frames. |
+| reserved | 15 | RW | Reserved. Do not modify. Reset value: 0 |
+| reserved | 14 | RW | Reserved. Do not modify. Reset value: 0 |
+| reserved | 13 | W | Reserved. Write as 0 |
+| ZEROPAUSETX | 12 | W | Transmit zero quantum pause frame. Writing one to this bit causes a pause frame with zero quantum to be transmitted. |
+| PAUSETX | 11 | W | Transmit pause frame - writing one to this bit causes a pause frame to be transmitted. |
+| HALTTX | 10 | W | Transmit halt - writing one to this bit halts transmission as soon as any ongoing frame transmission ends. |
+| STARTTX | 9 | W | Start transmission - writing one to this bit starts transmission. |
+| back_pressure | 8 | RW | Back pressure - if set in 10M or 100M half duplex mode will force collisions on all received frames. |
+| STATWEN | 7 | RW | Write enable for statistics registers - setting this bit to one means the statistics registers can be written for functional test purposes. |
+| STATINC | 6 | W | Incremental statistics registers - this bit is write only. Writing a one increments all the statistics registers by one for test purposes. |
+| STATCLR | 5 | W | Clear statistics registers - this bit is write only. Writing a one clears the statistics registers. |
+| MDEN | 4 | RW | Management port enable - set to one to enable the management port. When zero forces mdio to high impedance state and mdc low. |
+| TXEN | 3 | RW | Transmit enable - when set, it enables the GEM transmitter to send data. When reset transmission will stop immediately, the transmit pipeline and control registers will be cleared and the transmit queue pointer register will reset to point to the start of the transmit descriptor list. |
+| RXEN | 2 | RW | Receive enable - when set, it enables the GEM to receive data. When reset frame reception will stop immediately and the receive pipeline will be cleared. The receive queue pointer register is unaffected. |
+| LOOPEN | 1 | RW | Loop back local - asserts the loopback_local signal to the system clock generator. Also connects txd to rxd, tx_en to rx_dv and forces full duplex mode. Bit 11 of the network configuration register must be set low to disable TBI mode when in internal loopback. rx_clk and tx_clk may malfunction as the GEM is switched into and out of internal loop back. It is important that receive and transmit circuits have already been disabled when making the switch into and out of internal loop back. |
+| reserved | 0 | RW | Reserved. Do not modify. Reset value: 0 |
+
+==== NETWORK_CONFIG (0x0004) ====[pfe_emac_reg_network_config]
+
+Network configuration register.
+
+The network configuration register contains functions for setting the mode of
+operation for the Gigabit Ethernet MAC
+
+|| Symbol | Bit range | R/W | Description ||
+| unidir_en | 31 | RW | NA. |
+| ignore_ipg_rx_er | 30 | RW | Ignore IPG rx_er. When set rx_er has no effect on the GEM's operation when rx_dv is low. Set this when using the RGMII wrapper in half-duplex mode. |
+| BADPREAMBEN | 29 | RW | Receive bad preamble. When set frames with non-standard preamble are not rejected. |
+| IPDSTRETCH | 28 | RW | IPG stretch enable - when set the transmit IPG can be increased above 96 bit times depending on the previous frame length using the IPG stretch register. |
+| sgmii_en | 27 | RW | SGMII mode enable - changes behavior of the auto-negotiation advertisement and link partner ability registers to meet the requirements of SGMII and reduces the duration of the link timer from 10 ms to 1.6 ms |
+| FCSIGNORE | 26 | RW | Ignore RX FCS - when set frames with FCS/CRC errors will not be rejected. FCS error statistics will still be collected for frames with bad FCS and FCS status will be recorded in frame's DMA descriptor. For normal operation this bit must be set to zero. |
+| HDRXEN | 25 | RW | Enable frames to be received in half-duplex mode while transmitting. |
+| RXCHKSUMEN | 24 | RW | Receive checksum offload enable - when set, the receive checksum engine is enabled. Frames with bad IP, TCP or UDP checksums are discarded. |
+| PAUSECOPYDI | 23 | RW | Disable copy of pause frames - set to one to prevent valid pause frames being copied to memory. When set, pause frames are not copied to memory regardless of the state of the copy all frames bit; whether a hash match is found or whether a type ID match is identified. If a destination address match is found the pause frame will be copied to memory. Note that valid pause frames received will still increment pause statistics and pause the transmission of frames as required. |
+| dbus_width | 22-21 | RW | Data bus width. Only valid bus widths may be written if the system is configured to a maximum width less than 128-bits. 00: 32 bit AMBA AHB data bus width 01: 64 bit AMBA AHB data bus width 10: 128 bit AMBA AHB data bus width 11: 128 bit AMBA AHB data bus width |
+| MDCCLKDIV | 20-18 | RW | MDC clock division - set according to cpu_1xclk speed. These three bits determine the number cpu_1xclk will be divided by to generate MDC. For conformance with the 802.3 specification, MDC must not exceed 2.5 MHz (MDC is only active during MDIO read and write operations). 000: divide cpu_1xclk by 8 (cpu_1xclk up to 20 MHz) 001: divide cpu_1xclk by 16 (cpu_1xclk up to 40 MHz) 010: divide cpu_1xclk by 32 (cpu_1xclk up to 80 MHz) 011: divide cpu_1xclk by 48 (cpu_1xclk up to 120MHz) 100: divide cpu_1xclk by 64 (cpu_1xclk up to 160 MHz) 101: divide cpu_1xclk by 96 (cpu_1xclk up to 240 MHz) 110: divide cpu_1xclk by 128 (cpu_1xclk up to 320 MHz) 111: divide cpu_1xclk by 224 (cpu_1xclk up to 540 MHz) |
+| FCSREM | 17 | RW | FCS remove - setting this bit will cause received frames to be written to memory without their frame check sequence (last 4 bytes). The frame length indicated will be reduced by four bytes in this mode. |
+| LENGTHERRDSCRD | 16 | RW | Length field error frame discard - setting this bit causes frames with a measured length shorter than the extracted length field (as indicated by bytes 13 and 14 in a non-VLAN tagged frame) to be discarded. This only applies to frames with a length field less than 0x0600. |
+| RXOFFS | 15-14 | RW | Receive buffer offset - indicates the number of bytes by which the received data is offset from the start of the receive buffer. |
+| PAUSEEN | 13 | RW | Pause enable - when set, transmission will pause if a non zero 802.3 classic pause frame is received and PFC has not been negotiated. |
+| RETRYTESTEN | 12 | RW | Retry test - must be set to zero for normal operation. If set to one the backoff between collisions will always be one slot time. Setting this bit to one helps test the too many retries condition. Also used in the pause frame tests to reduce the pause counter's decrement time from 512 bit times, to every rx_clk cycle. |
+| pcs_sel | 11 | RW | N/A. 0: GMII/MII interface enabled, TBI disabled 1: TBI enabled, GMII/MII disabled |
+| 1000 | 10 | RW | Gigabit mode enable - setting this bit configures the GEM for 1000 Mbps operation. 0: 10/100 operation using MII or TBI interface 1: Gigabit operation using GMII or TBI interface |
+| EXTADDRMATCHEN | 9 | RW | External address match enable - when set the external address match interface can be used to copy frames to memory. |
+| 1536RXEN | 8 | RW | Receive 1536 byte frames - setting this bit means the GEM will accept frames up to 1536 bytes in length. Normally the GEM would reject any frame above 1518 bytes. |
+| UCASTHASHEN | 7 | RW | Unicast hash enable - when set, unicast frames will be accepted when the 6 bit hash function of the destination address points to a bit that is set in the hash register. |
+| MCASTHASHEN | 6 | RW | Multicast hash enable - when set, multicast frames will be accepted when the 6 bit hash function of the destination address points to a bit that is set in the hash register. |
+| BCASTDI | 5 | RW | No broadcast - when set to logic one, frames addressed to the broadcast address of all ones will not be accepted. |
+| COPYALLEN | 4 | RW | Copy all frames - when set to logic one, all valid frames will be accepted. |
+| reserved | 3 | RW | Reserved. Do not modify. Reset value: 0 |
+| NVLANDISC | 2 | RW | Discard non-VLAN frames - when set only VLAN tagged frames will be passed to the address matching logic. |
+| FDEN | 1 | RW | Full duplex - if set to logic one, the transmit block ignores the state of collision and carrier sense and allows receive while transmitting. Also controls the half-duplex pin. |
+| 100 | 0 | RW | Speed - set to logic one to indicate 100Mbps operation, logic zero for 10Mbps. The value of this pin is reflected on the speed_mode[0] output pin. |
+
+==== NETWORK_STATUS (0x0008) ====[pfe_emac_reg_network_status]
+
+Network status register
+
+The network status register returns status information with respect to the PHY
+management interface.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-7 | R | Reserved, read as zero. |
+| pfc_pri_pause_neg | 6 | R | Set when PFC Priority Based Pause has been negotiated. |
+| pcs_autoneg_pause_tx_res | 5 | R | N/A |
+| pcs_autoneg_pause_rx_res | 4 | R | N/A |
+| pcs_autoneg_dup_res | 3 | R | N/A |
+| phy_mgmt_idle | 2 | R | The PHY management logic is idle (i.e. has completed). |
+| MDIO | 1 | R | Returns status of the mdio_in pin |
+| pcs_link_state | 0 | R | N/A |
+
+==== DMA_CONFIG (0x0010) ====[pfe_emac_reg_dma_config]
+
+DMA configuration register
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-25 | R | Reserved, read as zero. |
+| disc_when_no_ahb | 24 | RW | When set, the GEM DMA will automatically discard receive packets from the receiver packet buffer memory when no AHB resource is available. When low, then received packets will remain to be stored in the SRAM based packet buffer until AHB buffer resource next becomes available. |
+| RXBUF | 23-16 | RW | DMA receive buffer size in AHB system memory. The value defined by these bits determines the size of buffer to use in main AHB system memory when writing received data. The value is defined in multiples of 64 bytes such that a value of 0x01 corresponds to buffers of 64 bytes, 0x02 corresponds to 128 bytes etc. For example: 0x02: 128 byte 0x18: 1536 byte (1*max length frame/buffer) 0xA0: 10240 byte (1*10k jumbo frame/buffer) Note that this value should never be written as zero. |
+| reserved | 15-12 | R | Reserved, read as zero. |
+| TCPCKSUM | 11 | RW | Transmitter IP, TCP and UDP checksum generation offload enable. When set, the transmitter checksum generation engine is enabled, to calculate and substitute checksums for transmit frames. When clear, frame data is unaffected. If the GEM is not configured to use the DMA packet buffer, this bit is not implemented and will be treated as reserved, read as zero, ignored on write. Not implemented in PFE. |
+| TXSIZE | 10 | RW | Transmitter packet buffer memory size select - Having this bit at zero halves the amount of memory used for the transmit packet buffer. This reduces the amount of memory used by the GEM. It is important to set this bit to one if the full configured physical memory is available. The value in brackets below represents the size that would result for the default maximum configured memory size of 4 kB. 1: Use full configured addressable space (4 kB) 0: Do not use top address bit (2 kB) If the GEM is not configured to use the DMA packet buffer, this bit is not implemented and will be treated as reserved, read as zero, ignored on write. Not implemented in PFE. |
+| RXSIZE | 9-8 | RW | Receiver packet buffer memory size select - Having these bits at less than 11 reduces the amount of memory used for the receive packet buffer. This reduces the amount of memory used by the GEM. It is important to set these bits both to one if the full configured physical memory is available. The value in brackets below represents the size that would result for the default maximum configured memory size of 8 kBs. 00: Do not use top three address bits (1 kB) 01: Do not use top two address bits (2 kB) 10: Do not use top address bit (4 kB) 11: Use full configured addressable space (8 kB) If the controller is not configured to use the DMA packet buffer, these bits are not implemented and will be treated as reserved, read as zero, ignored on write. Not implemented in PFE. |
+| ENDIAN | 7 | RW | AHB endian swap mode enable for packet data accesses - When set, selects swapped endianism for AHB transfers. When clear, selects little endian mode. |
+| ahb_endian_swp_mgmt_en | 6 | RW | AHB endian swap mode enable for management descriptor accesses - When set, selects swapped endianism for AHB transfers. When clear, selects little endian mode. |
+| reserved | 5 | R | Reserved, read as zero. |
+| BLENGTH | 4-0 | RW | AHB fixed burst length for DMA data operations - Selects the burst length to attempt to use on the AHB when transferring frame data. Not used for DMA management operations and only used where space and data size allow. Otherwise SINGLE type AHB transfers are used. Upper bits become non-writeable if the configured DMA TX and RX FIFO sizes are smaller than required to support the selected burst size. One-hot priority encoding enforced automatically on register writes as follows, where 'x' represents don't care: 00001: Always use SINGLE AHB bursts 0001x: Always use SINGLE AHB bursts 001xx: Attempt to use INCR4 AHB bursts (default) 01xxx: Attempt to use INCR8 AHB bursts 1xxxx: Attempt to use INCR16 AHB bursts others: reserved |
+
+==== TXSR (0x0014) ====[pfe_emac_reg_txsr]
+
+Tx status register
+
+This register, when read, provides details of the status of a transmit. Once
+read, individual bits may be cleared by writing 1 to them. It is not possible
+to set a bit to 1 by writing to the register.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-9 | R | Reserved, read as zero |
+| HRESPNOK | 8 | RW | Hresp not OK - set when the DMA block sees hresp not OK. Cleared by writing a one to this bit. |
+| late_collision | 7 | RW | Late collision occurred - only set if the condition occurs in gigabit mode, as retry is not attempted. Cleared by writing a one to this bit. |
+| URUN | 6 | RW | Transmit under run - this bit is set if the transmitter was forced to terminate a frame that it had already began transmitting due to further data being unavailable. This bit is set if a transmitter status write back has not completed when another status write back is attempted. When using the DMA interface configured for internal FIFO mode, this bit is also set when the transmit DMA has written the SOP data into the FIFO and either the AHB bus was not granted in time for further data, or because an AHB not OK response was returned, or because a used bit was read. When using the DMA interface configured for packet buffer mode, this bit will never be set. When using the external FIFO interface, this bit is also set when the tx_r_underflow input is asserted during a frame transfer. Cleared by writing a 1. |
+| TXCOMPL | 5 | RW | Transmit complete - set when a frame has been transmitted. Cleared by writing a one to this bit. |
+| BUFEXH | 4 | RW | Transmit frame corruption due to AHB error - set if an error occurs whilst midway through reading transmit frame from the AHB, including HRESP errors and buffers exhausted mid frame (if the buffers run out during transmission of a frame then transmission stops, FCS shall be bad and tx_er asserted). Also set in DMA packet buffer mode if single frame is too large for configured packet buffer memory size. Cleared by writing a one to this bit. |
+| TXGO | 3 | R | Transmit go - if high transmit is active. When using the exposed FIFO interface, this bit represents bit 3 of the network control register. When using the DMA interface this bit represents the tx_go variable as specified in the transmit buffer description. |
+| RXOVR | 2 | RW | Retry limit exceeded - cleared by writing a one to this bit. |
+| FRAMERX | 1 | RW | Collision occurred - set by the assertion of collision. Cleared by writing a one to this bit. When operating in 10/100 mode, this status indicates either a collision or a late collision. In gigabit mode, this status is not set for a late collision. |
+| USEDREAD | 0 | RW | Used bit read - set when a transmit buffer descriptor is read with its used bit set. Cleared by writing a one to this bit. |
+
+
+==== RXQBASE (0x0018) ====[pfe_emac_reg_rxqbase]
+
+Rx queue base address. Not implemented in PFE
+
+This register holds the start address of the receive buffer queue (receive
+buffers descriptor list). The receive buffer queue base address must be
+initialized before receive is enabled through bit 2 of the network control
+register. Once reception is enabled, any write to the receive buffer queue base
+address register is ignored. Reading this register returns the location of the
+descriptor currently being accessed. This value increments as buffers are used.
+Software should not use this register for determining where to remove received
+frames from the queue as it constantly changes as new frames are received.
+Software should instead work its way through the buffer descriptor queue
+checking the 'used' bits.
+
+The descriptors should be aligned at 32-bit boundaries and the descriptors are
+written to using two individual non sequential accesses.
+
+|| Symbol | Bit range | R/W | Description ||
+| rx_q_baseaddr | 31-2 | RW | Receive buffer queue base address - written with the address of the start of the receive queue. |
+| reserved | 1-0 | R | Reserved, read as zero. |
+
+==== TXQBASE (0x001c) ====[pfe_emac_reg_txqbase]
+
+Tx queue base address. Not implemented in PFE.
+
+This register holds the start address of the transmit buffer queue (transmit
+buffers descriptor list). The transmit buffer queue base address register must
+be initialized before transmit is started through bit 9 of the network control
+register. Once transmission has started, any write to the transmit buffer queue
+base address register is illegal and therefore ignored.
+
+Note that due to clock boundary synchronization, it takes a maximum of four
+pclk cycles from the writing of the transmit start bit before the transmitter
+is active. Writing to the transmit buffer queue base address register during
+this time may produce unpredictable results.
+
+Reading this register returns the location of the descriptor currently being
+accessed. Since the DMA handles two frames at once, this may not necessarily be
+pointing to the current frame being transmitted.
+
+The descriptors should be aligned at 32-bit boundaries and the descriptors are
+read from memory using two individual non sequential accesses.
+
+|| Symbol | Bit range | R/W | Description ||
+| tx_q_baseaddr | 31-2 | RW | Transmit buffer queue base address - written with the address of the start of the transmit queue. |
+| reserved | 1-0 | R | Reserved, read as zero. |
+
+==== RXSR (0x0020) ====[pfe_emac_reg_rxsr]
+
+Rx status register
+
+When read provides details of the status of a receive. Once read, individual
+bits may be cleared by writing 1 to them. It is not possible to set a bit to 1
+by writing to the register.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-4 | R | Reserved, read as zero. |
+| HRESPNOK | 3 | RW | Hresp not OK - set when the DMA block sees hresp not OK. Cleared by writing a one to this bit. |
+| RXOVR | 2 | RW | Receive overrun - this bit is set if either the gem_dma RX FIFO or external RX FIFO were unable to store the receive frame due to a FIFO overflow, or if the receive status, reported by the gem_rx module to the gem_dma was not taken at end of frame. This bit is also set in DMA packet buffer mode if the packet buffer overflows. For DMA operation the buffer will be recovered if an overrun occurs. This bit is cleared by writing a one to it. |
+| FRAMERX | 1 | RW | Frame received - one or more frames have been received and placed in memory. Cleared by writing a one to this bit. |
+| BUFFNA | 0 | RW | Buffer not available - an attempt was made to get a new buffer and the pointer indicated that it was owned by the processor. The DMA will reread the pointer each time an end of frame is received until a valid pointer is found. This bit is set following each descriptor read attempt that fails, even if consecutive pointers are unsuccessful and software has in the mean time cleared the status flag. Cleared by writing a one to this bit. |
+
+==== ISR (0x0024) ====[pfe_emac_reg_isr]
+
+Interrupt status register
+
+Indicates an interrupt is asserted by the controller and is enabled (unmasked).
+- 0: not asserted
+- 1: asserted (if any bit reads as a 1, then the ethernet_int signal will be
+asserted to the interrupt controller)
+
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-27 | R | Reserved, read as zero. |
+| tsu_sec_incr | 26 | RW | TSU second register increment interrupt. Write 1 to clear. |
+| reserved | 25-18 | RW | Reserved |
+| partner_pg_rx | 17 | RW | N/A |
+| autoneg_complete | 16 | RW | N/A |
+| ex_intr | 15 | RW | External interrupt - set when a rising edge has been detected on the ext_interrupt_in input pin. Write 1 to clear. |
+| PAUSETX | 14 | RW | Pause frame transmitted- indicate a pause frame has been successfully transmitted after being initiated from the network control register or from the tx_pause control pin. |
+| PAUSEZERO | 13 | RW | Pause time zero - et when either the pause time register at address 0x38 decrement to zero, or when a valid pause frame is received with a zero pause quantum field. Write 1 to clear. |
+| PAUSENZERO | 12 | RW | Pause frame with non-zero pause quantum received- indicate a valid pause has been received that has a non-zero pause quantum field. Write 1 to clear. |
+| HREPNOK | 11 | RW | Hresp not OK - et when the DMA block sees hresp not OK. |
+| RXOVR | 10 | RW | Receive overrun - set when the receive overrun status bit get set. |
+| link_chng | 9 | RW | N/A |
+| reserved | 8 | R | Reserved |
+| TXCOMPL | 7 | RW | Transmit complete - set when a frame has been transmitted. |
+| TXEXH | 6 | R | Transmit frame corruption due to AHB error - set if an error occurs while midway through reading transmit frame from the AHB, including HRESP error and buffer exhausted mid frame (if the buffer run out during transmission of a frame then transmission top, FCS hall be bad and tx_er asserted). Also set in DMA packet buffer mode if single frame is too large for configured packet buffer memory size. Cleared on a read. |
+| RETRY | 5 | RW | Retry limit exceeded or late collision- transmit error. Late collision will only cause this status bit to be set in gigabit mode (as a retry is not attempted). |
+| reserved | 4 | RW | Reserved. Do not modify. Reset value: 0 |
+| TXUSED | 3 | RW | TX used bit read- set when a transmit buffer descriptor is read with it used bit set. Write 1 to clear. |
+| RXUSED | 2 | RW | RX used bit read - set when a receive buffer descriptor is read with it used bit set. Write 1 to clear. |
+| FRAMERX | 1 | RW | Receive complete- a frame has been stored in memory. Write 1 to clear. |
+| MGMNT | 0 | RW | Management frame sent - the PHY maintenance register has completed its operation. Write 1 to clear. |
+
+==== IER (0x0028) ====[pfe_emac_reg_ier]
+
+Interrupt enable register
+
+Enable interrupts by writing a 1 to one or more bits.
+
+Write a 1 to enable (unmask) the interrupt.
+
+Writing 0 has no affect on the mask bit.
+
+When read, this register returns zero. To control interrupt masks and read
+status, use the interrupt status, enable, disable and mask registers together.
+At reset, all interrupts are disabled (masked).
+
+Refer to [the table for ISR #pfe_emac_reg_isr].
+
+==== IDR (0x002c) ====[pfe_emac_reg_idr]
+
+Interrupt disable register
+
+Disable interrupts by applying a mask to one or more bits.
+
+Write 1 to disable (mask) the interrupt.
+
+Writing 0 has no affect on the mask bit.
+
+When read, this register returns zero.
+
+Refer to [the table for ISR #pfe_emac_reg_isr].
+
+==== IMR (0x0030) ====[pfe_emac_reg_imr]
+
+Interrupt mask status register
+
+Indicates the mask state of each interrupt.
+
+0: interrupt non masked (enabled)
+
+1: interrupt masked (disabled), reset default
+
+All interrupts are disabled after a module reset. The interrupt masks are
+individually controlled using the write-only interrupt enable and disable
+registers.
+
+For test purposes there is a write-only function to the interrupt mask register
+that allows the bits in the interrupt status register to be set or cleared,
+regardless of the state of the mask register.
+
+==== PHY_MANAGEMENT (0x0034) ====[pfe_emac_reg_phy_management]
+
+PHY management register
+
+The PHY maintenance register is implemented as a shift register. Writing to
+the register starts a shift operation, which is signaled as complete when
+bit-2 is set in the network status register. It takes about 2000 pclk cycles
+to complete, when MDC is set for pclk divide by 32 in the network configuration
+register. An interrupt is generated upon completion. During this time, the MSB
+of the register is output on the MDIO pin and the LSB updated from the MDIO pin
+with each MDC cycle. This causes transmission of a PHY management frame on
+MDIO. See Section 22.2.4.5 of the IEEE 802.3 standard. Reading during the shift
+operation will return the current contents of the shift register. At the end
+of management operation, the bits will have shifted back to their original
+locations. For a read operation, the data bits will be updated with data read
+from the PHY. It is important to write the correct values to the register to
+ensure a valid PHY management frame is produced.
+
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31 | RW | Must be zero. |
+| clause_22 | 30 | RW | Must be written to 1 for Clause 22 operation. Check your PHY's spec to see if it is clause 22 or clause 45 compliant. |
+| OP | 29-28 | RW | Operation. 10 is read. 01 is write. |
+| ADDR | 27-23 | RW | PHY address |
+| REG | 22-18 | RW | Register address - specifies the register in the PHY to access. |
+| must_10 | 17-16 | RW | Must be written to 10. |
+| DATA | 15-0 | RW | For a write operation this is written with the data to be written to the PHY. After a read operation this contains the data read from the PHY. |
+
+==== RXPAUSE (0x0038) ====[pfe_emac_reg_rxpause]
+
+Received pause quantum
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero. |
+| rx_pauseq | 15-0 | R | Received pause quantum - stores the current value of the received pause quantum register which is decremented every 512 bit times. |
+
+==== TXPAUSE (0x003c) ====[pfe_emac_reg_txpause]
+
+Transmit pause quantum
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero. |
+| tx_pauseq | 15-0 | RW | Transmit pause quantum - written with the pause quantum value for pause frame transmission. |
+
+==== HASH_BOT (0x0080) ====[pfe_emac_reg_hash_bot]
+
+Hash register bottom
+
+The unicast hash enable and the multicast hash enable bits in the network
+configuration register enable the reception of hash matched frames.
+
+|| Symbol | Bit range | R/W | Description ||
+| HASHL | 31-0 | RW | The first 32 bits of the hash address register. |
+
+==== HASH_TOP (0x0084) ====[pfe_emac_reg_hash_top]
+
+Hash register top
+
+The unicast hash enable and the multicast hash enable bits in the network
+configuration register enable the reception of hash matched frames.
+
+|| Symbol | Bit range | R/W | Description ||
+| HASHH | 31-0 | RW | The remaining 32 bits of the hash address register. |
+
+==== SPEC1_ADD_BOT (0x0088) ====[pfe_emac_reg_spec1_add_bot]
+
+Specific address 1 bottom
+
+|| Symbol | Bit range | R/W | Description ||
+| LADDR1L | 31-0 | RW | Least significant 32 bits of the destination address, that is bits 31:0. Bit zero indicates whether the address is multicast or unicast and corresponds to the least significant bit of the first byte received. |
+
+==== SPEC1_ADD_TOP (0x008c) ====[pfe_emac_reg_spec1_add_top]
+
+Specific address 1 top
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero |
+| LADDR1H | 15-0 | RW | Specific address 1. The most significant bits of the destination address, that is bits 47:32. |
+
+==== SPEC2_ADD_BOT (0x0090) ====[pfe_emac_reg_spec2_add_bot]
+
+Specific address 2 bottom
+
+|| Symbol | Bit range | R/W | Description ||
+| LADDR2L | 31-0 | RW | Least significant 32 bits of the destination address, that is bits 31:0. Bit zero indicates whether the address is multicast or unicast and corresponds to the least significant bit of the first byte received. |
+
+==== SPEC2_ADD_TOP (0x0094) ====[pfe_emac_reg_spec2_add_top]
+
+Specific address 2 top
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero |
+| LADDR2H | 15-0 | RW | Specific address 2. The most significant bits of the destination address, that is bits 47:32. |
+
+==== SPEC3_ADD_BOT (0x0098) ====[pfe_emac_reg_spec3_add_bot]
+
+Specific address 3 bottom
+
+|| Symbol | Bit range | R/W | Description ||
+| LADDR3L | 31-0 | RW | Least significant 32 bits of the destination address, that is bits 31:0. Bit zero indicates whether the address is multicast or unicast and corresponds to the least significant bit of the first byte received. |
+
+==== SPEC3_ADD_TOP (0x009c) ====[pfe_emac_reg_spec3_add_top]
+
+Specific address 1 top
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero |
+| LADDR3H | 15-0 | RW | Specific address 3. The most significant bits of the destination address, that is bits 47:32. |
+
+==== SPEC4_ADD_BOT (0x00a0) ====[pfe_emac_reg_spec4_add_bot]
+
+Specific address 4 bottom
+
+|| Symbol | Bit range | R/W | Description ||
+| LADDR4L | 31-0 | RW | Least significant 32 bits of the destination address, that is bits 31:0. Bit zero indicates whether the address is multicast or unicast and corresponds to the least significant bit of the first byte received. |
+
+==== MATCH1 (0x00a8) ====[pfe_emac_reg_match1]
+
+Type ID match 1
+
+|| Symbol | Bit range | R/W | Description ||
+| copy_en | 31 | RW | Enable copying of type ID match 1 matched frames |
+| reserved | 30-16 | R | Reserved, read as zero |
+| type_id_match1 | 15-0 | RW | Type ID match 1. For use in comparisons with received frames type ID/length field. |
+
+==== MATCH2 (0x00ac) ====[pfe_emac_reg_match2]
+
+Type ID match 2
+
+|| Symbol | Bit range | R/W | Description ||
+| copy_en | 31 | RW | Enable copying of type ID match 2 matched frames |
+| reserved | 30-16 | R | Reserved, read as zero |
+| type_id_match2 | 15-0 | RW | Type ID match 2. For use in comparisons with received frames type ID/length field. |
+
+==== MATCH3 (0x00b0) ====[pfe_emac_reg_match3]
+
+Type ID match 3
+
+|| Symbol | Bit range | R/W | Description ||
+| copy_en | 31 | RW | Enable copying of type ID match 3 matched frames |
+| reserved | 30-16 | R | Reserved, read as zero |
+| type_id_match3 | 15-0 | RW | Type ID match 3. For use in comparisons with received frames type ID/length field. |
+
+==== MATCH4 (0x00b4) ====[pfe_emac_reg_match4]
+
+Type ID match 4
+
+|| Symbol | Bit range | R/W | Description ||
+| copy_en | 31 | RW | Enable copying of type ID match 4 matched frames |
+| reserved | 30-16 | R | Reserved, read as zero |
+| type_id_match4 | 15-0 | RW | Type ID match 4. For use in comparisons with received frames type ID/length field. |
+
+==== WOL_ENABLE (0x00b8) ====[pfe_emac_reg_wol_enable]
+
+Wake on LAN Register
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-20 | R | Reserved, read as zero |
+| multi_hash_en | 19 | RW | Wake on LAN multicast hash event enable. When set multicast hash events will cause the wol output to be asserted. |
+| spec_addr_reg1_en | 18 | RW | Wake on LAN specific address register 1 event enable. When set specific address 1 events will cause the wol output to be asserted. |
+| arp_req_en | 17 | RW | Wake on LAN ARP request event enable. When set ARP request events will cause the wol output to be asserted. |
+| magic_pkt_en | 16 | RW | Wake on LAN magic packet event enable. When set magic packet events will cause the wol output to be asserted. |
+| arp_req_ip_addr | 15-0 | RW | Wake on LAN ARP request IP address. Written to define the least significant 16 bits of the target IP address that is matched to generate a Wake on LAN event. A value of zero will not generate an event, even if this is matched by the received frame. |
+
+==== STRETCH (0x00bc) ====[pfe_emac_reg_stretch]
+
+IPG stretch register
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero |
+| ipg_stretch | 15-0 | RW | Bits 7:0 are multiplied with the previously transmitted frame length (including preamble) bits 15:8 +1 divide the frame length. If the resulting number is greater than 96 and bit 28 is set in the network configuration register then the resulting number is used for the transmit inter-packet-gap. 1 is added to bits 15:8 to prevent a divide by zero. |
+
+==== STACKED_VLAN (0x00c0) ====[pfe_emac_reg_stacked_vlan]
+
+Stacked VLAN register
+
+|| Symbol | Bit range | R/W | Description ||
+| stacked_vlan_en | 31 | RW | Enable Stacked VLAN processing mode |
+| reserved | 30-16 | R | Reserved, read as zero |
+| user_def_vlan_type | 15-0 | RW | User defined VLAN_TYPE field. When Stacked VLAN is enabled, the first VLAN tag in a received frame will only be accepted if the VLAN type field is equal to this user defined VLAN_TYPE OR equal to the standard VLAN type (0x8100). Note that the second VLAN tag of a Stacked VLAN packet will only be matched correctly if its VLAN_TYPE field equals 0x8100. |
+
+==== TX_PFC_PAUSE (0x00c4) ====[pfe_emac_reg_tx_pfc_pause]
+
+Transmit PFC pause register
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero |
+| pauseq_sel | 15-8 | RW | If bit 17 of the network control register is written with a one then for each entry equal to zero in the Transmit PFC Pause Register[15:8], the PFC pause frame's pause quantum field associated with that entry will be taken from the transmit pause quantum register. For each entry equal to one in the Transmit PFC Pause Register [15:8], the pause quantum associated with that entry will be zero. |
+| pri_en_vec_val | 7-0 | RW | If bit 17 of the network control register is written with a one then the priority enable vector of the PFC priority based pause frame will be set equal to the value stored in this register [7:0]. |
+
+==== SPEC1_ADD_MASK_BOT (0x00c8) ====[pfe_emac_reg_spec1_add_mask_bot]
+
+Specific address 1 mask bottom
+
+|| Symbol | Bit range | R/W | Description ||
+| mask_bits_bot | 31-0 | RW | Setting a bit to one masks the corresponding bit in the specific address 1 register |
+
+==== SPEC1_ADD_MASK_TOP (0x00cc) ====[pfe_emac_reg_spec1_add_mask_top]
+
+Specific address 1 mask top
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero |
+| mask_bits_top | 15-0 | RW | Setting a bit to one masks the corresponding bit in the specific address 1 register |
+
+==== EFTSH (0x00e8) ====[pfe_emac_reg_eftsh]
+
+PTP Event Frame Transmitted Seconds Register
+
+==== EFRSH (0x00ec) ====[pfe_emac_reg_efrsh]
+
+PTP Event Frame Received Seconds Register
+
+==== PEFTSH (0x00f0) ====[pfe_emac_reg_peftsh]
+
+PTP Peer Event Frame Transmitted Seconds Register
+
+==== PEFRSH (0x00f4) ====[pfe_emac_reg_pefrsh]
+
+PTP Peer Event Frame Received Seconds Register
+
+==== MODULE_ID (0x00fc) ====[pfe_emac_reg_module_id]
+
+Module ID
+
+This register indicates a Cadence module identification number and module
+revision. The value of this register is read only as defined by
+`gem_revision_reg_value. With GEM p23, it is 0x00020118. The GEM in the PFE is
+0x0002011d.
+
+|| Symbol | Bit range | R/W | Description ||
+| module_id | 31-16 | R | Module identification number - for the GEM, this value is fixed at 0x0002. |
+| module_rev | 15-0 | R | Module revision - fixed byte value specific to the revision of the design which is incremented after each release of the IP. |
+
+==== OCTETS_TX_BOT (0x0100) ====[pfe_emac_reg_octets_tx_bot]
+
+Octets transmitted 31:0] (in frames without error)
+
+Bits 31:0 should be read prior to bits 47:32 to ensure reliable operation. In
+statistics register block. Is reset to zero on a read and stick at all ones
+when it counts to its maximum value. It should be read frequently enough to
+prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| octets_tx_bot | 31-0 | R | Transmitted octets in frame without errors [31:0]. The number of octets transmitted in valid frames of any type. This counter is 48-bits, and is read through two registers. This count does not include octets from automatically generated pause frames. |
+
+==== OCTETS_TX_TOP (0x0104) ====[pfe_emac_reg_octets_tx_top]
+
+Octets transmitted [47:32] (in frames without error)
+
+Bits 31:0 should be read prior to bits 47:32 to ensure reliable operation. In
+statistics register block. Is reset to zero on a read and stick at all ones
+when it counts to its maximum value. It should be read frequently enough to
+prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero. |
+| octets_tx_top | 15-0 | R | Transmitted octets in frame without errors [47:32]. The number of octets transmitted in valid frames of any type. This counter is 48-bits, and is read through two registers. This count does not include octets from automatically generated pause frames. |
+
+==== FRAMES_TX (0x0108) ====[pfe_emac_reg_frames_tx]
+
+Frames transmitted
+
+Statistical counter for Frames transmitted without an error and exclude pause frames.
+
+NOTES for ALL Statistical registers for Frames Transferred:
+
+The a statistical counter is read by software, it is cleared to zero by the
+hardware. When a counter reaches its maximum value, it stops counting and is
+read with all 1s. The statistical counters must be read frequently enough if
+data loss is to be prevented.
+
+For test purposes, all of the statistical counters may be written to (not just
+read) by setting bit 7 (wren_stat_regs) in the network control register. Also
+for test purposes, all of the statistical counters can be incremented (by one)
+by writing a 1 to bit 6 (incr_stat_regs) of the network control register.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAMES_TX | 31-0 | R | Frames transmitted without error. A 32 bit register counting the number of frames successfully transmitted, i.e., no under run and not too many retries. Excludes pause frames. |
+
+==== BROADCAST_TX (0x010c) ====[pfe_emac_reg_broadcast_tx]
+
+Broadcast frames Tx
+
+Statistical counter for Broadcast Frames transmitted without an error and
+exclude pause frames. Refer to the FRAMES_TX register for additional
+information.
+
+|| Symbol | Bit range | R/W | Description ||
+| BROADCAST_TX | 31-0 | R | Broadcast frames transmitted without error. A 32 bit register counting the number of broadcast frames successfully transmitted without error, i.e., no under run and not too many retries. Excludes pause frames. |
+
+==== MULTICAST_TX (0x0110) ====[pfe_emac_reg_multicast_tx]
+
+Multicast frames Tx
+
+Statistical counter for Multicast Frames transmitted without an error and
+exclude pause frames. Refer to the FRAMES_TX register for additional
+information.
+
+|| Symbol | Bit range | R/W | Description ||
+| MULTICAST_TX | 31-0 | R | Multicast frames transmitted without error. A 32 bit register counting the number of multicast frames successfully transmitted without error, i.e., no under run and not too many retries. Excludes pause frames. |
+
+==== PAUSE_TX (0x0114) ====[pfe_emac_reg_pause_tx]
+
+Pause frames Tx
+
+Statistical counter for Pause Frames transmitted without an error and not sent
+through the FIFO interface. Refer to the FRAMES_TX register for additional
+information.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero. |
+| pause_frames_tx | 15-0 | R | Transmitted pause frames - a 16 bit register counting the number of pause frames transmitted. Only pause frames triggered by the register interface or through the external pause pins are counted as pause frames. Pause frames received through the external FIFO interface are counted in the frames transmitted counter. |
+
+==== FRAME64_TX (0x0118) ====[pfe_emac_reg_frame64_tx]
+
+Frames Tx, 64-byte length
+
+Statistical counter of frames of 64 bytes that are transmitted without error.
+Does not include pause frames. Refer to the FRAMES_TX register for additional
+information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME64_TX | 31-0 | R | 64 byte frames transmitted without error. A 32 bit register counting the number of 64 byte frames successfully transmitted without error, i.e., no under run and not too many retries. Excludes pause frames. |
+
+==== FRAME65_127_TX (0x011c) ====[pfe_emac_reg_frame65_127_tx]
+
+Frames Tx, 65 to 127-byte length
+
+Statistical counter of frames of 65 to 127 bytes that are transmitted without
+error. Does not include pause frames. Refer to the FRAMES_TX register for
+additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME65_127_TX | 31-0 | R | 65 to127 byte frames transmitted without error. A 32 bit register counting the number of 65 to 127 byte frames successfully transmitted without error, i.e., no under run and not too many retries. |
+
+==== FRAME128_255_TX (0x0120) ====[pfe_emac_reg_frame128_255_tx]
+
+Frames Tx, 128 to 255-byte length
+
+Statistical counter of frames of 128 to 255 bytes that are transmitted without
+error. Does not include pause frames. Refer to the FRAMES_TX register for
+additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME128_255_TX | 31-0 | R | 128 to 255 byte frames transmitted without error. A 32 bit register counting the number of 128 to 255 byte frames successfully transmitted without error, i.e., no under run and not too many retries. |
+
+==== FRAME256_511_TX (0x0124) ====[pfe_emac_reg_frame256_511_tx]
+
+Frames Tx, 256 to 511-byte length
+
+Statistical counter of frames of 256 to 511 bytes that are transmitted without
+error. Does not include pause frames. Refer to the FRAMES_TX register for
+additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME256_511_TX | 31-0 | R | 256 to 511 byte frames transmitted without error. A 32 bit register counting the number of 256 to 511 byte frames successfully transmitted without error, i.e., no under run and not too many retries. |
+
+==== FRAME512_1023_TX (0x0128) ====[pfe_emac_reg_frame512_1023_tx]
+
+Frames Tx, 512 to 1023-byte length
+
+Statistical counter of frames of 512 to 1023 bytes that are transmitted
+without error. Does not include pause frames. Refer to the FRAMES_TX register
+for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME512_1023_TX | 31-0 | R | 512 to 1023 byte frames transmitted without error. A 32 bit register counting the number of 512 to 1023 byte frames successfully transmitted without error, i.e., no under run and not too many retries. |
+
+==== FRAME1024_1518_TX (0x012c) ====[pfe_emac_reg_frame1024_1518_tx]
+
+Frame Tx, 1024 to 1518-byte length
+
+Statistical counter of frames of 1024 to 1518 bytes that are transmitted
+without error. Does not include pause frames. Refer to the FRAMES_TX register
+for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME1024_1518_TX | 31-0 | R | 1024 to 1518 byte frames transmitted without error. A 32 bit register counting the number of 1024 to 1518 byte frames successfully transmitted without error, i.e., no under run and not too many retries. |
+
+==== FRAME1519_TX (0x0130) ====[pfe_emac_reg_frame1519_tx]
+
+Frame Tx, 1519-byte length or more
+
+Statistical counter of frames of 1519 bytes or more that are transmitted
+without error. Does not include pause frames. Refer to the FRAMES_TX register
+for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME1519_TX | 31-0 | R | 1519 bytes or more frames transmitted without error. A 32 bit register counting the number of 1519 byte or more frames successfully transmitted without error, i.e., no under run and not too many retries. |
+
+==== TX_URUN (0x0134) ====[pfe_emac_reg_tx_urun]
+
+Transmit under runs
+
+In statistics register block. Is reset to zero on a read and stick at all ones
+when it counts to its maximum value. It should be read frequently enough to
+prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| tx_under_runs | 9-0 | R | Transmit under runs - a 10 bit register counting the number of frames not transmitted due to a transmit under run. If this register is incremented then no other statistics register is incremented. |
+
+==== SINGLE_COL (0x0138) ====[pfe_emac_reg_single_col]
+
+Single collision frames
+
+In statistics register block. Is reset to zero on a read and sticks at all
+ones when it counts to its maximum value. It should be read frequently enough
+to prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-18 | R | Reserved, read as zero. |
+| single_collisn | 17-0 | R | Single collision frames - an 18 bit register counting the number of frames experiencing a single collision before being successfully transmitted, i.e. no under run. |
+
+==== MULTI_COL (0x013c) ====[pfe_emac_reg_multiple_col]
+
+Multiple collision frames
+
+In statistics register block. Is reset to zero on a read and sticks at all
+ones when it counts to its maximum value. It should be read frequently enough
+to prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-18 | R | Reserved, read as zero. |
+| multi_collisn | 17-0 | R | Multiple collision frames - an 18 bit register counting the number of frames experiencing between two and fifteen collisions prior to being successfully transmitted, i.e., no under run and not too many retries. |
+
+==== EXCESS_COL (0x0140) ====[pfe_emac_reg_excess_col]
+
+Excessive collisions
+
+In statistics register block. Is reset to zero on a read and sticks at all
+ones when it counts to its maximum value. It should be read frequently enough
+to prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| excessive_collisns | 9-0 | R | Excessive collisions - a 10 bit register counting the number of frames that failed to be transmitted because they experienced 16 collisions. |
+
+==== LATE_COL (0x0144) ====[pfe_emac_reg_late_col]
+
+Late collisions
+
+In statistics register block. Is reset to zero on a read and sticks at all
+ones when it counts to its maximum value. It should be read frequently enough
+to prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| late_collisns | 9-0 | R | Late collisions - a 10 bit register counting the number of late collision occurring after the slot time (512 bits) has expired. In 10/100 mode, late collisions are counted twice i.e., both as a collision and a late collision. In gigabit mode, a late collision causes the transmission to be aborted, thus the single and multi collision registers are not updated. |
+
+==== DEF_TX (0x0148) ====[pfe_emac_reg_def_tx]
+
+Deferred transmission frames
+
+In statistics register block. Is reset to zero on a read and stick at all ones
+when it counts to its maximum value. It should be read frequently enough to
+prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-18 | R | Reserved, read as zero. |
+| deferred_tx | 17-0 | R | Deferred transmission frames - an 18 bit register counting the number of frames experiencing deferral due to carrier sense being active on their first attempt at transmission. Frames involved in any collision are not counted nor are frames that experienced a transmit under run. |
+
+==== CRS_ERRORS (0x014c) ====[pfe_emac_reg_crs_errors]
+
+Carrier sense errors
+
+In statistics register block. Is reset to zero on a read and sticks at all
+ones when it counts to its maximum value. It should be read frequently
+enough to prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| carrier_sense_errs | 9-0 | R | Carrier sense errors - a 10 bit register counting the number of frames transmitted where carrier sense was not seen during transmission or where carrier sense was deasserted after being asserted in a transmit frame without collision (no under run). Only incremented in half duplex mode. The only effect of a carrier sense error is to increment this register. The behavior of the other statistics registers is unaffected by the detection of a carrier sense error. |
+
+==== OCTETS_RX_BOT (0x0150) ====[pfe_emac_reg_octets_rx_bot]
+
+Octets received [31:0]
+
+Bits 31:0 should be read prior to bits 47:32 to ensure reliable operation.
+In statistics register block. Is reset to zero on a read and sticks at all
+ones when it counts to its maximum value. It should be read frequently enough
+to prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| octets_rx_bot | 31-0 | R | Received octets in frame without errors [31:0]. The number of octets received in valid frames of any type. This counter is 48-bits and is read through two registers. This count does not include octets from pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== OCTETS_RX_TOP (0x0154) ====[pfe_emac_reg_octets_rx_top]
+
+Octets receives [47:32]
+
+Bits 31:0 should be read prior to bits 47:32 to ensure reliable operation. In
+statistics register block. Is reset to zero on a read and sticks at all ones
+when it counts to its maximum value. It should be read frequently enough to
+prevent loss of data.
+
+For test purposes, it may be written by setting bit 7 (Write Enable) in the
+network control register. Setting bit 6 (increment statistics) in the network
+control register causes all the statistics registers to increment by one,
+again for test purposes.
+
+Once a statistics register has been read, it is automatically cleared.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| octets_rx_top | 9-0 | R | Received octets in frame without errors [47:32]. The number of octets received in valid frames of any type. This counter is 48-bits and is read through two registers. This count does not include octets from pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== FRAMES_RX (0x0158) ====[pfe_emac_reg_frames_rx]
+
+Frames received
+
+Statistical counter for Frames received without an error and exclude pause
+frames.
+
+NOTES for ALL Statistical registers for Frames Transferred:
+
+The a statistical counter is read by software, it is cleared to zero by the
+hardware. When a counter reaches its maximum value, it stops counting and is
+read with all 1s. The statistical counters must be read frequently enough if
+data loss is to be prevented.
+
+For test purposes, all of the statistical counters may be written to (not
+just read) by setting bit 7 (wren_stat_regs) in the network control register.
+Also for test purposes, all of the statistical counters can be incremented
+(by one) by writing a 1 to bit 6 (incr_stat_regs) of the network control
+register.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAMES_RX | 31-0 | R | Frames received without error. A 32 bit register counting the number of frames successfully received. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== BROADCAST_RX (0x015c) ====[pfe_emac_reg_broadcast_rx]
+
+Broadcast frames Rx
+
+Statistical counter for Broadcast Frames received without an error and
+exclude pause frames. Refer to the FRAMES_RX register for additional
+information.
+
+|| Symbol | Bit range | R/W | Description ||
+| BROADCAST_RX | 31-0 | R | Broadcast frames received without error. A 32 bit register counting the number of broadcast frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== MULTICAST_RX (0x0160) ====[pfe_emac_reg_multicast_rx]
+
+Multicast frames Rx
+
+Statistical counter for Multicast Frames received without an error and
+exclude pause frames. Refer to the FRAMES_RX register for additional
+information.
+
+|| Symbol | Bit range | R/W | Description ||
+| MULTICAST_RX | 31-0 | R | Multicast frames received without error. A 32 bit register counting the number of multicast frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== PAUSE_RX (0x0164) ====[pfe_emac_reg_pause_rx]
+
+Pause frames Rx
+
+Statistical counter for Pause Frames received without an error. Refer to the
+FRAMES_RX register for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero |
+| pause_rx | 15-0 | R | Received pause frames - a 16 bit register counting the number of pause frames received without error. |
+
+==== FRAME64_RX (0x0168) ====[pfe_emac_reg_frames64_rx]
+
+Frames Rx, 64-byte length
+
+Statistical counter for frames of 64 bytes in length that are received
+without an error and exclude pause frames. Refer to the FRAMES_RX register
+for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME64_RX | 31-0 | R | 64 byte frames received without error. A 32 bit register counting the number of 64 byte frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== FRAME65_127_RX (0x016c) ====[pfe_emac_reg_frame65_127_rx]
+
+Frames Rx, 65 to 127-byte length
+
+Statistical counter for frames of 65 to 127 bytes in length that are received
+without an error and exclude pause frames. Refer to the FRAMES_RX register
+for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME65_127_RX | 31-0 | R | 65 to 127 byte frames received without error. A 32 bit register counting the number of 65 to 127 byte frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== FRAME128_255_RX (0x0170) ====[pfe_emac_reg_frame128_255_rx]
+
+Frames Rx, 128 to 255-byte length
+
+Statistical counter for frames of 128 to 255 bytes in length that are received
+without an error and exclude pause frames. Refer to the FRAMES_RX register for
+additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME128_255_RX | 31-0 | R | 128 to 255 byte frames received without error. A 32 bit register counting the number of 128 to 255 byte frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== FRAME256_511_RX (0x0174) ====[pfe_emac_reg_frame256_511_rx]
+
+Frames Rx, 256 to 511-byte length
+
+Statistical counter for frames of 256 to 511 bytes in length that are received
+without an error and exclude pause frames. Refer to the FRAMES_RX register for
+additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME256_511_RX | 31-0 | R | 256 to 511 byte frames received without error. A 32 bit register counting the number of 256 to 511 byte frames successfully transmitted without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== FRAME512_1023_RX (0x0178) ====[pfe_emac_reg_frame512_1023_rx]
+
+Frames Rx, 512 to 1023-byte length
+
+Statistical counter for frames of 512 to 1023 bytes in length that are
+received without an error and exclude pause frames. Refer to the FRAMES_RX
+register for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME512_1023_RX | 31-0 | R | 512 to 1023 byte frames received without error. A 32 bit register counting the number of 512 to 1023 byte frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== FRAME1024_1518_RX (0x017c) ====[pfe_emac_reg_frame1024_1518_rx]
+
+Frames Rx, 1024 to 1518-byte length
+
+Statistical counter for frames of 1024 to 1518 bytes in length that are
+received without an error and exclude pause frames. Refer to the FRAMES_RX
+register for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME1024_1518_RX | 31-0 | R | 1024 to 1518 byte frames received without error. A 32 bit register counting the number of 1024 to 1518 byte frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== FRAME1519_RX (0x0180) ====[pfe_emac_reg_frame1519_rx]
+
+Frames Rx, 1519 byte length or more
+
+Statistical counter for frames of 1519 bytes or more in length that are
+received without an error and exclude pause frames. Refer to the FRAMES_RX
+register for additional information.
+
+|| Symbol | Bit range | R/W | Description ||
+| FRAME1519_RX | 31-0 | R | 1519 bytes or more frames received without error. A 32 bit register counting the number of 1519 bytes or more frames successfully received without error. Excludes pause frames, and is only incremented if the frame is successfully filtered and copied to memory. |
+
+==== USIZE_FRAMES (0x0184) ====[pfe_emac_reg_usize_frames]
+
+Undersize frames received
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| undersz_rx | 9-0 | R | Undersize frames received - a 10 bit register counting the number of frames received less than 64 bytes in length (10/100 mode or gigabit mode, full duplex) that do not have either a CRC error or an alignment error. |
+
+==== EXCESS_LENGTH (0x0188) ====[pfe_emac_reg_excess_length]
+
+Oversize frames received
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| oversz_rx | 9-0 | R | Oversize frames received - a 10 bit register counting the number of frames received exceeding 1518 bytes (1536 bytes if bit 8 is set in network configuration register) in length but do not have either a CRC error, an alignment error nor a receive symbol error. |
+
+==== JABBERS (0x018c) ====[pfe_emac_reg_jabbers]
+
+Jabbers received
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| jab_rx | 9-0 | R | Jabbers received - a 10 bit register counting the number of frames received exceeding 1518 bytes (1536 if bit 8 set in network configuration register) in length and have either a CRC error, an alignment error or a receive symbol error. |
+
+==== FCS_ERRORS (0x0190) ====[pfe_emac_reg_fcs_errors]
+
+Frame check sequence errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| fcs_errors | 9-0 | R | Frame check sequence errors - a 10 bit register counting frames that are an integral number of bytes, have bad CRC and are between 64 and 1518 bytes in length. This register is also incremented if a symbol error is detected and the frame is of valid length and has an integral number of bytes. This register is incremented for a frame with bad FCS, regardless of whether it is copied to memory due to ignore FCS mode being enabled in bit 26 of the network configuration register. |
+
+==== LENGTH_CHECK_ERRORS (0x0194) ====[pfe_emac_reg_length_check_errors]
+
+Length field frame errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| length_field_errors | 9-0 | R | Length field frame errors - this 10-bit register counts the number of frames received that have a measured length shorter than that extracted from the length field (bytes 13 and 14). This condition is only counted if the value of the length field is less than 0x0600, the frame is not of excessive length and checking is enabled through bit 16 of the network configuration register. |
+
+==== RX_SYMBOL_ERRORS (0x0198) ====[pfe_emac_reg_rx_symbol_errors]
+
+Receive symbol errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| rx_symbol_errors | 9-0 | R | Receive symbol errors - a 10-bit register counting the number of frames that had rx_er asserted during reception. For 10/100 mode symbol errors are counted regardless of frame length checks. For gigabit mode the frame must satisfy slot time requirements in order to count a symbol error. |
+
+==== ALIGN_ERRORS (0x019c) ====[pfe_emac_reg_align_errors]
+
+Alignment errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| align_errors | 9-0 | R | Alignment errors - a 10 bit register counting frames that are not an integral number of bytes long and have bad CRC when their length is truncated to an integral number of bytes and are between 64 and 1518 bytes in length. This register is also incremented if a symbol error is detected and the frame is of valid length and does not have an integral number of bytes. |
+
+==== RX_RES_ERRORS (0x01a0) ====[pfe_emac_reg_rx_res_errors]
+
+Receive resource errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-18 | R | Reserved, read as zero. |
+| rx_resource_errors | 17-0 | R | Receive resource errors - an 18 bit register counting the number of frames that were successfully received by the MAC (correct address matched frame and adequate slot time) but could not be copied to memory because no receive buffer was available. This will be either because the AHB bus was not granted in time or because a hresp not OK was returned. |
+
+==== RX_ORUN (0x01a4) ====[pfe_emac_reg_rx_orun]
+
+Receive overrun errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-10 | R | Reserved, read as zero. |
+| rx_overrun_errors | 9-0 | R | Receive overruns - a 10 bit register counting the number of frames that are address recognized but were not copied to memory due to a receive overrun. |
+
+==== IP_CKSUM (0x01a8) ====[pfe_emac_reg_ip_cksum]
+
+IP header checksum errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-8 | R | Reserved, read as zero. |
+| ip_hdr_csum_errors | 7-0 | R | IP header checksum errors - an 8-bit register counting the number of frames discarded due to an incorrect IP header checksum, but are between 64 and 1518 bytes and do not have a CRC error, an alignment error, nor a symbol error. |
+
+==== TCP_CKSUM (0x01ac) ====[pfe_emac_reg_tcp_cksum]
+
+TCP checksum errors
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-8 | R | Reserved, read as zero. |
+| tcp_csum_errors | 7-0 | R | TCP checksum errors - an 8-bit register counting the number of frames discarded due to an incorrect TCP checksum, but are between 64 and 1518 bytes and do not have a CRC error, an alignment error, nor a symbol error. |
+
+==== UDP_CKSUM (0x01b0) ====[pfe_emac_reg_udp_cksum]
+
+UDP checksum error
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-8 | R | Reserved, read as zero. |
+| udp_csum_errors | 7-0 | R | UDP checksum errors - an 8-bit register counting the number of frames discarded due to an incorrect UDP checksum, but are between 64 and 1518 bytes and do not have a CRC error, an alignment error, nor a symbol error. |
+
+==== TISUBN (0x01bc) ====[pfe_emac_reg_tisubn]
+
+1588 Timer Increment Sub-ns
+
+Must be written before writing to [TI #pfe_emac_reg_ti].
+
+|| Symbol | Bit range | R/W | Description ||
+| SUBNSINCRL | 31-24 | RW | Subns[7:0] |
+| SUBNSINCRH | 15-0 | RW | Subns[23:8] |
+
+==== TSH (0x01c0) ====[pfe_emac_reg_tsh]
+
+1588 Timer Seconds High
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-16 | R | Reserved, read as zero. |
+| TSH | 15-0 | R | TSU timer value (s). MSB [47:32] of seconds timer count |
+
+==== TSL (0x01d0) ====[pfe_emac_reg_tsl]
+
+1588 Timer Seconds Low
+
+|| Symbol | Bit range | R/W | Description ||
+| TSL | 31-0 | R | TSU timer value (s). LSB [31:0] of seconds timer count |
+
+==== TN (0x01d4) ====[pfe_emac_reg_tn]
+
+1588 Timer Nanoseconds
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-30 | R | Reserved, read as zero. |
+| TN | 29-0 | R | TSU timer value (ns) |
+
+==== TA (0x01d8) ====[pfe_emac_reg_ta]
+
+1588 Timer Adjust
+
+|| Symbol | Bit range | R/W | Description ||
+| ADDSUB | 31 | W | Timer adjust operation. 0=add 1=subtract |
+| reserved | 30 | R | Reserved, read as zero. |
+| NSADJ | 29-0 | W | Nanoseconds to add/subtract to timer |
+
+==== TI (0x01dc) ====[pfe_emac_reg_ti]
+
+1588 Timer Increment
+
+The TI register must be written after the
+[TISUBN register #pfe_emac_reg_tisubn] and the write operation will cause the
+values written to both registers to take effect.
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-8 | R | Reserved, read as zero. |
+| NSINCR | 7-0 | R | Nanoseconds timer increment |
+
+==== EFTSL (0x01e0) ====[pfe_emac_reg_eftsl]
+
+PTP Event Frame Tx Seconds Low
+
+==== EFTN (0x01e4) ====[pfe_emac_reg_eftn]
+
+PTP Event Frame Tx Nanoseconds
+
+==== EFRSL (0x01e8) ====[pfe_emac_reg_efrsl]
+
+PTP Event Frame Rx Seconds Low
+
+==== EFRN (0x01ec) ====[pfe_emac_reg_efrn]
+
+PTP Event Frame Rx Nanoseconds
+
+==== PEFTSL (0x01f0) ====[pfe_emac_reg_peftsl]
+
+PTP Peer Event Frame Tx Secs Low
+
+==== PEFTN (0x01f4) ====[pfe_emac_reg_peftn]
+
+PTP Peer Event Frame Tx Ns
+
+==== PEFRSL (0x01f8) ====[pfe_emac_reg_pefrsl]
+
+PTP Peer Event Frame Rx Sec Low
+
+==== PEFRN (0x01fc) ====[pfe_emac_reg_pefrn]
+
+PTP Peer Event Frame Rx Ns
+
+==== PCSCNTRL (0x0200) ====[pfe_emac_reg_pcscntrl]
+
+PCS Control
+
+|| Symbol | Bit range | R/W | Description ||
+| PCSAUTONEG | 12 | RW | ? |
+
+==== PCSSTS (0x0204) ====[pfe_emac_reg_pcssts]
+
+PCS Status
+
+==== PCSPHYTOPID (0x0208) ====[pfe_emac_reg_pcsphytopid]
+
+PCS PHY Top ID
+
+==== PCSPHYBOTID (0x020c) ====[pfe_emac_reg_pcsphybotid]
+
+PCS PHY Bottom ID
+
+==== PCSANADV (0x0210) ====[pfe_emac_reg_pcsanadv]
+
+PCS AN Advertisement
+
+==== PCSANLPBASE (0x0214) ====[pfe_emac_reg_pcsanlpbase]
+
+PCS AN Link Partner Base
+
+==== PCSANEXP (0x0218) ====[pfe_emac_reg_pcsanexp]
+
+PCS AN Expansion
+
+==== PCSANNPTX (0x021c) ====[pfe_emac_reg_pcsannptx]
+
+PCS AN Next Page TX
+
+==== PCSANNPLP (0x0220) ====[pfe_emac_reg_pcsannplp]
+
+PCS AN Next Page LP
+
+==== PCSANEXTSTS (0x023c) ====[pfe_emac_reg_pcsanextsts]
+
+PCS AN Extended Status
+
+==== DESIGN_CFG1 (0x0280) ====[pfe_emac_reg_design_cfg1]
+
+Design configuration 1
+
+|| Symbol | Bit range | R/W | Description ||
+| GEM_DBWDEF | 27-25 | R | Default data bus width? |
+| GEM_IRQCOR | 23 | R | IRQ clear on read. 0=clear on write 1=clear on read |
+| GEM_NO_PCS | 0 | R | PCS not implemented? |
+
+==== DESIGN_CFG2 (0x0284) ====[pfe_emac_reg_design_cfg2]
+
+Design configuration 2
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-30 | R | Reserved, read as zero. |
+| gem_tx_pbuf_addr | 29-26 | R | Takes the value of the `gem_tx_pbuf_addr DEFINE. Max address bits for Tx packet buffer (10-bits for maximum 4 kB buffer). |
+| gem_rx_pbuf_addr | 25-22 | R | Takes the value of the `gem_rx_pbuf_addr DEFINE. Max address bits for Rx packet buffer (10-bits for maximum 4 kB buffer).  |
+| gem_tx_pkt_buffer | 21 | R | Takes the value of the `gem_tx_pkt_buffer DEFINE. |
+| gem_rx_pkt_buffer | 20 | R | Takes the value of the `gem_rx_pkt_buffer DEFINE. |
+| gem_hprot_value | 19-16 | R | Takes the value of the `gem_hprot_value DEFINE. |
+| gem_jumbo_max_length | 15-0 | R | Takes the value of the `gem_jumbo_max_length DEFINE. Maximum length of jumbo frames accepted by receiver. |
+
+==== DESIGN_CFG3 (0x0288) ====[pfe_emac_reg_design_cfg3]
+
+Design configuration 3
+
+|| Symbol | Bit range | R/W | Description ||
+| gem_rx_base2_fifo_size | 31-16 | R | Takes the value of the `gem_rx_base2_fifo_size DEFINE. Base-2 equivalent of `gem_rx_fifo_size |
+| gem_rx_fifo_size | 15-0 | R | Takes the value of the `gem_rx_fifo_size DEFINE. Set the size of the small Rx FIFO for grant latency. |
+
+==== DESIGN_CFG4 (0x028c) ====[pfe_emac_reg_design_cfg4]
+
+Design configuration 4
+
+|| Symbol | Bit range | R/W | Description ||
+| gem_tx_base2_fifo_size | 31-16 | R | Takes the value of the `gem_tx_base2_fifo_size DEFINE. Base-2 equivalent of `gem_tx_fifo_size. |
+| gem_tx_fifo_size | 15-0 | R | Takes the value of the `gem_tx_fifo_size DEFINE. Set the size of the small TX FIFO for grant latency |
+
+==== DESIGN_CFG5 (0x0290) ====[pfe_emac_reg_design_cfg5]
+
+Design configuration 5
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved | 31-29 | R | Reserved, read as zero. |
+| gem_tsu_clk | 28 | R | Takes the value of the `gem_tsu_clk DEFINE. 1588 Time Stamp Unit clock sourced from pclk rather than independent tsu_clk. |
+| gem_rx_buffer_length_def | 27-20 | R | Takes the value of the `gem_rx_buffer_length_def DEFINE. Set the default buffer length used by Rx DMA. |
+| gem_tx_pbuf_size_def | 19 | R | Takes the value of the `gem_tx_pbuf_size_def DEFINE. |
+| gem_rx_pbuf_size_def | 18-17 | R | Takes the value of the `gem_rx_pbuf_size_def DEFINE. |
+| gem_endian_swap_def | 16-15 | R | Takes the value of the `gem_endian_swap_def DEFINE. Default values for descriptor endianess swap and data endianess swap. |
+| gem_mdc_clock_div | 14-12 | R | Takes the value of the `gem_mdc_clock_div DEFINE. Set default MDC clock divisor (can still be programmed) |
+| gem_dma_bus_width | 11-10 | R | Takes the value of the `gem_dma_bus_width_def DEFINE. |
+| gem_phy_ident | 9 | R | Takes the value of the `gem_phy_ident DEFINE. Only used in PCS. |
+| gem_tsu | 8 | R | Takes the value of the `gem_tsu DEFINE. Include support for 1588 Time Stamp Unit. |
+| gem_tx_fifo_cnt_width | 7-4 | R | Takes the value of the `gem_tx_fifo_cnt_width DEFINE. Width for `gem_tx_fifo_size |
+| gem_rx_fifo_cnt_width | 3-0 | R | Takes the value of the `gem_rx_fifo_cnt_width DEFINE. Width for `gem_rx_fifo_size. |
+
+==== DESIGN_CFG6 (0x0294) ====[pfe_emac_reg_design_cfg6]
+
+Design configuration 6
+
+|| Symbol | Bit range | R/W | Description ||
+| GEM_PBUF_LSO | 27 | R | ? |
+| GEM_DAW64 | 23 | R | ? |
+
+==== SPEC5_ADD_BOT ~ SPEC32_ADD_BOT (0x300 ~ 0x3d8)====[pfe_emac_reg_spec5_32_add_bot]
+
+Least significant part of the specific addresses 5~32.
+
+When one of these registers is written, the corresponding address match is
+disabled. To set a new address and enable matching, set the SPECx_ADD_BOT
+register first and the SPECx_ADD_TOP last.
+
+|| Offset | Register | Description ||
+| 0x300 | SPEC5_ADD_BOT | Specific address 5 bottom |
+| 0x308 | SPEC6_ADD_BOT | Specific address 6 bottom |
+| 0x310 | SPEC7_ADD_BOT | Specific address 7 bottom |
+| 0x318 | SPEC8_ADD_BOT | Specific address 8 bottom |
+| 0x320 | SPEC9_ADD_BOT | Specific address 9 bottom |
+| 0x328 | SPEC10_ADD_BOT | Specific address 10 bottom |
+| 0x330 | SPEC11_ADD_BOT | Specific address 11 bottom |
+| 0x338 | SPEC12_ADD_BOT | Specific address 12 bottom |
+| 0x340 | SPEC13_ADD_BOT | Specific address 13 bottom |
+| 0x348 | SPEC14_ADD_BOT | Specific address 14 bottom |
+| 0x350 | SPEC15_ADD_BOT | Specific address 15 bottom |
+| 0x358 | SPEC16_ADD_BOT | Specific address 16 bottom |
+| 0x360 | SPEC17_ADD_BOT | Specific address 17 bottom |
+| 0x368 | SPEC18_ADD_BOT | Specific address 18 bottom |
+| 0x370 | SPEC19_ADD_BOT | Specific address 19 bottom |
+| 0x378 | SPEC20_ADD_BOT | Specific address 20 bottom |
+| 0x380 | SPEC21_ADD_BOT | Specific address 21 bottom |
+| 0x388 | SPEC22_ADD_BOT | Specific address 22 bottom |
+| 0x390 | SPEC23_ADD_BOT | Specific address 23 bottom |
+| 0x398 | SPEC24_ADD_BOT | Specific address 24 bottom |
+| 0x3a0 | SPEC25_ADD_BOT | Specific address 25 bottom |
+| 0x3a8 | SPEC26_ADD_BOT | Specific address 26 bottom |
+| 0x3b0 | SPEC27_ADD_BOT | Specific address 27 bottom |
+| 0x3b8 | SPEC28_ADD_BOT | Specific address 28 bottom |
+| 0x3c0 | SPEC29_ADD_BOT | Specific address 29 bottom |
+| 0x3c8 | SPEC30_ADD_BOT | Specific address 30 bottom |
+| 0x3d0 | SPEC31_ADD_BOT | Specific address 31 bottom |
+| 0x3d8 | SPEC32_ADD_BOT | Specific address 32 bottom |
+
+|| Symbol | Bit range | R/W | Description ||
+| ADD_BOT | 31-0 | RW | Least significant 32 bits of the destination address. |
+
+==== SPEC5_ADD_TOP ~ SPEC32_ADD_TOP (0x304 ~ 0x3dc)====[pfe_emac_reg_spec5_32_add_top]
+
+Most significant part of the specific addresses 5~32.
+
+When one of these registers is written, the corresponding address match is
+enabled. That means you must write to SPECx_ADD_BOT before SPECx_ADD_TOP in
+order to enable matching on the written address.
+
+|| Offset | Register | Description ||
+| 0x304 | SPEC5_ADD_TOP | Specific address 5 top |
+| 0x30c | SPEC6_ADD_TOP | Specific address 6 top |
+| 0x314 | SPEC7_ADD_TOP | Specific address 7 top |
+| 0x31c | SPEC8_ADD_TOP | Specific address 8 top |
+| 0x324 | SPEC9_ADD_TOP | Specific address 9 top |
+| 0x32c | SPEC10_ADD_TOP | Specific address 10 top |
+| 0x334 | SPEC11_ADD_TOP | Specific address 11 top |
+| 0x33c | SPEC12_ADD_TOP | Specific address 12 top |
+| 0x344 | SPEC13_ADD_TOP | Specific address 13 top |
+| 0x34c | SPEC14_ADD_TOP | Specific address 14 top |
+| 0x354 | SPEC15_ADD_TOP | Specific address 15 top |
+| 0x35c | SPEC16_ADD_TOP | Specific address 16 top |
+| 0x364 | SPEC17_ADD_TOP | Specific address 17 top |
+| 0x36c | SPEC18_ADD_TOP | Specific address 18 top |
+| 0x374 | SPEC19_ADD_TOP | Specific address 19 top |
+| 0x37c | SPEC20_ADD_TOP | Specific address 20 top |
+| 0x384 | SPEC21_ADD_TOP | Specific address 21 top |
+| 0x38c | SPEC22_ADD_TOP | Specific address 22 top |
+| 0x394 | SPEC23_ADD_TOP | Specific address 23 top |
+| 0x39c | SPEC24_ADD_TOP | Specific address 24 top |
+| 0x3a4 | SPEC25_ADD_TOP | Specific address 25 top |
+| 0x3ac | SPEC26_ADD_TOP | Specific address 26 top |
+| 0x3b4 | SPEC27_ADD_TOP | Specific address 27 top |
+| 0x3bc | SPEC28_ADD_TOP | Specific address 28 top |
+| 0x3c4 | SPEC29_ADD_TOP | Specific address 29 top |
+| 0x3cc | SPEC30_ADD_TOP | Specific address 30 top |
+| 0x3d4 | SPEC31_ADD_TOP | Specific address 31 top |
+| 0x3dc | SPEC32_ADD_TOP | Specific address 32 top |
+
+|| Symbol | Bit range | R/W | Description ||
+| ENABLE (TODO: check) | 31 | W | Enable matching on this address |
+| reserved | 31-16 | R | Reserved, read as zero. |
+| ADD_TOP | 15-0 | RW | Most significant 16 bits of the destination address. |
+
+==== CONTROL (0x07a0) ====[pfe_emac_reg_control]
+
+|| Symbol | Bit range | R/W | Description ||
+| reserved? | 31-8 | R | Reserved, read as zero |
+| MODE | 2-1 | RW | 0=MII/GMII/SGMII 1=RMII 2=RGMII 3=reserved |
+| TWO_BYTES_IP_ALIGN | 0 | RW | Align something on 16 bit boundary? |
 
