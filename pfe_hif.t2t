@@ -68,6 +68,7 @@ Writing a new value will reset the Tx current buffer descriptor.
 Contents unknown.
 
 || Symbol | Bit range | R/W | Description ||
+| BDP_CSR_TX_DMA_ACTV | 16 | R | Tx BDP busy (only in HIF_NOCPY?) |
 | CTRL | 15-0 | R | Bit 31-16 from last Tx buffer descriptor control word |
 
 ==== RX_CTRL (HIF_BASE + 0x020) ====[pfe_hif_reg_rx_ctrl]

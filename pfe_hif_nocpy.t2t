@@ -30,7 +30,7 @@ Control word:
 | LIFM | 18 | Last buffer in frame |
 | PKT_INT_EN | 17 | Trigger interrupt when packet is sent on the wire? |
 | CBD_INT_EN | 16 | Trigger interrupt when buffer starts being processed? |
-| BUF_LEN | 13-0 | Length of associated buffer. Unused? |
+| BUF_LEN | 13-0 | Length of associated buffer. Only used by HIF? |
 
 Status word:
 
@@ -194,6 +194,31 @@ Software would set it to the address of [TMU PHY_INQ_PKTPTR #pfe_tmu_csr_reg_phy
 
 || Symbol | Bit range | R/W | Description ||
 | ADDR | 31-0 | RW | Address of the IN queue FIFO register of the TMU (or compatible) block. |
+
+==== TMU_PORT1_ADDR (HIF_NOCPY_BASE + 0x74) ====[pfe_hif_nocpy_reg_tmu_port1_addr]
+
+Another address of the TMU IN Queue FIFO.
+
+Appears unused.
+
+==== TMU_PORT2_ADDR (HIF_NOCPY_BASE + 0x78) ====[pfe_hif_nocpy_reg_tmu_port2_addr]
+
+Another address of the TMU IN Queue FIFO.
+
+Appears unused.
+
+==== TMU_PORT3_ADDR (HIF_NOCPY_BASE + 0x7c) ====[pfe_hif_nocpy_reg_tmu_port3_addr]
+
+Another address of the TMU IN Queue FIFO.
+
+Appears unused.
+
+==== TMU_PORT4_ADDR (HIF_NOCPY_BASE + 0x80) ====[pfe_hif_nocpy_reg_tmu_port4_addr]
+
+Another address of the TMU IN Queue FIFO.
+
+Appears unused.
+
 
 ==== INT_COAL (HIF_NOCPY_BASE + 0x090) ====[pfe_hif_nocpy_reg_int_coal]
 

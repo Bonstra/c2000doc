@@ -62,9 +62,9 @@ GEMAC status bits:
 | UDP_CHECKSUM_CORRECT? | 59 | UDP checksum is correct? |
 | TCP_CHECKSUM_CORRECT? | 58 | TCP checksum is correct? |
 | IP_CHECKSUM_CORRECT? | 57 | IP checksum is correct? |
-| UNICAST_HASH_MATCH? | 56 | ? |
+| UNICAST_HASH_MATCH? | 56 | Destination matches unicast hash |
 | CUMULATIVE_ARC_HIT? | 55 | ? |
-| MC_HASH_MATCH? | 54 | ? |
+| MC_HASH_MATCH? | 54 | Destination matches multicast hash |
 | CODE_ERR? | 53 | ? |
 | TOO_LONG_ERR? | 52 | ? |
 | TOO_SHORT_ERR? | 51 | ? |
@@ -279,8 +279,9 @@ will be written at that address.
 Address in the PE address space of the INQ_PKTPTR FIFO register in the
 [CLASS_CSR block #pfe_class_csr].
 
-The GPI will write the address of the LMEM buffer to this location. This buffer
-follows the format defined in the [GPI Rx buffe format #pfe_gpi_rx_buf_format].
+The GPI will write the address of the first buffer to this location. This
+buffer follows the format defined in the
+[GPI Rx buffer format #pfe_gpi_rx_buf_format].
 
 || Symbol | Bit range | R/W | Description ||
 | CLASS_ADDR | 31-0 | RW | Address of CLASS FIFO. |
@@ -346,11 +347,11 @@ Some FIFO status register. Format unknown.
 
 ==== FIFO_DEBUG (GPI_BASE + 0x058) ====[pfe_gpi_reg_fifo_debug]
 
-Some FIFO debug register.
+Some FIFO debug register. Cleared on read.
 
 || Symbol | Bit range | R/W | Description ||
-| TX_PKTS | 27-23 | R | Tx bytes |
-| RX_PKTS | 22-18 | R | Tx bytes |
+| TX_PKTS | 27-23 | R | Tx packets |
+| RX_PKTS | 22-18 | R | Rx packets |
 | TX_BYTES | 17-9 | R | Tx bytes |
 | RX_BYTES | 8-0 | R | Rx bytes |
 

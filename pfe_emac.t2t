@@ -201,7 +201,7 @@ Note: Reading a statistics register will reset its value to 0.
 | [SPEC31_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3d4 | Specific address 31 top |
 | [SPEC32_ADD_BOT #pfe_emac_reg_spec5_32_add_bot] | 0x3d8 | Specific address 32 bottom |
 | [SPEC32_ADD_TOP #pfe_emac_reg_spec5_32_add_top] | 0x3dc | Specific address 32 top |
-| [CONTROL #pfe_emac_reg_control] | 0x7a0 |  |
+| [CONTROL #pfe_emac_reg_control] | 0x7a0 | EMAC Control register |
 
 ==== NETWORK_CONTROL (EMAC_BASE + 0x000) ====[pfe_emac_reg_network_control]
 
@@ -230,7 +230,7 @@ receiver and transmitter.
 | TXEN | 3 | RW | Transmit enable - when set, it enables the GEM transmitter to send data. When reset transmission will stop immediately, the transmit pipeline and control registers will be cleared and the transmit queue pointer register will reset to point to the start of the transmit descriptor list. |
 | RXEN | 2 | RW | Receive enable - when set, it enables the GEM to receive data. When reset frame reception will stop immediately and the receive pipeline will be cleared. The receive queue pointer register is unaffected. |
 | LOOPEN | 1 | RW | Loop back local - asserts the loopback_local signal to the system clock generator. Also connects txd to rxd, tx_en to rx_dv and forces full duplex mode. Bit 11 of the network configuration register must be set low to disable TBI mode when in internal loopback. rx_clk and tx_clk may malfunction as the GEM is switched into and out of internal loop back. It is important that receive and transmit circuits have already been disabled when making the switch into and out of internal loop back. |
-| reserved | 0 | RW | Reserved. Do not modify. Reset value: 0 |
+| LBEXT | 0 | RW | External loopback. Reset value: 0 |
 
 ==== NETWORK_CONFIG (0x0004) ====[pfe_emac_reg_network_config]
 
@@ -250,7 +250,7 @@ operation for the Gigabit Ethernet MAC
 | RXCHKSUMEN | 24 | RW | Receive checksum offload enable - when set, the receive checksum engine is enabled. Frames with bad IP, TCP or UDP checksums are discarded. |
 | PAUSECOPYDI | 23 | RW | Disable copy of pause frames - set to one to prevent valid pause frames being copied to memory. When set, pause frames are not copied to memory regardless of the state of the copy all frames bit; whether a hash match is found or whether a type ID match is identified. If a destination address match is found the pause frame will be copied to memory. Note that valid pause frames received will still increment pause statistics and pause the transmission of frames as required. |
 | dbus_width | 22-21 | RW | Data bus width. Only valid bus widths may be written if the system is configured to a maximum width less than 128-bits. 00: 32 bit AMBA AHB data bus width 01: 64 bit AMBA AHB data bus width 10: 128 bit AMBA AHB data bus width 11: 128 bit AMBA AHB data bus width |
-| MDCCLKDIV | 20-18 | RW | MDC clock division - set according to cpu_1xclk speed. These three bits determine the number cpu_1xclk will be divided by to generate MDC. For conformance with the 802.3 specification, MDC must not exceed 2.5 MHz (MDC is only active during MDIO read and write operations). 000: divide cpu_1xclk by 8 (cpu_1xclk up to 20 MHz) 001: divide cpu_1xclk by 16 (cpu_1xclk up to 40 MHz) 010: divide cpu_1xclk by 32 (cpu_1xclk up to 80 MHz) 011: divide cpu_1xclk by 48 (cpu_1xclk up to 120MHz) 100: divide cpu_1xclk by 64 (cpu_1xclk up to 160 MHz) 101: divide cpu_1xclk by 96 (cpu_1xclk up to 240 MHz) 110: divide cpu_1xclk by 128 (cpu_1xclk up to 320 MHz) 111: divide cpu_1xclk by 224 (cpu_1xclk up to 540 MHz) |
+| MDCCLKDIV | 20-18 | RW | MDC clock division - set according to cpu_1xclk speed. These three bits determine the number cpu_1xclk will be divided by to generate MDC. For conformance with the 802.3 specification, MDC must not exceed 2.5 MHz (MDC is only active during MDIO read and write operations). 000: divide cpu_1xclk by 8 (cpu_1xclk up to 20 MHz) 001: divide cpu_1xclk by 16 (cpu_1xclk up to 40 MHz) 010: divide cpu_1xclk by 32 (cpu_1xclk up to 80 MHz) 011: divide cpu_1xclk by 48 (cpu_1xclk up to 120MHz) 100: divide cpu_1xclk by 64 (cpu_1xclk up to 160 MHz) 101: divide cpu_1xclk by 96 (cpu_1xclk up to 240 MHz) 110: divide cpu_1xclk by 128 (cpu_1xclk up to 320 MHz) 111: divide cpu_1xclk by 224 (cpu_1xclk up to 560 MHz) |
 | FCSREM | 17 | RW | FCS remove - setting this bit will cause received frames to be written to memory without their frame check sequence (last 4 bytes). The frame length indicated will be reduced by four bytes in this mode. |
 | LENGTHERRDSCRD | 16 | RW | Length field error frame discard - setting this bit causes frames with a measured length shorter than the extracted length field (as indicated by bytes 13 and 14 in a non-VLAN tagged frame) to be discarded. This only applies to frames with a length field less than 0x0600. |
 | RXOFFS | 15-14 | RW | Receive buffer offset - indicates the number of bytes by which the received data is offset from the start of the receive buffer. |
@@ -264,7 +264,7 @@ operation for the Gigabit Ethernet MAC
 | MCASTHASHEN | 6 | RW | Multicast hash enable - when set, multicast frames will be accepted when the 6 bit hash function of the destination address points to a bit that is set in the hash register. |
 | BCASTDI | 5 | RW | No broadcast - when set to logic one, frames addressed to the broadcast address of all ones will not be accepted. |
 | COPYALLEN | 4 | RW | Copy all frames - when set to logic one, all valid frames will be accepted. |
-| reserved | 3 | RW | Reserved. Do not modify. Reset value: 0 |
+| ENABLE_JUMBO_FRAME | 3 | RW | Enable Rx jumbo frames. Jumbo frame length up to 10240 bytes. Reset value: 0 |
 | NVLANDISC | 2 | RW | Discard non-VLAN frames - when set only VLAN tagged frames will be passed to the address matching logic. |
 | FDEN | 1 | RW | Full duplex - if set to logic one, the transmit block ignores the state of collision and carrier sense and allows receive while transmitting. Also controls the half-duplex pin. |
 | 100 | 0 | RW | Speed - set to logic one to indicate 100Mbps operation, logic zero for 10Mbps. The value of this pin is reflected on the speed_mode[0] output pin. |
@@ -493,7 +493,7 @@ ensure a valid PHY management frame is produced.
 | OP | 29-28 | RW | Operation. 10 is read. 01 is write. |
 | ADDR | 27-23 | RW | PHY address |
 | REG | 22-18 | RW | Register address - specifies the register in the PHY to access. |
-| must_10 | 17-16 | RW | Must be written to 10. |
+| must_10 | 17-16 | RW | Turnaround time. Must be written to 10. |
 | DATA | 15-0 | RW | For a write operation this is written with the data to be written to the PHY. After a read operation this contains the data read from the PHY. |
 
 ==== RXPAUSE (0x0038) ====[pfe_emac_reg_rxpause]
@@ -537,7 +537,7 @@ configuration register enable the reception of hash matched frames.
 Specific address 1 bottom
 
 || Symbol | Bit range | R/W | Description ||
-| LADDR1L | 31-0 | RW | Least significant 32 bits of the destination address, that is bits 31:0. Bit zero indicates whether the address is multicast or unicast and corresponds to the least significant bit of the first byte received. |
+| LADDR1L | 31-0 | RW | Least significant 32 bits of the destination address, that is bits 31:0. Bit zero indicates whether the address is multicast or unicast and corresponds to the least significant bit of the first byte received. MAC address bytes in order: 0 1 2 3 |
 
 ==== SPEC1_ADD_TOP (0x008c) ====[pfe_emac_reg_spec1_add_top]
 
@@ -545,7 +545,7 @@ Specific address 1 top
 
 || Symbol | Bit range | R/W | Description ||
 | reserved | 31-16 | R | Reserved, read as zero |
-| LADDR1H | 15-0 | RW | Specific address 1. The most significant bits of the destination address, that is bits 47:32. |
+| LADDR1H | 15-0 | RW | Specific address 1. The most significant bits of the destination address, that is bits 47:32. MAC address bytes in order: x x 4 5 |
 
 ==== SPEC2_ADD_BOT (0x0090) ====[pfe_emac_reg_spec2_add_bot]
 
@@ -1552,6 +1552,8 @@ order to enable matching on the written address.
 | ADD_TOP | 15-0 | RW | Most significant 16 bits of the destination address. |
 
 ==== CONTROL (0x07a0) ====[pfe_emac_reg_control]
+
+EMAC Control register
 
 || Symbol | Bit range | R/W | Description ||
 | reserved? | 31-8 | R | Reserved, read as zero |
