@@ -222,10 +222,10 @@ Global device reset register.
 | CLK_DIV_RESTART | 7 | RW | Clock divider restart. Self-clearing |
 | WD_STATUS_CLR | 6 | W | Clear AXI watchdog status (see [GNRL_DEVICE_STATUS #clkcore_regs_gnrl_device_status]) |
 | AXI_WD_RST_EN | 5 | RW | Enable reset on [AXI watchdog timer #peri_timer_wdt] block |
-| DEBUG_RST | 4 | RW | Reset debug features (CoreSight and ARM debug). Does not self-clear |
+| DEBUG_RST | 4 | RW | Reset (disable) debug features (CoreSight and ARM debug). Does not self-clear |
 | CLKRST_SCLR_RST | 3 | RW | Reset clocks? Self-clearing? |
 | FUNC_SCLR_RST | 2 | RW | Perform a functional software reset. Reset all blocks except PLLs, clocks, reset and debug logic. Maybe self-clearing (if CLKRST_SCLR_RST is set at the sme time?) |
-| GLB_SCLR_RST | 1 | RW | Global reset. Self-clearing. What differences with PWR_ON_SOFT_RST? |
+| GLB_SCLR_RST | 1 | RW | Global reset. Self-clearing. Same as PWR_ON_SOFT_RST, but does not reset debug. |
 | PWR_ON_SOFT_RST | 0 | RW | Power on software reset. Self-clearing |
 
 

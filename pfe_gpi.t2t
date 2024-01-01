@@ -347,11 +347,11 @@ Some FIFO status register. Format unknown.
 
 ==== FIFO_DEBUG (GPI_BASE + 0x058) ====[pfe_gpi_reg_fifo_debug]
 
-Some FIFO debug register. Cleared on read.
+Number of Tx/Rx packets/bytes queued in the FIFO.
 
 || Symbol | Bit range | R/W | Description ||
-| TX_PKTS | 27-23 | R | Tx packets |
-| RX_PKTS | 22-18 | R | Rx packets |
+| TX_PKTS | 29-24 | R | Tx packets |
+| RX_PKTS | 23-18 | R | Rx packets |
 | TX_BYTES | 17-9 | R | Tx bytes |
 | RX_BYTES | 8-0 | R | Rx bytes |
 

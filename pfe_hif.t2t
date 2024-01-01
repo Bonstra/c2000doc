@@ -93,6 +93,7 @@ Contents unknown.
 
 || Symbol | Bit range | R/W | Description ||
 | BDP_CSR_RX_DMA_ACTV | 16 | R | Rx BDP busy |
+| CTRL | 15-0 | R | Bit 31-16 from last Rx buffer descriptor control word |
 
 ==== INT_SRC (HIF_BASE + 0x034) ====[pfe_hif_reg_int_src]
 

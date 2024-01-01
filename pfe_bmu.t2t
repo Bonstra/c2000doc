@@ -11,6 +11,11 @@ size. The number of buffers in the pool is configurable too, to a limit of
 The BMU does not perform any DMA transfers; the state of the buffer pool is
 kept in an internal memory which can be cleared by a software reset.
 
+Only up to 31 consecutive buffers may be allocated at any given time, if more
+are allocated, or if there is 31 buffers or more between the lowest and the
+highest allocated buffers, the BMU loses track of which buffers are allocated,
+causing an error in the free operation.
+
 The BMU can generate interrupt requests to notify a PE of buffer pool state
 changes.
 
