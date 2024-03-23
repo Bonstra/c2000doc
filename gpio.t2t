@@ -230,9 +230,9 @@ As documented in the datasheet, augmented with what was found in the code:
 | GPIO_INTR_CLR_REG | 0x0098 | Clear interrupt. Used for PTP0-PTP3 (Processor-to-processor IRQs) |
 | GPIO_INTR_SET_REG | 0x009c | Set interrupt. Used for PTP0-PTP3 (Processor-to-processor IRQs) |
 | GPIO_INTR_MASK_REG | 0x00a0 |  |
-| GPIO_CSS_DECT_SYS_CFG0 | 0x00b0 |  |
-| GPIO_CSS_DECT_SYS_CFG1 | 0x00b4 |  |
-| GPIO_CSS_DECT_CTRL | 0x00b8 |  |
+| [GPIO_CSS_DECT_SYS_CFG0 #peri_gpio_css_dect_sys_cfg0] | 0x00b0 |  |
+| [GPIO_CSS_DECT_SYS_CFG1 #peri_gpio_css_dect_sys_cfg1] | 0x00b4 |  |
+| [GPIO_CSS_DECT_CTRL #peri_gpio_css_dect_ctrl] | 0x00b8 |  |
 | [GPIO_63_32_PIN_OUTPUT #peri_gpio_63_32_pin_output] | 0x00d0 | Output value to apply to GPIOs 63-32 |
 | [GPIO_63_32_PIN_OUTPUT_EN #peri_gpio_63_32_pin_output_en] | 0x00d4 | Direction configuration for GPIOs 63-32 |
 | [GPIO_63_32_PIN_INPUT #peri_gpio_63_32_pin_input] | 0x00d8 | GPIOs 63-32 input values |
@@ -256,7 +256,7 @@ As documented in the datasheet, augmented with what was found in the code:
 | GPIO_PMU_INTR_STAT1 | 0x0154 | PMU interrupt status (using MASK1)
 | GPIO_PMU_INTR_STAT | 0x015c | PMU interrupt status (ignoring MASK0/1)
 | GPIO_PMU_INTR_CLR | 0x0160 | PMU interrupt clear resiter |
-| GPIO_PMU_INTR_SET | 0x0164 | PMU interrupt set register |
+| [GPIO_PMU_INTR_SET #peri_gpio_pmu_intr_set] | 0x0164 | PMU interrupt set register |
 | GPIO_PMU_INTR_MASK0 | 0x0168 | PMU interrupt mask 0 (PFE Util-PE?) |
 | GPIO_PMU_INTR_MASK1 | 0x016c | PMU interrupt mask 1 (CSS?) |
 | GPIO_MEM_EMA_CONFIG0 | 0x01a0 | Memory EMA (Extra Margin Adjustment) |
@@ -438,6 +438,36 @@ Misc pin selection (i.e. not GPIOs) register
 | ? | 8-2 | R/W | Unknown |
 | SATA_DDRC_PORT | 1-0 | R/W | DDRC port used for SATA controller. Set to 2 in Linux. |
 
+=== GPIO_CSS_DECT_SYS_CFG0 (0x904700b0) ===[peri_gpio_css_dect_sys_cfg0]
+
+CSS/DECT/ARM926 PMU registers.
+
+|| Symbol | Bit range | R/W | Description ||
+| BMP_RESET | 14 | R/W |  |
+| GDMAC_RESET | 13 | R/W | DMA controller reset. 0=running 1=in reset |
+| TIMERS_RESET | 12 | R/W | Timers reset. 0=running 1=in reset |
+| ARM_MAIN_RESET | 11 | R/W | ARM926 reset. 0=running 1=in reset |
+| CSS_MAIN_RESET | 10 | R/W | CSS block reset. 0=running 1=in reset |
+| BMP_OSC_CLOCK_ENABLE | 7 | R/W |  |
+| BMP_HCLK_CLOCK_ENABLE | 6 | R/W |  |
+| GDMAC_PCLK_CLOCK_ENABLE | 5 | R/W | DMA controller APB clock enable. 0=disabled 1=enabled |
+| GDMAC_HCLK_CLOCK_ENABLE | 4 | R/W | DMA controller AHB clock enable. 0=disabled 1=enabled |
+| TIMER2_CLOCK_ENABLE | 3 | R/W | Timer2 clock enable. 0=disabled 1=enabled |
+| TIMER1_CLOCK_ENABLE | 2 | R/W | Timer1 clock enable. 0=disabled 1=enabled |
+| ARM_CLOCK_ENABLE | 1 | R/W | ARM926 clock enable. 0=disabled 1=enabled |
+| CSS_MAIN_CLOCK_ENABLE | 0 | R/W | CSS block clock enable. 0=disabled 1=enabled |
+
+=== GPIO_CSS_DECT_SYS_CFG1 (0x904700b4) ===[peri_gpio_css_dect_sys_cfg1]
+
+|| Symbol | Bit range | R/W | Description ||
+| BCLK_CLOCK_ENABLE | 16 | R/W |  |
+
+=== GPIO_CSS_DECT_CTRL (0x904700b8) ===[peri_gpio_css_dect_ctrl]
+
+|| Symbol | Bit range | R/W | Description ||
+| RF_RESET | 16 | R/W |  |
+| ? | 15-0 | R/W | DECT slave interface remap settings. Should be set to 0x3808. |
+
 === GPIO_63_32_PIN_OUTPUT (0x904700d0) ===[peri_gpio_63_32_pin_output]
 
 Set the output values for GPIOs 32-63.
@@ -605,3 +635,8 @@ Select function for GPIOs 32-63.
 | CORESIGHT_PULL_EN | 21 | R/W | Pull-up/down enable for CORESIGHT pads. 0=disable 1=enable |
 | CORESIGHT_PULL_SEL | 20 | R/W | Pull-up/down selection for CORESIGHT pads. 0=pull-down 1=pull-up|
 | CORESIGHT_DRIVE_STRENGTH? | 19-18 | R/W | Drive strength. 0=x1 1=x3 2=x2 3=x4 |
+
+=== GPIO_PMU_INTR_SET (0x90470164) ===[peri_gpio_pmu_intr_set]
+
+|| Symbol | Bit range | R/W | Description ||
+| GPIO0_IRQ | 0 | R/W | Write 1 to set GPIO0 IRQ |
