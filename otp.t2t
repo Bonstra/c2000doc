@@ -1,0 +1,284 @@
+
+= OTP controller =[peri_otp]
+
+
+== Registers ==[peri_otp_regs]
+
+|| Base address || 0x904f0000 |
+|| Size || 0x? |
+
+|| Symbol | Offset | Description ||
+| [CONFIG_LOCK0 #otp_regs_config_lock0] | 0x00 | CEB write protect register 0 |
+| [CONFIG_LOCK1 #otp_regs_config_lock1] | 0x04 | CEB write protect register 1 |
+| [CEB_SEQUENCE_LOCKS #otp_regs_ceb_sequence_locks] | 0x08 |  |
+| [CEB_INPUT #otp_regs_ceb_input] | 0x0c | Chip enable input register |
+| [RSTB_INPUT #otp_regs_rstb_input] | 0x10 | Reset buffer input register |
+| [ADDR_INPUT #otp_regs_addr_input] | 0x14 | Address input register |
+| [READEN_INPUT #otp_regs_readen_input] | 0x18 | Read enable input register |
+| [DATA_INPUT #otp_regs_data_input] | 0x1c | Program data input register |
+| [DLE_INPUT #otp_regs_dle_input] | 0x20 | Data latch enable input register |
+| [WEB_INPUT #otp_regs_web_input] | 0x24 | Write enable input register |
+| [WEB_COUNTER #otp_regs_web_counter] | 0x28 |  |
+| [PGMEN_INPUT #otp_regs_pgmen_input] | 0x2c | Program enable input register |
+| [PGM2CPUMP_COUNTER #otp_regs_pgm2cpump_counter] | 0x30 |  |
+| [CPUMPEN_INPUT #otp_regs_cpumpen_input] | 0x34 | Charge pump enable input register |
+| [CPUMP2WEB_COUNTER #otp_regs_cpump2web_counter] | 0x38 |  |
+| [WEB2CPUMP_COUNTER #otp_regs_web2cpump_counter] | 0x3c |  |
+| [CPUMP2PGM_COUNTER #otp_regs_cpump2pgm_counter] | 0x40 |  |
+| [CLE_INPUT #otp_regs_cle_input] | 0x44 | Command latch enable input register |
+| [SECURE_LOCK_OUTPUT #otp_regs_secure_lock_output] | 0x48 | Secure lock output register |
+| [DATA_OUT_COUNTER #otp_regs_data_out_counter] | 0x4c |  |
+| [DATA_OUTPUT #otp_regs_data_output] | 0x50 | Data output register |
+| [HW_SEC_MODE_STATUS #otp_regs_hw_sec_mode_status] | 0x54 | Secure mode status register |
+
+
+=== CONFIG_LOCK0 (0x904f0000) ===[otp_regs_config_lock0]
+
+OTP CEB write protect lock register 0.
+Both ``CONFIG_LOCK0`` and ``CONFIG_LOCK1`` registers must contains the correct
+values to be able to write into the ``CEB_INPUT`` register and take the OTP
+block out of standby.
+
+|| Symbol | Bit range | R/W | Description ||
+| LOCK0 | 31-0 | RW | Unlock write protect. Write 0xebcf0000 to unlock. |
+
+
+=== CONFIG_LOCK1 (0x904f0004) ===[otp_regs_config_lock1]
+
+OTP CEB write protect lock register 1.
+Both ``CONFIG_LOCK0`` and ``CONFIG_LOCK1`` registers must contains the correct
+values to be able to write into the ``CEB_INPUT`` register and take the OTP
+block out of standby.
+
+|| Symbol | Bit range | R/W | Description ||
+| LOCK1 | 31-0 | RW | Unlock write protect.  Write 0xebcf1111 to unlock. |
+
+
+=== CEB_SEQUENCE_LOCKS (0x904f0008) ===[otp_regs_ceb_sequence_locks]
+
+Unknown.
+
+|| Symbol | Bit range | R/W | Description ||
+
+
+=== CEB_INPUT (0x904f000c) ===[otp_regs_ceb_input]
+
+Input value for the #CEB signal.
+
+When driven low, OTP block goes out of standby.
+When driven high, OTP block returns to standby.
+
+Register is read-only if [``CONFIG_LOCK0`` #otp_regs_config_lock0] and
+[``CONFIG_LOCK1`` #otp_regs_config_lock1] do not both contain the correct
+unlock values.
+
+|| Symbol | Bit range | R/W | Description ||
+| CEB | 0 | RW | Value used to drive the #CEB input. 0=low (active) 1=high (standby) |
+
+
+=== RSTB_INPUT (0x904f0010) ===[otp_regs_rstb_input]
+
+Input value for the #RSTB signal.
+
+#RSTB must be used to reset all command registers and input buffers before
+entering test mode or normal program mode (do it to even if you only intend to
+read). #RSTB is ignored in standby mode so #CEB must be low.
+
+#RSTB reset sequence:
+- write 0 to drive #RSTB low
+- wait at least 20 ns
+- write 1 to drive #RSTB high (generate rising edge)
+- wait at least 1 us
+
+
+|| Symbol | Bit range | R/W | Description ||
+| RSTB | 0 | RW | Value used to drive the #RSTB input. 0=low (initiate reset) 1=high (complete reset) |
+
+
+=== ADDR_INPUT (0x904f0014) ===[otp_regs_addr_input]
+
+Address input register for read, program and command operations to address
+individual bits.
+
+The A[13:0] signals take their input directly from this register. A[13] is
+only used in test mode.
+
+When reading, wait at least 1.5 us before reading the data.
+
+|| Symbol | Bit range | R/W | Description ||
+| ADDR | 13-0 | RW | Address for read/program/command operations. |
+
+
+=== READEN_INPUT (0x904f0018) ===[otp_regs_readen_input]
+
+Register used as input for the ``READEN`` signal.
+
+When ``READEN`` is high, the OTP block enters read mode: 8 bits at the address
+in the [``ADDR_INPUT`` #otp_regs_addr_input] are read from the array and output
+into the [``DATA_OUTPUT`` #otp_regs_data_output] register.
+
+As long as ``READEN`` is high, a new address can be written into
+[``ADDR_INPUT`` #otp_regs_addr_input] to perform another read operation.
+
+|| Symbol | Bit range | R/W | Description ||
+| READEN | 0 | RW | Value used for ``READEN``. 0=no read operation 1=start/continue read operation |
+
+
+=== DATA_INPUT (0x904f001c) ===[otp_regs_data_input]
+
+Register used as input for the ``DIN`` signal.
+
+The value written into this register must be latched using the ``DLE`` signal.
+
+|| Symbol | Bit range | R/W | Description ||
+| DIN | 0 | RW | Value used for ``DIN``. 0=bit will keep its current value 1=bit will be programmed as 1 |
+
+
+=== DLE_INPUT (0x904f0020) ===[otp_regs_dle_input]
+
+Register used as input for the ``DLE`` signal.
+
+The ``DLE`` signal is used to latch the input data bit (``DIN``) into the input
+buffer for the programming sequence.
+
+|| Symbol | Bit range | R/W | Description ||
+| DLE | 0 | RW | Value used for ``DLE``. 0=no change 1=latch data bit into the input buffer |
+
+
+=== WEB_INPUT (0x904f0024) ===[otp_regs_web_input]
+
+Register used as input for the ``WEB`` signal.
+
+A negative ``WEB`` pulse is used to initiate a program data sequence.
+
+|| Symbol | Bit range | R/W | Description ||
+| WEB | 0 | RW | Value used for ``WEB``. 0=initiate write operation 1=idle state |
+
+
+=== WEB_COUNTER (0x904f0028) ===[otp_regs_web_counter]
+
+Counter values for the ``WEB`` signal.
+
+|| Symbol | Bit range | R/W | Description ||
+| ?_COUNTER | 31-16 | W? | ? (Typical value: 0x07d0) |
+| ?_COUNTER | 15-0 | RW | ? (Typical value: 0x07d0) |
+
+
+=== PGMEN_INPUT (0x904f002c) ===[otp_regs_pgmen_input]
+
+Register used as input for the ``PGMEN`` signal.
+
+Driving ``PGMEN`` high will initiate a program cycle using timings specified
+in the various counter registers. The ``CPUMPEN`` signal will be handled
+automatically.
+
+When the programming sequence is complete, ``PGMEN`` is deasserted
+automatically.
+
+|| Symbol | Bit range | R/W | Description ||
+| PGMEN | 0 | RW | Value used for ``PGMEN``. 0=keep high voltage circuit off 1=enable high voltage circuit and trigger programming sequence |
+
+
+=== PGM2CPUMP_COUNTER (0x904f0030) ===[otp_regs_pgm2cpump_counter]
+
+PGM -> CPUMP state transition counter register?
+
+Counter register used to time the programming sequence.
+
+|| Symbol | Bit range | R/W | Description ||
+| ?_COUNTER | 31-16 | W? | ? (Typical value: 0x0190) |
+| ?_COUNTER | 15-0 | RW | ? (Typical value: 0x0190) |
+
+
+=== CPUMPEN_INPUT (0x904f0034) ===[otp_regs_cpumpen_input]
+
+Register used as input for the ``CPUMPEN`` signal.
+
+When ``CPUMPEN`` is high, enable the internal charge pump, or let the external
+Vpp voltage used for programming through. Only set when programming.
+
+When ``CPUMPEN`` is low, charge pump is disabled/Vpp voltage is blocked.
+
+When the OTP program sequence is initiated using the
+[PGMEN_INPUT #otp_regs_pgmen_input] register, the ``CPUMPEN`` signal is
+controlled automatically.
+
+|| Symbol | Bit range | R/W | Description ||
+| CPUMPEN | 0 | RW | Value used for ``PGMEN``. 0=keep high voltage circuit off 1=enable high voltage circuit and trigger programming sequence |
+
+
+=== CPUMP2WEB_COUNTER (0x904f0038) ===[otp_regs_cpump2web_counter]
+
+CPUMP -> WEB state transition counter register?
+
+Counter register used to time the programming sequence.
+
+|| Symbol | Bit range | R/W | Description ||
+| ?_COUNTER | 31-16 | W? | ? (Typical value: 0x04b0) |
+| ?_COUNTER | 15-0 | RW | ? (Typical value: 0x04b0) |
+
+
+=== WEB2CPUMP_COUNTER (0x904f003c) ===[otp_regs_web2cpump_counter]
+
+WEB -> CPUMP state transition counter register?
+
+Counter register used to time the programming sequence.
+
+|| Symbol | Bit range | R/W | Description ||
+| ?_COUNTER | 31-16 | W? | ? (Typical value: 0x0320) |
+| ?_COUNTER | 15-0 | RW | ? (Typical value: 0x0320) |
+
+
+=== CPUMP2PGM_COUNTER (0x904f0040) ===[otp_regs_cpump2pgm_counter]
+
+CPUMP -> PGM state transition counter register?
+
+Counter register used to time the programming sequence.
+
+|| Symbol | Bit range | R/W | Description ||
+| ?_COUNTER | 31-16 | W? | ? (Typical value: 0x0190) |
+| ?_COUNTER | 15-0 | RW | ? (Typical value: 0x0190) |
+
+
+=== CLE_INPUT (0x904f0044) ===[otp_regs_cle_input]
+
+Register used as input for the ``CLE`` signal.
+
+The ``CLE`` (Command Latch Enable) allows entering command/test mode.
+
+|| Symbol | Bit range | R/W | Description ||
+| CLE | 0 | RW | 0=do nothing 1=latch and process command from [ADDR_INPUT #otp_regs_addr_input] |
+
+
+=== SECURE_LOCK_OUTPUT (0x904f0048) ===[otp_regs_secure_lock_output]
+
+Secure lock output status register.
+
+OTP array is read/write as long as the security lock is disabled.
+
+Once the security lock is enabled, the OTP becomes permanently read-only.
+
+|| Symbol | Bit range | R/W | Description ||
+| LOCK | 0 | R | 0=security lock disabled, OTP is read/write 1=security lock enabled, OTP is permanently read-only |
+
+
+=== DATA_OUT_COUNTER (0x904f004c) ===[otp_regs_data_out_counter]
+
+|| Symbol | Bit range | R/W | Description ||
+| ?_COUNTER | ?-0 | RW | ? (Typical value: 0x1c) |
+
+
+=== DATA_OUTPUT (0x904f0050) ===[otp_regs_data_output]
+
+|| Symbol | Bit range | R/W | Description ||
+| DATA | 7-0 | RW | Data read from OTP array after read operation |
+
+
+=== HW_SEC_MODE_STATUS (0x904f0054) ===[otp_regs_hw_sec_mode_status]
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 8 | R | ? |
+| SEC_MODE | 7-0 | R | First byte of data from OTP |
+
+
+

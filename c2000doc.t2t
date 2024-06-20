@@ -1,6 +1,6 @@
 MindSpeed Comcerto 2000 (unofficial) documentation
 Hugo "Bonstra" Grostabussiat
-2024-01-02
+2024-06-20
 %!target:html
 %!encoding:UTF-8
 %!options(html):--toc --enum-title
@@ -32,6 +32,8 @@ After acquisition by Freescale, the C2000 SoC was rebranded
 
 %!include:rtc.t2t
 
+%!include:otp.t2t
+
 %!include:timer.t2t
 
 %!include:pwm.t2t
@@ -51,3 +53,6 @@ After acquisition by Freescale, the C2000 SoC was rebranded
 %!include:pfe.t2t
 
 %!include:usb3.t2t
+
+%!include:exp.t2t
+

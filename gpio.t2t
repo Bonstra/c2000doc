@@ -213,8 +213,8 @@ As documented in the datasheet, augmented with what was found in the code:
 | [GPIO_MISC_CTRL #peri_gpio_misc_ctrl] | 0x0034 | Misc pads and fabric remap control |
 | GPIO_DDR_AXI_CTRL | 0x0038 |  |
 | GPIO_DDRC_STATUS | 0x003c |  |
-| GPIO_BOOTSTRAP_STATUS | 0x0040 |  |
-| GPIO_BOOTSTRAP_OVERRIDE | 0x0044 |  |
+| [GPIO_BOOTSTRAP_STATUS #peri_gpio_bootstrap_status] | 0x0040 |  |
+| [GPIO_BOOTSTRAP_OVERRIDE #peri_gpio_bootstrap_override] | 0x0044 |  |
 | GPIO_USB_PHY_BIST_STATUS_REG | 0x0048 |  |
 | GPIO_GENERAL_CONTROL_REG | 0x004c |  |
 | [GPIO_DEVICE_ID_REG #peri_gpio_device_id_reg] | 0x0050 | C2000 revision info |
@@ -322,10 +322,17 @@ reflect the current logical state of the pin.
 
 System configuration bootstrap pins register.
 
+The 26 lower bits are sampled from the expansion port 26 address lines on reset.
+
+Bits 25-22 are undocumented, but some are used by the Internal Boot ROM (IBR).
+
 || Symbol | Bit range | R/W | Description ||
+| ? | 28 | R | Unknown. Used by IBR. |
+| ? | 25-24 | R | Unknown. Used by IRB for NAND config. Valid values: 0-2. 3=invalid |
+| ? | 23-22 | R | Unknown. Used by IRB for NAND config. |
 | CLOCK | 21 | R | Whether IBR should enable PLLs. 0: Keep disabled 1: Enable PLLs |
 | SPI_SCLK_POL | 20 | R | SPI SCLK polarity. 0: -ve 1: +ve |
-| EXT_ID_READ_SEL | 19-17 | R | Extended ID Read Select. Purpose unknown. Overlaps previous bits. |
+| EXT_ID_READ_SEL | 19-17 | R | Extended ID Read Select. Purpose unknown. Overlaps previous bits. Used by IBR for NAND config. |
 | SPI_ADDR_LEN | 19-18 | R | 0: N/A 1: 2 bytes 2: 3 bytes 3: 4 bytes (Fast SPI only supports 3-byte addresses) |
 | SECURE_BOOT | 17 | R | 0: Disable 1: Enable |
 | FAST_UART_SPEED | 16 | R | 0: 115200 bauds 1: 921600 bauds |
@@ -370,6 +377,20 @@ Misc pads and fabric remap control.
 | GEM0_REFCLK_TRISTATE | 14 | R/W | Tri-state GEM0_REFCLK pad |
 | EXP_CLK_TRISTATE | 13 | R/W | Tri-state EXP_CLK pad |
 | DISABLE_FABRIC_REMAP | 4 | R/W | Disable IBR remap |
+
+
+=== GPIO_BOOTSTRAP_STATUS (0x90470040) ===[peri_gpio_bootstrap_status]
+
+Bootstrap pins status register.
+
+Essentially the same as [GPIO_SYSTEM_CONFIG #peri_gpio_system_config].
+
+
+=== GPIO_BOOTSTRAP_OVERRIDE (0x90470044) ===[peri_gpio_bootstrap_override]
+
+Bootstrap pins override register.
+
+Used in bootloader for tests.
 
 
 === GPIO_DEVICE_ID_REG (0x90470050) ===[peri_gpio_device_id_reg]

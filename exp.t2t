@@ -1,0 +1,317 @@
+
+= Expansion bus =[peri_exp]
+
+The C2000 SoC features an expansion bus to add external peripherals such as
+ROM, NOR flash, NAND flash and custom devices.
+
+To help handling NAND devices, a hardware ECC accelerator can be used to
+compute error correction code for the data flowing to/from the NAND device.
+
+== Memory map ==
+
+|| Address space | Range ||
+| [Expansion bus configuration registers (APB) #peri_exp_conf] | 0x905a0000-0x905affff |
+| Expansion bus address space (AXI slave interface and AHB bridge) | 0xc0000000-0xcfffffff |
+| CS0 slave address space | 0xc0000000-0xc0ffffff |
+| CS1 slave address space | 0xc1000000-0xc1ffffff |
+| CS2 slave address space | 0xc2000000-0xc2ffffff |
+| CS3 slave address space | 0xc3000000-0xc3ffffff |
+| CS4/NAND slave address space | 0xc4000000-0xc4ffffff |
+| [ECC registers #peri_exp_ecc] | 0xcfff0000-0xcfffffff |
+
+== Expansion bus control registers ==[peri_exp_conf]
+
+|| Base address | 0x905a0000 ||
+
+|| Symbol | Offset | Description ||
+| [SW_RST #exp_conf_regs_sw_rst] | 0x000 | Software reset register |
+| [CS_EN #exp_conf_regs_cs_en] | 0x004 | CS enable register |
+| [CS0_BASE #exp_conf_regs_csx_base] | 0x008 | CS0 base address register |
+| [CS1_BASE #exp_conf_regs_csx_base] | 0x00c | CS1 base address register |
+| [CS2_BASE #exp_conf_regs_csx_base] | 0x010 | CS2 base address register |
+| [CS3_BASE #exp_conf_regs_csx_base] | 0x014 | CS3 base address register |
+| [CS4_BASE #exp_conf_regs_csx_base] | 0x018 | CS4 base address register |
+| [CS0_SEG #exp_conf_regs_csx_seg] | 0x01c | CS0 segment size register |
+| [CS1_SEG #exp_conf_regs_csx_seg] | 0x020 | CS1 segment size register |
+| [CS2_SEG #exp_conf_regs_csx_seg] | 0x024 | CS2 segment size register |
+| [CS3_SEG #exp_conf_regs_csx_seg] | 0x028 | CS3 segment size register |
+| [CS4_SEG #exp_conf_regs_csx_seg] | 0x02c | CS4 segment size register |
+| [CS0_CFG #exp_conf_regs_csx_cfg] | 0x030 | CS0 configuration register |
+| [CS1_CFG #exp_conf_regs_csx_cfg] | 0x034 | CS1 configuration register |
+| [CS2_CFG #exp_conf_regs_csx_cfg] | 0x038 | CS2 configuration register |
+| [CS3_CFG #exp_conf_regs_csx_cfg] | 0x03c | CS3 configuration register |
+| [CS4_CFG #exp_conf_regs_csx_cfg] | 0x040 | CS4 configuration register |
+| [CS0_TMG1 #exp_conf_regs_csx_tmg1] | 0x044 | CS0 timing register 1 |
+| [CS1_TMG1 #exp_conf_regs_csx_tmg1] | 0x048 | CS1 timing register 1 |
+| [CS2_TMG1 #exp_conf_regs_csx_tmg1] | 0x04c | CS2 timing register 1 |
+| [CS3_TMG1 #exp_conf_regs_csx_tmg1] | 0x050 | CS3 timing register 1 |
+| [CS4_TMG1 #exp_conf_regs_csx_tmg1] | 0x054 | CS4 timing register 1 |
+| [CS0_TMG2 #exp_conf_regs_csx_tmg2] | 0x058 | CS0 timing register 2 |
+| [CS1_TMG2 #exp_conf_regs_csx_tmg2] | 0x05c | CS1 timing register 2 |
+| [CS2_TMG2 #exp_conf_regs_csx_tmg2] | 0x060 | CS2 timing register 2 |
+| [CS3_TMG2 #exp_conf_regs_csx_tmg2] | 0x064 | CS3 timing register 2 |
+| [CS4_TMG2 #exp_conf_regs_csx_tmg2] | 0x068 | CS4 timing register 2 |
+| [CS0_TMG3 #exp_conf_regs_csx_tmg3] | 0x06c | CS0 timing register 3 |
+| [CS1_TMG3 #exp_conf_regs_csx_tmg3] | 0x070 | CS1 timing register 3 |
+| [CS2_TMG3 #exp_conf_regs_csx_tmg3] | 0x074 | CS2 timing register 3 |
+| [CS3_TMG3 #exp_conf_regs_csx_tmg3] | 0x078 | CS3 timing register 3 |
+| [CS4_TMG3 #exp_conf_regs_csx_tmg3] | 0x07c | CS4 timing register 3 |
+| [CLOCK_DIV #exp_conf_regs_clock_div] | 0x080 | Clock divider register |
+| [MFSM #exp_conf_regs_mfsm] | 0x100 |  |
+| [CSFSM #exp_conf_regs_csfsm] | 0x104 |  |
+| [WRSM #exp_conf_regs_wrsm] | 0x108 |  |
+| [RDSM #exp_conf_regs_rdsm] | 0x10c |  |
+
+
+=== SW_RST (0x905a0000) ===[exp_conf_regs_sw_rst]
+
+Expansion bus soft reset register.
+
+When ``SW_RST`` bit is set, the expansion bus logic is reset synchronously.
+Configuration registers is not affected by the soft reset.
+The ``SW_RST`` bit self-clears when the reset is complete. Software should wait
+until ``SW_RST`` value is back to 0 before using the expansion bus.
+
+|| Symbol | Bit range | R/W | Description ||
+| SW_RST | 0 | R?W | Write 1 to perform soft reset. Self-clearing. |
+
+
+=== CS_EN (0x905a0004) ===[exp_conf_regs_cs_en]
+
+Expansion bus chip select enable.
+
+|| Symbol | Bit range | R/W | Description ||
+| CS4_EN | 5 | RW | Enable device with chip select 4 |
+| CS3_EN | 4 | RW | Enable device with chip select 3 |
+| CS2_EN | 3 | RW | Enable device with chip select 2 |
+| CS1_EN | 2 | RW | Enable device with chip select 1 |
+| CS0_EN | 1 | RW | Enable device with chip select 0 |
+| CLK_EN | 0 | RW | Enable expansion bus clock |
+
+
+=== CSx_BASE ===[exp_conf_regs_csx_base]
+
+Expansion bus chip select base address register.
+
+|| Chip select | Register address ||
+| CS0 | 0x905a0008 |
+| CS1 | 0x905a000c |
+| CS2 | 0x905a0010 |
+| CS3 | 0x905a0014 |
+| CS4 | 0x905a0018 |
+
+|| Symbol | Bit range | R/W | Description ||
+| BASEADDR | 27-0 | RW | Base offset in the EXP AXI slave region. |
+
+
+=== CSx_SEG ===[exp_conf_regs_csx_seg]
+
+Expansion bus chip select segment size register. FIXME: Not a size but region end address?
+
+|| Chip select | Register address ||
+| CS0 | 0x905a001c |
+| CS1 | 0x905a0020 |
+| CS2 | 0x905a0024 |
+| CS3 | 0x905a0028 |
+| CS4 | 0x905a002c |
+
+|| Symbol | Bit range | R/W | Description ||
+| SEG_SIZE | 27-0 | RW | Segment size of the EXP AXI slave region. |
+
+
+=== CSx_CFG ===[exp_conf_regs_csx_cfg]
+
+Expansion bus chip select enable.
+
+|| Chip select | Register address ||
+| CS0 | 0x905a0030 |
+| CS1 | 0x905a0034 |
+| CS2 | 0x905a0038 |
+| CS3 | 0x905a003c |
+| CS4 | 0x905a0040 |
+
+|| Symbol | Bit range | R/W | Description ||
+| RDY_EDG | 11 | RW | ``EXP_RDY`` signal polarity |
+| RDY_EN | 10 | RW | Wait ``EXP_RDY`` signal for read/write operation after address. 0=Ignore ready signal 1=Wait for ready signal |
+| NAND_MODE | 9 | RW | NAND mode. Valid only for CS4. 0=Normal 1=NAND mode |
+| DM_MODE | 8 | RW | Data mask mode. |
+| STRB_MODE | 7 | RW | Strobe mode (R/W signal + strobe signal) 0=Normal 1=Strobe mode |
+| ALE_MODE | 6 | RW | Address latch enable (address/data signals multiplexing) 0=Normal 1=ALE mode |
+| RE_CMD_LVL | 5 | RW | Read enable signal polarity |
+| WE_CMD_LVL | 4 | RW | Write enable signal polarity |
+| CS_LEVEL | 3 | RW | Chip select signal polarity |
+| MEM_BUS_SIZE | 2-1 | RW | Memory bus width. 0=8 bit 1=16 bit 2=32 bit 3=Reserved/unknown |
+| ? | 0 | ? | Unknown |
+
+
+=== CSx_TMG1 ===[exp_conf_regs_csx_tmg1]
+
+Expansion bus chip select timings 1 configuration.
+
+|| Chip select | Register address ||
+| CS0 | 0x905a0044 |
+| CS1 | 0x905a0048 |
+| CS2 | 0x905a004c |
+| CS3 | 0x905a0050 |
+| CS4 | 0x905a0054 |
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | ? | Timing values. Used for NAND by IRB: 0x0a0a001a |
+
+
+=== CSx_TMG2 ===[exp_conf_regs_csx_tmg2]
+
+Expansion bus chip select timings 2 configuration.
+
+|| Chip select | Register address ||
+| CS0 | 0x905a0058 |
+| CS1 | 0x905a005c |
+| CS2 | 0x905a0060 |
+| CS3 | 0x905a0064 |
+| CS4 | 0x905a0068 |
+
+|| Symbol | Bit range | R/W | Description ||
+| ? | 31-0 | ? | Timing values. Used for NAND by IRB: 0x05050202 |
+
+
+=== CLOCK_DIV (0x905a0080) ===[exp_conf_regs_clock_div]
+
+EXPCLK clock divider register.
+When EXPCLK source is the AXI clock, the clock frequency is divided by the
+ratio from this register to form the final EXPCLK.
+
+Maximum rate for EXPCLK is 66.6 MHz. Valid ``RATIO`` range is 3-15.
+
+|| Symbol | Bit range | R/W | Description ||
+| RATIO | 3-0 | RW | EXPCLK clock divider ratio. 0-2=reserved 3-15=valid Default value on reset: 7 |
+
+
+=== MFSM (0x905a0100) ===[exp_conf_regs_mfsm]
+
+=== CSFSM (0x905a0104) ===[exp_conf_regs_csfsm]
+
+=== WRSM (0x905a0108) ===[exp_conf_regs_wrsm]
+
+=== RDSM (0x905a010c) ===[exp_conf_regs_rdsm]
+
+
+== Expansion bus ECC registers ==[peri_exp_ecc]
+
+|| Base address | 0xcfff0000 ||
+
+|| Symbol | Offset | Description ||
+| [SHIFT_EN_CFG #exp_ecc_regs_shift_en_cfg] | 0x00 |  |
+| [GEN_CFG #exp_ecc_regs_gen_cfg] | 0x04 | ECC general configuration register |
+| [TAG_CFG #exp_ecc_regs_tag_cfg] | 0x08 |  |
+| [INIT_CFG #exp_ecc_regs_init_cfg] | 0x0c |  |
+| [PRTY_OUT_SEL_CFG #exp_ecc_regs_prty_out_sel_cfg] | 0x10 |  |
+| [POLY_START_CFG #exp_ecc_regs_poly_start_cfg] | 0x14 |  |
+| [CS_SEL_CFG #exp_ecc_regs_cs_sel_cfg] | 0x18 |  |
+| [IDLE_STAT #exp_ecc_regs_idle_stat] | 0x1c |  |
+| [POLY_STAT #exp_ecc_regs_poly_stat] | 0x20 |  |
+| [CORR_STAT #exp_ecc_regs_corr_stat] | 0x24 |  |
+| [CORR_DONE_STAT #exp_ecc_regs_corr_done_stat] | 0x28 |  |
+| [CORR_DATA_STAT #exp_ecc_regs_corr_data_stat] | 0x2c |  |
+
+
+=== SHIFT_EN_CFG (0xcfff0000) ===[exp_ecc_regs_shift_en_cfg]
+
+|| Symbol | Bit range | R/W | Description ||
+| SHIFT_EN | 0 | RW | 0=disable 1=enable |
+
+=== GEN_CFG (0xcfff0004) ===[exp_ecc_regs_gen_cfg]
+
+ECC general configuration register.
+
+|| Symbol | Bit range | R/W | Description ||
+| CODE_MODE | 28 | RW | 0=BCH 1=Hamming |
+| PRTY_MODE | 24 | RW | 0=Symdrome generation 1=Parity word calculation |
+| LVL | 22-16 | RW | ECC level. Accepted values: 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32 |
+| BLK_SIZE | 10-0 | RW | ECC block size in bytes. Maximum value is: ``2048 - (1 + (14 * LVL) / 8)`` |
+
+
+=== TAG_CFG (0xcfff0008) ===[exp_ecc_regs_tag_cfg]
+
+
+=== INIT_CFG (0xcfff000c) ===[exp_ecc_regs_init_cfg]
+
+|| Symbol | Bit range | R/W | Description ||
+| INIT | 0 | RW | 0=No effect 1=Reset parity module and latch configured values |
+
+=== PRTY_OUT_SEL_CFG (0xcfff0010) ===[exp_ecc_regs_prty_out_sel_cfg]
+
+Parity data out control register.
+
+When parity data output is enabled, the data word in AHB write transactions
+is replaced by the parity data. So, to write parity data to NAND flash, write
+1 to this register and perform as many dummy writes to the EXP bus CS4 region
+as there is parity data words.
+
+|| Symbol | Bit range | R/W | Description ||
+| ENABLE | 0 | RW | 0=do not change AHB write data 1=replace AHB write data with parity data |
+
+
+=== POLY_START_CFG (0xcfff0014) ===[exp_ecc_regs_poly_start_cfg]
+
+|| Symbol | Bit range | R/W | Description ||
+| POLY_START | 0 | RW | 0=No effect 1=Start correction operation |
+
+
+=== CS_SEL_CFG (0xcfff0018) ===[exp_ecc_regs_cs_sel_cfg]
+
+|| Symbol | Bit range | R/W | Description ||
+| CS4_SEL | 4 | RW |  |
+| CS3_SEL | 3 | RW |  |
+| CS2_SEL | 2 | RW |  |
+| CS1_SEL | 1 | RW |  |
+| CS0_SEL | 0 | RW |  |
+
+
+=== IDLE_STAT (0xcfff001c) ===[exp_ecc_regs_idle_stat]
+
+Idle status register.
+
+|| Symbol | Bit range | R/W | Description ||
+| IDLE | 0 | R | 0=Busy 1=Idle |
+
+
+=== POLY_STAT (0xcfff0020) ===[exp_ecc_regs_poly_stat]
+
+Correction status register.
+
+|| Symbol | Bit range | R/W | Description ||
+| UNCORR_ERR_HAMM | 2 | R | 0=Nothing to report 1=Uncorrectable error in Hamming code mode |
+| ERASED_PAGE | 1 | R | 0=? 1=? |
+| CORR_REQ | 0 | R | 0=Ok 1=Correction required |
+
+
+=== CORR_STAT (0xcfff0024) ===[exp_ecc_regs_corr_stat]
+
+|| Symbol | Bit range | R/W | Description ||
+| UNCORR | 24 | R | 0=Nothing to report 1=Uncorrectable error found |
+| NUM_ERR | 21-16 | R | Number of errors found |
+| TAG | 15-0 | R | ? |
+
+
+=== CORR_DONE_STAT (0xcfff0028) ===[exp_ecc_regs_core_done_stat]
+
+|| Symbol | Bit range | R/W | Description ||
+| DONE | 0 | R | 0=Correction not done yet 1=Correction done |
+
+
+=== CORR_DATA_STAT (0xcfff002c) ===[exp_ecc_regs_core_data_stat]
+
+In BCH mode:
+|| Symbol | Bit range | R/W | Description ||
+| BCH_VALID | 31 | R |  |
+| BCH_INDEX | 26-16 | R |  |
+| BCH | 15-0 | R |  |
+
+In Hamming mode:
+|| Symbol | Bit range | R/W | Description ||
+| HAMM_VALID | 31 | R |  |
+| HAMM_INDEX | 24-16 | R |  |
+| HAMM | 7-0 | R |  |
+
+
+
