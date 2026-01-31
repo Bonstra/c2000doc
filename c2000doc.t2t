@@ -1,6 +1,6 @@
 MindSpeed Comcerto 2000 (unofficial) documentation
 Hugo "Bonstra" Grostabussiat
-2024-06-20
+2026-01-31
 %!target:html
 %!encoding:UTF-8
 %!options(html):--toc --enum-title
@@ -48,7 +48,11 @@ After acquisition by Freescale, the C2000 SoC was rebranded
 
 %!include:usbphy_serdes.t2t
 
+%!include:ddrconfig.t2t
+
 %!include:serdes.t2t
+
+%!include:ddrphy.t2t
 
 %!include:pfe.t2t
 

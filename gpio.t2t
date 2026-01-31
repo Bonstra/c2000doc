@@ -327,7 +327,8 @@ The 26 lower bits are sampled from the expansion port 26 address lines on reset.
 Bits 25-22 are undocumented, but some are used by the Internal Boot ROM (IBR).
 
 || Symbol | Bit range | R/W | Description ||
-| ? | 28 | R | Unknown. Used by IBR. |
+| TM_TESTMODE_N? | 31-29 | R | Just a guess. But there is exactly enough space for these, and their value make sense. |
+| TM_LEGACY_MODE_N? | 28 | R | 0=Use legacy IBR boot sequence and image format. 1=Use normal IBR boot sequence. |
 | ? | 25-24 | R | Unknown. Used by IRB for NAND config. Valid values: 0-2. 3=invalid |
 | ? | 23-22 | R | Unknown. Used by IRB for NAND config. |
 | CLOCK | 21 | R | Whether IBR should enable PLLs. 0: Keep disabled 1: Enable PLLs |
@@ -383,7 +384,8 @@ Misc pads and fabric remap control.
 
 Bootstrap pins status register.
 
-Essentially the same as [GPIO_SYSTEM_CONFIG #peri_gpio_system_config].
+Same as [GPIO_SYSTEM_CONFIG #peri_gpio_system_config] but is not affected by
+[GPIO_BOOTSTRAP_OVERRIDE #peri_gpio_bootstrap_override].
 
 
 === GPIO_BOOTSTRAP_OVERRIDE (0x90470044) ===[peri_gpio_bootstrap_override]
@@ -391,6 +393,22 @@ Essentially the same as [GPIO_SYSTEM_CONFIG #peri_gpio_system_config].
 Bootstrap pins override register.
 
 Used in bootloader for tests.
+
+|| Symbol | Bit range | R/W | Description ||
+| CORESIGHT_DRV_OVERRIDE_EN | 25 | RW | Override CORESIGHT_DRV value using CORESIGHT_DRV_OVERRIDE_VAL |
+| CORESIGHT_DRV_OVERRIDE_VAL | 24 | RW | Value to override CORESIGHT_DRV with |
+| EXP_DM_DRV_OVERRIDE_EN | 23 | RW | Override EXP_DM_DRV value using EXP_DM_DRV_OVERRIDE_VAL |
+| EXP_DM_DRV_OVERRIDE_VAL | 22 | RW | Value to override EXP_DM_DRV with |
+| GEM2_CNF_OVERRIDE_EN | 21 | RW | Override GEM2_CNF value using GEM2_CNF_OVERRIDE_VAL |
+| GEM2_CNF_OVERRIDE_VAL | 20 | RW | Value to override GEM2_CNF with |
+| SERDES2_CNF_OVERRIDE_EN | 19 | RW | Override SERDES2_CNF value using SERDES2_CNF_OVERRIDE_VAL |
+| SERDES2_CNF_OVERRIDE_VAL | 18 | RW | Value to override SERDES2_CNF with |
+| SERDES1_CNF_OVERRIDE_EN | 17 | RW | Override SERDES1_CNF value using SERDES1_CNF_OVERRIDE_VAL |
+| SERDES1_CNF_OVERRIDE_VAL | 16 | RW | Value to override SERDES1_CNF with |
+| L2CC_AXI_SYNC_OVERRIDE_EN | 15 | RW | Override L2CC_AXI_SYNC value using L2CC_AXI_SYNC_OVERRIDE_VAL |
+| L2CC_AXI_SYNC_OVERRIDE_VAL | 14 | RW | Value to override L2CC_AXI_SYNC with |
+| TDM_CLK_OUT_OVERRIDE_EN | 13 | RW | Override TDM_CLK_OUT value using TDM_CLK_OUT_OVERRIDE_VAL |
+| TDM_CLK_OUT_OVERRIDE_VAL | 12 | RW | Value to override TDM_CLK_OUT with |
 
 
 === GPIO_DEVICE_ID_REG (0x90470050) ===[peri_gpio_device_id_reg]
@@ -625,7 +643,7 @@ Select function for GPIOs 32-63.
 === GPIO_PAD_CONFIG3 (0x9047010c) ===[peri_gpio_pad_config3]
 
 || Symbol | Bit range | R/W | Description ||
-| GEM0_RXC_PULLDOWN? | 20 | R/W | Enable pull-down? resistor on GEM0_RXC pad |
+| GEM0_RXC_PULLDOWN | 20 | R/W | Enable pull-down resistor on GEM0_RXC pad |
 | GEM0_RXC_DRIVE_STRENGTH? | 19-18 | R/W | GEM0 RXC drive strength? |
 | GEM0_?_SLEW_RATE | 17 | R/W | GEM0 Tx ? slew rate |
 | GEM0_?_DRIVE_STRENGTH | 13-12 | R/W | GEM0 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
@@ -635,7 +653,7 @@ Select function for GPIOs 32-63.
 === GPIO_PAD_CONFIG4 (0x90470110) ===[peri_gpio_pad_config4]
 
 || Symbol | Bit range | R/W | Description ||
-| GEM1_RXC_PULLDOWN? | 20 | R/W | Enable pull-down? resistor on GEM1_RXC pad |
+| GEM1_RXC_PULLDOWN | 20 | R/W | Enable pull-down resistor on GEM1_RXC pad |
 | GEM1_?_SLEW_RATE | 17 | R/W | GEM1 Tx ? slew rate |
 | GEM1_?_DRIVE_STRENGTH | 13-12 | R/W | GEM1 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
 | GEM1_?_SLEW_RATE | 11 | R/W | GEM1 Tx ? slew rate |
@@ -644,7 +662,7 @@ Select function for GPIOs 32-63.
 === GPIO_PAD_CONFIG5 (0x90470114) ===[peri_gpio_pad_config5]
 
 || Symbol | Bit range | R/W | Description ||
-| GEM2_RXC_PULLDOWN? | 20 | R/W | Enable pull-down? resistor on GEM2_RXC pad |
+| GEM2_RXC_PULLDOWN | 20 | R/W | Enable pull-down resistor on GEM2_RXC pad |
 | GEM2_?_SLEW_RATE | 17 | R/W | GEM2 Tx ? slew rate |
 | GEM2_?_DRIVE_STRENGTH | 13-12 | R/W | GEM2 ? drive strength. Set in bootloader. 2 for 3.3V RMII/RGMII, 3 for 2.5V RMII/RGMII |
 | GEM2_?_SLEW_RATE | 11 | R/W | GEM2 Tx ? slew rate |

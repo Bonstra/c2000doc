@@ -1,0 +1,146 @@
+
+= DDR controller configurtion (DDRCONFIG) =[peri_ddrconfig]
+
+Configuration registers for the DDR controller.
+
+
+== DDR controller configuration registers ==[peri_ddrconfig_regs]
+
+|| Base address | 0x97000000 ||
+
+|| Symbol | Offset | Description ||
+| DDRC_CTL_00 | 0x000 |  |
+| DDRC_CTL_01 | 0x004 |  |
+| DDRC_CTL_02 | 0x008 |  |
+| DDRC_CTL_03 | 0x00c |  |
+| DDRC_CTL_04 | 0x010 |  |
+| DDRC_CTL_05 | 0x014 |  |
+| DDRC_CTL_06 | 0x018 |  |
+| DDRC_CTL_07 | 0x01c |  |
+| DDRC_CTL_08 | 0x020 |  |
+| DDRC_CTL_09 | 0x024 |  |
+| DDRC_CTL_10 | 0x028 |  |
+| DDRC_CTL_11 | 0x02c |  |
+| DDRC_CTL_12 | 0x030 |  |
+| DDRC_CTL_13 | 0x034 |  |
+| DDRC_CTL_14 | 0x038 |  |
+| DDRC_CTL_15 | 0x03c |  |
+| DDRC_CTL_16 | 0x040 |  |
+| DDRC_CTL_17 | 0x044 |  |
+| DDRC_CTL_18 | 0x048 |  |
+| DDRC_CTL_19 | 0x04c |  |
+| DDRC_CTL_20 | 0x050 |  |
+| DDRC_CTL_21 | 0x054 |  |
+| DDRC_CTL_22 | 0x058 |  |
+| DDRC_CTL_23 | 0x05c |  |
+| DDRC_CTL_24 | 0x060 |  |
+| DDRC_CTL_25 | 0x064 |  |
+| DDRC_CTL_26 | 0x068 |  |
+| DDRC_CTL_27 | 0x06c |  |
+| DDRC_CTL_28 | 0x070 |  |
+| DDRC_CTL_29 | 0x074 |  |
+| DDRC_CTL_30 | 0x078 |  |
+| DDRC_CTL_31 | 0x07c |  |
+| DDRC_CTL_32 | 0x080 |  |
+| DDRC_CTL_33 | 0x084 |  |
+| DDRC_CTL_34 | 0x088 |  |
+| DDRC_CTL_35 | 0x08c |  |
+| DDRC_CTL_36 | 0x090 |  |
+| DDRC_CTL_37 | 0x094 |  |
+| DDRC_CTL_38 | 0x098 |  |
+| DDRC_CTL_39 | 0x09c |  |
+| DDRC_CTL_40 | 0x0a0 |  |
+| DDRC_CTL_41 | 0x0a4 |  |
+| DDRC_CTL_42 | 0x0a8 |  |
+| DDRC_CTL_43 | 0x0ac |  |
+| DDRC_CTL_44 | 0x0b0 |  |
+| DDRC_CTL_45 | 0x0b4 |  |
+| DDRC_CTL_46 | 0x0b8 |  |
+| DDRC_CTL_47 | 0x0bc |  |
+| DDRC_CTL_48 | 0x0c0 |  |
+| [DDRC_CTL_49 #ddrconfig_reg_ddrc_ctl_49] | 0x0c4 |  |
+| DDRC_CTL_50 | 0x0c8 |  |
+| DDRC_CTL_51 | 0x0cc |  |
+| DDRC_CTL_52 | 0x0d0 |  |
+| DDRC_CTL_53 | 0x0d4 |  |
+| DDRC_CTL_54 | 0x0d8 |  |
+| DDRC_CTL_55 | 0x0dc |  |
+| DDRC_CTL_56 | 0x0e0 |  |
+| DDRC_CTL_57 | 0x0e4 |  |
+| DDRC_CTL_58 | 0x0e8 |  |
+| DDRC_CTL_59 | 0x0ec |  |
+| DDRC_CTL_60 | 0x0f0 |  |
+| DDRC_CTL_61 | 0x0f4 |  |
+| DDRC_CTL_62 | 0x0f8 |  |
+| DDRC_CTL_63 | 0x0fc |  |
+| DDRC_CTL_64 | 0x100 |  |
+| DDRC_CTL_65 | 0x104 |  |
+| DDRC_CTL_66 | 0x108 |  |
+| DDRC_CTL_67 | 0x10c |  |
+| DDRC_CTL_68 | 0x110 |  |
+| DDRC_CTL_69 | 0x114 |  |
+| DDRC_CTL_70 | 0x118 |  |
+| DDRC_CTL_71 | 0x11c |  |
+| DDRC_CTL_72 | 0x120 |  |
+| DDRC_CTL_73 | 0x124 |  |
+| DDRC_CTL_74 | 0x128 |  |
+| DDRC_CTL_75 | 0x12c |  |
+| DDRC_CTL_76 | 0x130 |  |
+| DDRC_CTL_77 | 0x134 |  |
+| DDRC_CTL_78 | 0x138 |  |
+| DDRC_CTL_79 | 0x13c |  |
+| DDRC_CTL_80 | 0x140 |  |
+| DDRC_CTL_81 | 0x144 |  |
+| DDRC_CTL_82 | 0x148 |  |
+| DDRC_CTL_83 | 0x14c |  |
+| DDRC_CTL_84 | 0x150 |  |
+| DDRC_CTL_85 | 0x154 |  |
+| DDRC_CTL_86 | 0x158 |  |
+| DDRC_CTL_87 | 0x15c |  |
+| DDRC_CTL_88 | 0x160 |  |
+| DDRC_CTL_89 | 0x164 |  |
+| DDRC_CTL_90 | 0x168 |  |
+| DDRC_CTL_91 | 0x16c |  |
+| DDRC_CTL_92 | 0x170 |  |
+| DDRC_CTL_93 | 0x174 |  |
+| DDRC_CTL_94 | 0x178 |  |
+| DDRC_CTL_95 | 0x17c |  |
+| DDRC_CTL_96 | 0x180 |  |
+| DDRC_CTL_97 | 0x184 |  |
+| DDRC_CTL_98 | 0x188 |  |
+| DDRC_CTL_99 | 0x18c |  |
+| DDRC_CTL_100 | 0x190 |  |
+| DDRC_CTL_101 | 0x194 |  |
+| DDRC_CTL_102 | 0x198 |  |
+| DDRC_CTL_103 | 0x19c |  |
+| DDRC_CTL_104 | 0x1a0 |  |
+| DDRC_CTL_105 | 0x1a4 |  |
+| DDRC_CTL_106 | 0x1a8 |  |
+| DDRC_CTL_107 | 0x1ac |  |
+| DDRC_CTL_108 | 0x1b0 |  |
+| DDRC_CTL_109 | 0x1b4 |  |
+| DDRC_CTL_110 | 0x1b8 |  |
+| DDRC_CTL_111 | 0x1bc |  |
+| DDRC_CTL_112 | 0x1c0 |  |
+| DDRC_CTL_113 | 0x1c4 |  |
+| DDRC_CTL_114 | 0x1c8 |  |
+| DDRC_CTL_115 | 0x1cc |  |
+| DDRC_CTL_116 | 0x1d0 |  |
+| DDRC_CTL_117 | 0x1d4 |  |
+| DDRC_CTL_118 | 0x1d8 |  |
+| DDRC_CTL_119 | 0x1dc |  |
+| DDRC_CTL_120 | 0x1e0 |  |
+| DDRC_CTL_121 | 0x1e4 |  |
+| DDRC_CTL_122 | 0x1e8 |  |
+| DDRC_CTL_123 | 0x1ec |  |
+| DDRC_CTL_124 | 0x1f0 |  |
+| DDRC_CTL_125 | 0x1f4 |  |
+| DDRC_CTL_126 | 0x1f8 |  |
+
+=== DDRC_CTL_49 (0x970000c4) ===[ddrconfig_reg_ddrc_ctl_49]
+
+|| Symbol | Bit range | R/W | Description ||
+| 16BIT_MODE | 24 | R/W | 16 bit address? data? width |
+
+
+

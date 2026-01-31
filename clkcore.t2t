@@ -95,16 +95,16 @@ PLL 3 supports dithering (spread spectrum).
 || Symbol | Offset | Description ||
 | [DEVICE_RST_CNTRL #clkcore_regs_device_rst_cntrl] | 0x0000 |  |
 | [SERDES_RST_CNTRL #clkcore_regs_serdes_rst_cntrl] | 0x0004 |  |
-| PCIe_SATA_RST_CNTRL | 0x0008 |  |
-| USB_RST_CNTRL | 0x000c |  |
-| GNRL_DEVICE_CNFG_0 | 0x0010 |  |
-| GNRL_DEVICE_CNFG_1 | 0x0014 |  |
+| [PCIe_SATA_RST_CNTRL #clkcore_regs_pcie_sata_rst_cntrl] | 0x0008 |  |
+| [USB_RST_CNTRL #clkcore_regs_usb_rst_cntrl] | 0x000c |  |
+| [GNRL_DEVICE_CNFG_0 #clkcore_regs_gnrl_device_cnfg_0] | 0x0010 |  |
+| [GNRL_DEVICE_CNFG_1 #clkcore_regs_gnrl_device_cnfg_1] | 0x0014 |  |
 | [GNRL_DEVICE_STATUS #clkcore_regs_gnrl_device_status] | 0x0018 |  |
 | A9DP_PWR_STAT | 0x0028 |  |
-| A9DP_PWR_CNTRL | 0x002c |  |
+| [A9DP_PWR_CNTRL #clkcore_regs_a9dp_pwr_cntrl] | 0x002c |  |
 | GNRL_CLK_CNTRL_0 | 0x0030 |  |
-| GNRL_CLK_CNTRL_1 | 0x0034 |  |
-| PLLS_GLOBAL_CNTRL | 0x0038 |  |
+| [GNRL_CLK_CNTRL_1 #clkcore_regs_gnrl_clk_cntrl_1] | 0x0034 |  |
+| [PLLS_GLOBAL_CNTRL #clkcore_regs_plls_global_cntrl] | 0x0038 |  |
 | [AXI_CLK_CNTRL_0 #clkcore_regs_axi_clk_cntrl0] | 0x0040 |  |
 | [AXI_CLK_CNTRL_1 #clkcore_regs_axi_clk_cntrl1] | 0x0044 |  |
 | [AXI_CLK_CNTRL_2 #clkcore_regs_axi_clk_cntrl2] | 0x0048 |  |
@@ -123,93 +123,93 @@ PLL 3 supports dithering (spread spectrum).
 | [L2CC_CLK_CNTRL #clkcore_regs_l2cc_clk_cntrl] | 0x0090 |  |
 | [L2CC_CLK_DIV_CNTRL #clkcore_regs_l2cc_clk_div_cntrl] | 0x0094 |  |
 | [L2CC_RESET #clkcore_regs_l2cc_reset] | 0x0098 |  |
-| TPI_CLK_CNTRL | 0x00a0 |  |
-| TPI_CLK_DIV_CNTRL | 0x00a4 |  |
-| TPI_RESET | 0x00a8 |  |
-| CSYS_CLK_CNTRL | 0x00b0 |  |
-| CSYS_CLK_DIV_CNTRL | 0x00b4 |  |
-| CSYS_RESET | 0x00b8 |  |
-| EXTPHY0_CLK_CNTRL | 0x00c0 |  |
-| EXTPHY0_CLK_DIV_CNTRL | 0x00c4 |  |
-| EXTPHY0_RESET | 0x00c8 |  |
-| EXTPHY1_CLK_CNTRL | 0x00d0 |  |
-| EXTPHY1_CLK_DIV_CNTRL | 0x00d4 |  |
-| EXTPHY1_RESET | 0x00d8 |  |
-| EXTPHY2_CLK_CNTRL | 0x00e0 |  |
-| EXTPHY2_CLK_DIV_CNTRL | 0x00e4 |  |
-| EXTPHY2_RESET | 0x00e8 |  |
-| DDR_CLK_CNTRL | 0x00f0 |  |
-| DDR_CLK_DIV_CNTRL | 0x00f4 |  |
-| DDR_RESET | 0x00f8 |  |
-| PFE_CLK_CNTRL | 0x0100 |  |
-| PFE_CLK_DIV_CNTRL | 0x0104 |  |
-| PFE_RESET | 0x0108 | PFE core reset |
-| IPSEC_CLK_CNTRL | 0x0110 |  |
-| IPSEC_CLK_DIV_CNTRL | 0x0114 |  |
-| IPSEC_RESET | 0x0118 |  |
-| DECT_CLK_CNTRL | 0x0120 |  |
-| DECT_CLK_DIV_CNTRL | 0x0124 |  |
-| DECT_RESET | 0x0128 |  |
-| GEMTX_CLK_CNTRL | 0x0130 |  |
-| GEMTX_CLK_DIV_CNTRL | 0x0134 |  |
-| GEMTX_RESET | 0x0138 |  |
-| TDMNTG_REF_CLK_CNTRL | 0x0140 |  |
-| TDMNTG_REF_CLK_DIV_CNTRL | 0x0144 |  |
-| TDMNTG_RESET | 0x0148 |  |
+| [TPI_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x00a0 |  |
+| [TPI_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x00a4 |  |
+| [TPI_RESET #clkcore_regs_tpi_reset] | 0x00a8 |  |
+| [CSYS_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x00b0 |  |
+| [CSYS_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x00b4 |  |
+| [CSYS_RESET #clkcore_regs_csys_reset] | 0x00b8 |  |
+| [EXTPHY0_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x00c0 |  |
+| [EXTPHY0_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x00c4 |  |
+| [EXTPHY0_RESET #clkcore_regs_extphy0_reset] | 0x00c8 |  |
+| [EXTPHY1_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x00d0 |  |
+| [EXTPHY1_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x00d4 |  |
+| [EXTPHY1_RESET #clkcore_regs_extphy1_reset] | 0x00d8 |  |
+| [EXTPHY2_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x00e0 |  |
+| [EXTPHY2_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x00e4 |  |
+| [EXTPHY2_RESET #clkcore_regs_extphy2_reset] | 0x00e8 |  |
+| [DDR_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x00f0 |  |
+| [DDR_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x00f4 |  |
+| [DDR_RESET #clkcore_regs_ddr_reset] | 0x00f8 |  |
+| [PFE_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0100 |  |
+| [PFE_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0104 |  |
+| [PFE_RESET #clkcore_regs_pfe_reset] | 0x0108 | PFE core reset |
+| [IPSEC_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0110 |  |
+| [IPSEC_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0114 |  |
+| [IPSEC_RESET #clkcore_regs_ipsec_reset] | 0x0118 |  |
+| [DECT_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0120 |  |
+| [DECT_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0124 |  |
+| [DECT_RESET #clkcore_regs_dect_reset] | 0x0128 |  |
+| [GEMTX_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0130 |  |
+| [GEMTX_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0134 |  |
+| [GEMTX_RESET #clkcore_regs_gemtx_reset] | 0x0138 |  |
+| [TDMNTG_REF_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0140 |  |
+| [TDMNTG_REF_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0144 |  |
+| [TDMNTG_RESET #clkcore_regs_tdmntg_reset] | 0x0148 |  |
 | TDM_CLK_CNTRL | 0x014c |  |
-| TSUNTG_REF_CLK_CNTRL | 0x0150 |  |
-| TSUNTG_REF_CLK_DIV_CNTRL | 0x0154 |  |
-| TSUNTG_RESET | 0x0158 |  |
-| SATA_PMU_CLK_CNTRL | 0x0160 |  |
-| SATA_PMU_CLK_DIV_CNTRL | 0x0164 |  |
-| SATA_PMU_RESET | 0x0168 |  |
-| SATA_OOB_CLK_CNTRL | 0x0170 |  |
-| SATA_OOB_CLK_DIV_CNTRL | 0x0174 |  |
-| SATA_OOB_RESET | 0x0178 |  |
-| SATA_OCC_CLK_CNTRL | 0x0180 |  |
-| SATA_OCC_CLK_DIV_CNTRL | 0x0184 |  |
-| SATA_OCC_RESET | 0x0188 |  |
-| PCIE_OCC_CLK_CNTRL | 0x0190 |  |
-| PCIE_OCC_CLK_DIV_CNTRL | 0x0194 |  |
-| PCIE_OCC_RESET | 0x0198 |  |
-| SGMII_OCC_CLK_CNTRL | 0x01a0 |  |
-| SGMII_OCC_CLK_DIV_CNTRL | 0x01a4 |  |
-| SGMII_OCC_RESET | 0x01a8 |  |
-| PLL0_M_LSB | 0x01c0 |  |
-| PLL0_M_MSB | 0x01c4 |  |
-| PLL0_P | 0x01c8 |  |
-| PLL0_S | 0x01cc |  |
-| PLL0_CNTRL | 0x01d0 |  |
-| PLL0_TEST | 0x01d4 |  |
-| PLL0_STATUS | 0x01d8 |  |
-| PLL0_DIV_CNTRL | 0x01dc |  |
-| PLL1_M_LSB | 0x01e0 |  |
-| PLL1_M_MSB | 0x01e4 |  |
-| PLL1_P | 0x01e8 |  |
-| PLL1_S | 0x01ec |  |
-| PLL1_CNTRL | 0x01f0 |  |
-| PLL1_TEST | 0x01f4 |  |
-| PLL1_STATUS | 0x01f8 |  |
-| PLL1_DIV_CNTRL | 0x01fc |  |
-| PLL2_M_LSB | 0x0200 |  |
-| PLL2_M_MSB | 0x0204 |  |
-| PLL2_P | 0x0208 |  |
-| PLL2_S | 0x020c |  |
-| PLL2_CNTRL | 0x0210 |  |
-| PLL2_TEST | 0x0214 |  |
-| PLL2_STATUS | 0x0218 |  |
-| PLL3_M_LSB | 0x0220 |  |
-| PLL3_M_MSB | 0x0224 |  |
-| PLL3_P | 0x0228 |  |
-| PLL3_S | 0x022c |  |
-| PLL3_CNTRL | 0x0230 |  |
-| PLL3_TEST | 0x0234 |  |
-| PLL3_STATUS | 0x0238 |  |
-| PLL3_DITHER_CNTRL | 0x023c |  |
-| PLL3_K_LSB | 0x0240 |  |
-| PLL3_K_MSB | 0x0244 |  |
-| PLL3_MFR | 0x0248 |  |
-| PLL3_MRR | 0x024c |  |
+| [TSUNTG_REF_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0150 |  |
+| [TSUNTG_REF_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0154 |  |
+| [TSUNTG_RESET #clkcore_regs_tsuntg_reset] | 0x0158 |  |
+| [SATA_PMU_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0160 |  |
+| [SATA_PMU_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0164 |  |
+| [SATA_PMU_RESET #clkcore_regs_sata_pmu_reset] | 0x0168 |  |
+| [SATA_OOB_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0170 |  |
+| [SATA_OOB_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0174 |  |
+| [SATA_OOB_RESET #clkcore_regs_sata_oob_reset] | 0x0178 |  |
+| [SATA_OCC_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0180 |  |
+| [SATA_OCC_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0184 |  |
+| [SATA_OCC_RESET #clkcore_regs_sata_occ_reset] | 0x0188 |  |
+| [PCIE_OCC_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x0190 |  |
+| [PCIE_OCC_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x0194 |  |
+| [PCIE_OCC_RESET #clkcore_regs_pcie_occ_reset] | 0x0198 |  |
+| [SGMII_OCC_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl] | 0x01a0 |  |
+| [SGMII_OCC_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] | 0x01a4 |  |
+| [SGMII_OCC_RESET #clkcore_regs_sgmii_occ_reset] | 0x01a8 |  |
+| [PLL0_M_LSB #clkcore_regs_pllx_m_lsb] | 0x01c0 |  |
+| [PLL0_M_MSB #clkcore_regs_pllx_m_msb] | 0x01c4 |  |
+| [PLL0_P #clkcore_regs_pllx_p] | 0x01c8 |  |
+| [PLL0_S #clkcore_regs_pllx_s] | 0x01cc |  |
+| [PLL0_CNTRL #clkcore_regs_pllx_cntrl] | 0x01d0 |  |
+| [PLL0_TEST #clkcore_regs_pllx_test] | 0x01d4 |  |
+| [PLL0_STATUS #clkcore_regs_pllx_status] | 0x01d8 |  |
+| [PLL0_DIV_CNTRL #clkcore_regs_pllx_div_cntrl] | 0x01dc |  |
+| [PLL1_M_LSB #clkcore_regs_pllx_m_lsb] | 0x01e0 |  |
+| [PLL1_M_MSB #clkcore_regs_pllx_m_msb] | 0x01e4 |  |
+| [PLL1_P #clkcore_regs_pllx_p] | 0x01e8 |  |
+| [PLL1_S #clkcore_regs_pllx_s] | 0x01ec |  |
+| [PLL1_CNTRL #clkcore_regs_pllx_cntrl] | 0x01f0 |  |
+| [PLL1_TEST #clkcore_regs_pllx_test] | 0x01f4 |  |
+| [PLL1_STATUS #clkcore_regs_pllx_status] | 0x01f8 |  |
+| [PLL1_DIV_CNTRL #clkcore_regs_pllx_div_cntrl] | 0x01fc |  |
+| [PLL2_M_LSB #clkcore_regs_pllx_m_lsb] | 0x0200 |  |
+| [PLL2_M_MSB #clkcore_regs_pllx_m_msb] | 0x0204 |  |
+| [PLL2_P #clkcore_regs_pllx_p] | 0x0208 |  |
+| [PLL2_S #clkcore_regs_pllx_s] | 0x020c |  |
+| [PLL2_CNTRL #clkcore_regs_pllx_cntrl] | 0x0210 |  |
+| [PLL2_TEST #clkcore_regs_pllx_test] | 0x0214 |  |
+| [PLL2_STATUS #clkcore_regs_pllx_status] | 0x0218 |  |
+| [PLL3_M_LSB #clkcore_regs_pll3_m_lsb] | 0x0220 |  |
+| [PLL3_M_MSB #clkcore_regs_pll3_m_msb] | 0x0224 |  |
+| [PLL3_P #clkcore_regs_pll3_p] | 0x0228 |  |
+| [PLL3_S #clkcore_regs_pll3_s] | 0x022c |  |
+| [PLL3_CNTRL #clkcore_regs_pll3_cntrl] | 0x0230 |  |
+| [PLL3_TEST #clkcore_regs_pll3_test] | 0x0234 |  |
+| [PLL3_STATUS #clkcore_regs_pll3_status] | 0x0238 |  |
+| [PLL3_DITHER_CNTRL #clkcore_regs_pll3_dither_cntrl] | 0x023c |  |
+| [PLL3_K_LSB #clkcore_regs_pll3_k_lsb] | 0x0240 |  |
+| [PLL3_K_MSB #clkcore_regs_pll3_k_msb] | 0x0244 |  |
+| [PLL3_MFR #clkcore_regs_pll3_mfr] | 0x0248 |  |
+| [PLL3_MRR #clkcore_regs_pll3_mrr] | 0x024c |  |
 | TDMNTG_ADDR_SPACE_BASEADDR | 0x0280 |  |
 | TSUNGTG_ADDR_SPACE_BASEADDR | 0x02c0 |  |
 
@@ -219,7 +219,7 @@ PLL 3 supports dithering (spread spectrum).
 Global device reset register.
 
 || Symbol | Bit range | R/W | Description ||
-| CLK_DIV_RESTART | 7 | RW | Clock divider restart. Self-clearing |
+| CLK_DIV_RESTART | 7 | RW | Clock divider restart. Self-clearing. Used to resync clkgen dividers during early boot while global bypass is active. |
 | WD_STATUS_CLR | 6 | W | Clear AXI watchdog status (see [GNRL_DEVICE_STATUS #clkcore_regs_gnrl_device_status]) |
 | AXI_WD_RST_EN | 5 | RW | Enable reset on [AXI watchdog timer #peri_timer_wdt] block |
 | DEBUG_RST | 4 | RW | Reset (disable) debug features (CoreSight and ARM debug). Does not self-clear |
@@ -240,7 +240,7 @@ SerDes reset register.
 | SERDES0_RESET | 0 | RW | SerDes 0 reset state |
 
 
-=== PCIe_SATA_RST_CNTRL (0x904b0008) ===
+=== PCIe_SATA_RST_CNTRL (0x904b0008) ===[clkcore_regs_pcie_sata_rst_cntrl]
 
 PCIe & SATA reset register.
 
@@ -256,11 +256,11 @@ PCIe & SATA reset register.
 
 Note: Asserting and deasserting PCIEx_PWR_RST also resets the PCIe registers.
 
-=== USB_RST_CNTRL (0x904b000c) ===
+=== USB_RST_CNTRL (0x904b000c) ===[clkcore_regs_usb_rst_cntrl]
 
 USB reset register.
 
-UTMI is the interface between the USB controller and the USB PHY.
+UTMI is the interface between the USB controller and the USB 2.0 PHY.
 
 || Symbol | Bit range | R/W | Description ||
 | USB1_UTMI_RESET | 5 | RW | USB1 UTMI reset |
@@ -269,14 +269,14 @@ UTMI is the interface between the USB controller and the USB PHY.
 | USB0_PHY_RESET | 0 | RW | USB0 PHY reset |
 
 
-=== GNRL_DEVICE_CNFG_0 (0x904b0010) ===
+=== GNRL_DEVICE_CNFG_0 (0x904b0010) ===[clkcore_regs_gnrl_device_cnfg_0]
 
 General device configuration register 0.
 
 || Symbol | Bit range | R/W | Description ||
 
 
-=== GNRL_DEVICE_CNFG_1 (0x904b0014) ===
+=== GNRL_DEVICE_CNFG_1 (0x904b0014) ===[clkcore_regs_gnrl_device_cnfg_1]
 
 General device configuration register 1.
 
@@ -294,7 +294,7 @@ General device status register.
 
 === A9DP_PWR_STAT (0x904b0028) ===
 
-=== A9DP_PWR_CNTRL (0x904b002c) ===
+=== A9DP_PWR_CNTRL (0x904b002c) ===[clkcore_regs_a9dp_pwr_cntrl]
 
 A9DP block power control register.
 
@@ -308,7 +308,7 @@ A9DP block power control register.
 
 === GNRL_CLK_CNTRL_0 (0x904b0030) ===
 
-=== GNRL_CLK_CNTRL_1 (0x904b0034) ===
+=== GNRL_CLK_CNTRL_1 (0x904b0034) ===[clkcore_regs_gnrl_clk_cntrl_1]
 
 General clock control register 1
 
@@ -317,7 +317,7 @@ Set to 0xd1, then 0xd0 in bootloader.
 || Symbol | Bit range | R/W | Description ||
 | GLOBAL_BYPASS | 0 | RW | (DANGEROUS!) Global bypass. All the clock dividers are bypassed. Overrides the individual clock generators bypass setting. It is unclear which clock generators are effected. Used by bootloader. NEVER SET WHILE THE PLLS ARE RUNNING! |
 
-=== PLLS_GLOBAL_CNTRL (0x904b0038) ===
+=== PLLS_GLOBAL_CNTRL (0x904b0038) ===[clkcore_regs_plls_global_cntrl]
 
 Global PLL bypass register.
 
@@ -425,6 +425,13 @@ A9 peripherals clock divider control register?
 
 Default value is 0. Never changed. ARM peripherals clock is always divided by at least 4.
 
+|| Symbol | Bit range | R/W | Description ||
+| ACP_DIV_BYPASS? | 7 | R/W |  |
+| ACP_DIVIDER? | 6-4 | R/W |  |
+| PERIPH_DIV_BYPASS? | 3 | R/W |  |
+| PERIPH_DIVIDER? | 2-0 | R/W |  |
+
+
 === A9DP_MPU_RESET (0x904b0070) ===[clkcore_regs_a9dp_mpu_reset]
 
 Reset register for the A9 MPU block.
@@ -464,13 +471,13 @@ CPU cores block reset register.
 
 A9 subsystem clock control register.
 
-See description for XXX_CLK_CNTRL.
+See description for [XXX_CLK_CNTRL #clkcore_regs_xxx_clk_cntrl].
 
 === A9DP_CLK_DIV_CNTRL (0x904b0084) ===[clkcore_regs_a9dp_clk_div_cntrl]
 
 A9 subsystem clock divider control register.
 
-See description for XXX_CLK_DIV_CNTRL.
+See description for [XXX_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl].
 
 === A9DP_RESET (0x904b0088) ===[clkcore_regs_a9dp_reset]
 
@@ -492,7 +499,7 @@ L2CC clock control register.
 
 L2CC clock divider control register.
 
-See XXX_CLK_DIV_CNTRL description.
+See [XXX_CLK_DIV_CNTRL #clkcore_regs_xxx_clk_div_cntrl] description.
 
 === L2CC_RESET (0x904b0098) ===[clkcore_regs_l2cc_reset]
 
@@ -502,66 +509,66 @@ L2CC reset register.
 | L2CC_RST | 0 | R/W | Put the L2CC device in reset state. 0=leave reset, 1=enter reset |
 
 
-=== TPI_CLK_CNTRL (0x904b00a0) ===
+=== TPI_CLK_CNTRL (0x904b00a0) ===[clkcore_regs_tpi_clk_cntrl]
 
-=== TPI_CLK_DIV_CNTRL (0x904b00a4) ===
+=== TPI_CLK_DIV_CNTRL (0x904b00a4) ===[clkcore_regs_tpi_clk_div_cntrl]
 
-=== TPI_RESET (0x904b00a8) ===
+=== TPI_RESET (0x904b00a8) ===[clkcore_regs_tpi_reset]
 
 TPI (Trace Port Interface) reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | TPI_RST | 0 | R/W | Put the TPI device in reset state. 0=leave reset, 1=enter reset |
 
-=== CSYS_CLK_CNTRL (0x904b00b0) ===
+=== CSYS_CLK_CNTRL (0x904b00b0) ===[clkcore_regs_csys_clk_cntrl]
 
-=== CSYS_CLK_DIV_CNTRL (0x904b00b4) ===
+=== CSYS_CLK_DIV_CNTRL (0x904b00b4) ===[clkcore_regs_csys_clk_div_cntrl]
 
-=== CSYS_RESET (0x904b00b8) ===
+=== CSYS_RESET (0x904b00b8) ===[clkcore_regs_csys_reset]
 
 CSYS (CoreSight) reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | CSYS_RST | 0 | R/W | Put the CSYS device in reset state. 0=leave reset, 1=enter reset |
 
-=== EXTPHY0_CLK_CNTRL (0x904b00c0) ===
+=== EXTPHY0_CLK_CNTRL (0x904b00c0) ===[clkcore_regs_extphy0_clk_cntrl]
 
-=== EXTPHY0_CLK_DIV_CNTRL (0x904b00c4) ===
+=== EXTPHY0_CLK_DIV_CNTRL (0x904b00c4) ===[clkcore_regs_extphy0_clk_div_cntrl]
 
-=== EXTPHY0_RESET (0x904b00c8) ===
+=== EXTPHY0_RESET (0x904b00c8) ===[clkcore_regs_extphy0_reset]
 
 EXT0 PHY reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | EXT0PHY_RST | 0 | R/W | Put the EXT0 PHY in reset state. 0=leave reset, 1=enter reset |
 
-=== EXTPHY1_CLK_CNTRL (0x904b00d0) ===
+=== EXTPHY1_CLK_CNTRL (0x904b00d0) ===[clkcore_regs_extphy1_clk_cntrl]
 
-=== EXTPHY1_CLK_DIV_CNTRL (0x904b00d4) ===
+=== EXTPHY1_CLK_DIV_CNTRL (0x904b00d4) ===[clkcore_regs_extphy1_clk_div_cntrl]
 
-=== EXTPHY1_RESET (0x904b00d8) ===
+=== EXTPHY1_RESET (0x904b00d8) ===[clkcore_regs_extphy1_reset]
 
 EXT1 PHY reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | EXT1PHY_RST | 0 | R/W | Put the EXT1 PHY in reset state. 0=leave reset, 1=enter reset |
 
-=== EXTPHY2_CLK_CNTRL (0x904b00e0) ===
+=== EXTPHY2_CLK_CNTRL (0x904b00e0) ===[clkcore_regs_extphy2_clk_cntrl]
 
-=== EXTPHY2_CLK_DIV_CNTRL (0x904b00e4) ===
+=== EXTPHY2_CLK_DIV_CNTRL (0x904b00e4) ===[clkcore_regs_extphy2_clk_div_cntrl]
 
-=== EXTPHY2_RESET (0x904b00e8) ===
+=== EXTPHY2_RESET (0x904b00e8) ===[clkcore_regs_extphy2_reset]
 
 EXT2 PHY reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | EXT2PHY_RST | 0 | R/W | Put the EXT2 PHY in reset state. 0=leave reset, 1=enter reset |
 
-=== DDR_CLK_CNTRL (0x904b00f0) ===
+=== DDR_CLK_CNTRL (0x904b00f0) ===[clkcore_regs_ddr_clk_cntrl]
 
-=== DDR_CLK_DIV_CNTRL (0x904b00f4) ===
+=== DDR_CLK_DIV_CNTRL (0x904b00f4) ===[clkcore_regs_ddr_clk_div_cntrl]
 
-=== DDR_RESET (0x904b00f8) ===
+=== DDR_RESET (0x904b00f8) ===[clkcore_regs_ddr_reset]
 
 DDR reset register.
 
@@ -569,219 +576,219 @@ DDR reset register.
 | DDRCNTRL_RST | 1 | R/W | Put the DDR controller in reset state. 0=leave reset, 1=enter reset |
 | DDRPHY_RST | 0 | R/W | Put the DDR PHY in reset state. 0=leave reset, 1=enter reset |
 
-=== PFE_CLK_CNTRL (0x904b0100) ===
+=== PFE_CLK_CNTRL (0x904b0100) ===[clkcore_regs_pfe_clk_cntrl]
 
-=== PFE_CLK_DIV_CNTRL (0x904b0104) ===
+=== PFE_CLK_DIV_CNTRL (0x904b0104) ===[clkcore_regs_pfe_clk_div_cntrl]
 
-=== PFE_RESET (0x904b0108) ===
+=== PFE_RESET (0x904b0108) ===[clkcore_regs_pfe_reset]
 
 PFE core reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | PFE_CORE_RST | 0 | R/W | Put the PFE core in reset state. 0=leave reset, 1=enter reset |
 
-=== IPSEC_CLK_CNTRL (0x904b0110) ===
+=== IPSEC_CLK_CNTRL (0x904b0110) ===[clkcore_regs_ipsec_clk_cntrl]
 
-=== IPSEC_CLK_DIV_CNTRL (0x904b0114) ===
+=== IPSEC_CLK_DIV_CNTRL (0x904b0114) ===[clkcore_regs_ipsec_clk_div_cntrl]
 
-=== IPSEC_RESET (0x904b0118) ===
+=== IPSEC_RESET (0x904b0118) ===[clkcore_regs_ipsec_reset]
 
 IPSEC core reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | IPSEC_EAPE_CORE_RST | 0 | R/W | Put the IPSEC EAPE core into reset state. 0=leave reset, 1=enter reset |
 
-=== DECT_CLK_CNTRL (0x904b0120) ===
+=== DECT_CLK_CNTRL (0x904b0120) ===[clkcore_regs_dect_clk_cntrl]
 
-=== DECT_CLK_DIV_CNTRL (0x904b0124) ===
+=== DECT_CLK_DIV_CNTRL (0x904b0124) ===[clkcore_regs_dect_clk_div_cntrl]
 
-=== DECT_RESET (0x904b0128) ===
+=== DECT_RESET (0x904b0128) ===[clkcore_regs_dect_reset]
 
 DECT device reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | DECT_RST | 0 | R/W | Put the DECT device into reset state. 0=leave reset, 1=enter reset |
 
-=== GEMTX_CLK_CNTRL (0x904b0130) ===
+=== GEMTX_CLK_CNTRL (0x904b0130) ===[clkcore_regs_gemtx_clk_cntrl]
 
-=== GEMTX_CLK_DIV_CNTRL (0x904b0134) ===
+=== GEMTX_CLK_DIV_CNTRL (0x904b0134) ===[clkcore_regs_gemtx_clk_div_cntrl]
 
-=== GEMTX_RESET (0x904b0138) ===
+=== GEMTX_RESET (0x904b0138) ===[clkcore_regs_gemtx_reset]
 
 GEMTX device reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | GEMTX_RST | 0 | R/W | Put the GEMTX device into reset state. 0=leave reset, 1=enter reset |
 
-=== TDMNTG_REF_CLK_CNTRL (0x904b0140) ===
+=== TDMNTG_REF_CLK_CNTRL (0x904b0140) ===[clkcore_regs_tdmntg_ref_clk_cntrl]
 
-=== TDMNTG_REF_CLK_DIV_CNTRL (0x904b0144) ===
+=== TDMNTG_REF_CLK_DIV_CNTRL (0x904b0144) ===[clkcore_regs_tdmntg_ref_clk_div_cntrl]
 
-=== TDMNTG_RESET (0x904b0148) ===
+=== TDMNTG_RESET (0x904b0148) ===[clkcore_regs_tdmntg_reset]
 
 TDMNTG (Time Division Multiplexing Network Timer Generator) device reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | TDMNTG_RST | 0 | R/W | Put the TDMNTG device into reset state. 0=leave reset, 1=enter reset |
 
-=== TDM_CLK_CNTRL (0x904b014c) ===
+=== TDM_CLK_CNTRL (0x904b014c) ===[clkcore_regs_tdm_clk_cntrl]
 
-=== TSUNTG_REF_CLK_CNTRL (0x904b0150) ===
+=== TSUNTG_REF_CLK_CNTRL (0x904b0150) ===[clkcore_regs_tsuntg_ref_clk_cntrl]
 
-=== TSUNTG_REF_CLK_DIV_CNTRL (0x904b0154) ===
+=== TSUNTG_REF_CLK_DIV_CNTRL (0x904b0154) ===[clkcore_regs_tsuntg_ref_clk_div_cntrl]
 
-=== TSUNTG_RESET (0x904b0158) ===
+=== TSUNTG_RESET (0x904b0158) ===[clkcore_regs_tsuntg_reset]
 
 TSU NTG (TimeStamp Unit Network Timing Generator) device reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | TSUNTG_RST | 0 | R/W | Put the TSUNTG device into reset state. 0=leave reset, 1=enter reset |
 
-=== SATA_PMU_CLK_CNTRL (0x904b0160) ===
+=== SATA_PMU_CLK_CNTRL (0x904b0160) ===[clkcore_regs_sata_pmu_clk_cntrl]
 
-=== SATA_PMU_CLK_DIV_CNTRL (0x904b0164) ===
+=== SATA_PMU_CLK_DIV_CNTRL (0x904b0164) ===[clkcore_regs_sata_pmu_clk_div_cntrl]
 
-=== SATA_PMU_RESET (0x904b0168) ===
+=== SATA_PMU_RESET (0x904b0168) ===[clkcore_regs_sata_pmu_reset]
 
 SATA_PMU device (keep alive clock) reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | SATA_PMU_RST | 0 | R/W | Put the SATA_PMU device into reset state. 0=leave reset, 1=enter reset |
 
-=== SATA_OOB_CLK_CNTRL (0x904b0170) ===
+=== SATA_OOB_CLK_CNTRL (0x904b0170) ===[clkcore_regs_sata_oob_clk_cntrl]
 
-=== SATA_OOB_CLK_DIV_CNTRL (0x904b0174) ===
+=== SATA_OOB_CLK_DIV_CNTRL (0x904b0174) ===[clkcore_regs_sata_oob_clk_div_cntrl]
 
-=== SATA_OOB_RESET (0x904b0178) ===
+=== SATA_OOB_RESET (0x904b0178) ===[clkcore_regs_sata_oob_reset]
 
 SATA_OOB device (keep alive clock) reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | SATA_OOB_RST | 0 | R/W | Put the SATA_OOB device into reset state. 0=leave reset, 1=enter reset |
-=== SATA_OCC_CLK_CNTRL (0x904b0180) ===
+=== SATA_OCC_CLK_CNTRL (0x904b0180) ===[clkcore_regs_sta_occ_clk_cntrl]
 
-=== SATA_OCC_CLK_DIV_CNTRL (0x904b0184) ===
+=== SATA_OCC_CLK_DIV_CNTRL (0x904b0184) ===[clkcore_regs_sata_occ_clk_div_cntrl]
 
-=== SATA_OCC_RESET (0x904b0188) ===
+=== SATA_OCC_RESET (0x904b0188) ===[clkcore_regs_sata_occ_reset]
 
 SATA OCC reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | SATA_OCC_RST | 0 | R/W | Put the SATA_OCC device into reset state. 0=leave reset, 1=enter reset |
 
-=== PCIE_OCC_CLK_CNTRL (0x904b0190) ===
+=== PCIE_OCC_CLK_CNTRL (0x904b0190) ===[clkcore_regs_pcie_occ_clk_cntrl]
 
-=== PCIE_OCC_CLK_DIV_CNTRL (0x904b0194) ===
+=== PCIE_OCC_CLK_DIV_CNTRL (0x904b0194) ===[clkcore_regs_pcie_occ_clk_div_cntrl]
 
-=== PCIE_OCC_RESET (0x904b0198) ===
+=== PCIE_OCC_RESET (0x904b0198) ===[clkcore_regs_pcie_occ_reset]
 
 PCIE OCC reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | PCIE_OCC_RST | 0 | R/W | Put the PCIE_OCC device into reset state. 0=leave reset, 1=enter reset |
 
-=== SGMII_OCC_CLK_CNTRL (0x904b01a0) ===
+=== SGMII_OCC_CLK_CNTRL (0x904b01a0) ===[clkcore_regs_sgmii_occ_clk_cntrl]
 
-=== SGMII_OCC_CLK_DIV_CNTRL (0x904b01a4) ===
+=== SGMII_OCC_CLK_DIV_CNTRL (0x904b01a4) ===[clkcore_regs_sgmii_occ_clk_div_cntrl]
 
-=== SGMII_OCC_RESET (0x904b01a8) ===
+=== SGMII_OCC_RESET (0x904b01a8) ===[clkcore_regs_sgmii_occ_reset]
 
 SGMII OCC reset register.
 
 || Symbol | Bit range | R/W | Description ||
 | SGMII_OCC_RST | 0 | R/W | Put the SGMII_OCC device into reset state. 0=leave reset, 1=enter reset |
 
-=== PLL0_M_LSB (0x904b01c0) ===
+=== PLL0_M_LSB (0x904b01c0) ===[clkcore_regs_pll0_m_lsb]
 
-=== PLL0_M_MSB (0x904b01c4) ===
+=== PLL0_M_MSB (0x904b01c4) ===[clkcore_regs_pll0_m_msb]
 
-=== PLL0_P (0x904b01c8) ===
+=== PLL0_P (0x904b01c8) ===[clkcore_regs_pll0_p]
 
-=== PLL0_S (0x904b01cc) ===
+=== PLL0_S (0x904b01cc) ===[clkcore_regs_pll0_s]
 
-=== PLL0_CNTRL (0x904b01d0) ===
+=== PLL0_CNTRL (0x904b01d0) ===[clkcore_regs_pll0_cntrl]
 
-=== PLL0_TEST (0x904b01d4) ===
+=== PLL0_TEST (0x904b01d4) ===[clkcore_regs_pll0_test]
 
-=== PLL0_STATUS (0x904b01d8) ===
+=== PLL0_STATUS (0x904b01d8) ===[clkcore_regs_pll0_status]
 
-=== PLL0_DIV_CNTRL (0x904b01dc) ===
+=== PLL0_DIV_CNTRL (0x904b01dc) ===[clkcore_regs_pll0_div_cntrl]
 
-=== PLL1_M_LSB (0x904b01e0) ===
+=== PLL1_M_LSB (0x904b01e0) ===[clkcore_regs_pll1_m_lsb]
 
-=== PLL1_M_MSB (0x904b01e4) ===
+=== PLL1_M_MSB (0x904b01e4) ===[clkcore_regs_pll1_m_msb]
 
-=== PLL1_P (0x904b01e8) ===
+=== PLL1_P (0x904b01e8) ===[clkcore_regs_pll1_p]
 
-=== PLL1_S (0x904b01ec) ===
+=== PLL1_S (0x904b01ec) ===[clkcore_regs_pll1_s]
 
-=== PLL1_CNTRL (0x904b01f0) ===
+=== PLL1_CNTRL (0x904b01f0) ===[clkcore_regs_pll1_cntrl]
 
-=== PLL1_TEST (0x904b01f4) ===
+=== PLL1_TEST (0x904b01f4) ===[clkcore_regs_pll1_test]
 
-=== PLL1_STATUS (0x904b01f8) ===
+=== PLL1_STATUS (0x904b01f8) ===[clkcore_regs_pll1_status]
 
-=== PLL1_DIV_CNTRL (0x904b01fc) ===
+=== PLL1_DIV_CNTRL (0x904b01fc) ===[clkcore_regs_pll1_div_cntrl]
 
-=== PLL2_M_LSB (0x904b0200) ===
+=== PLL2_M_LSB (0x904b0200) ===[clkcore_regs_pll2_m_lsb]
 
-=== PLL2_M_MSB (0x904b0204) ===
+=== PLL2_M_MSB (0x904b0204) ===[clkcore_regs_pll2_m_msb]
 
-=== PLL2_P (0x904b0208) ===
+=== PLL2_P (0x904b0208) ===[clkcore_regs_pll2_p]
 
-=== PLL2_S (0x904b020c) ===
+=== PLL2_S (0x904b020c) ===[clkcore_regs_pll2_s]
 
-=== PLL2_CNTRL (0x904b0210) ===
+=== PLL2_CNTRL (0x904b0210) ===[clkcore_regs_pll2_cntrl]
 
-=== PLL2_TEST (0x904b0214) ===
+=== PLL2_TEST (0x904b0214) ===[clkcore_regs_pll2_test]
 
-=== PLL2_STATUS (0x904b0218) ===
+=== PLL2_STATUS (0x904b0218) ===[clkcore_regs_pll2_status]
 
-=== PLL2_DIV_CNTRL (0x904b021c) ===
+=== PLL2_DIV_CNTRL (0x904b021c) ===[clkcore_regs_pll2_div_cntrl]
 
-=== PLL3_M_LSB (0x904b0220) ===
+=== PLL3_M_LSB (0x904b0220) ===[clkcore_regs_pll3_m_lsb]
 
 PLL main divider (M) value (lower 8 bits).
 
 || Symbol | Bit range | R/W | Description ||
 | M_LSB | 7-0 | RW | M low bits |
 
-=== PLL3_M_MSB (0x904b0224) ===
+=== PLL3_M_MSB (0x904b0224) ===[clkcore_regs_pll3_m_msb]
 
 PLL main divider (M) value (higher 1 bit).
 
 || Symbol | Bit range | R/W | Description ||
 | M_MSB | 0 | RW | M high bit |
 
-=== PLL3_P (0x904b0228) ===
+=== PLL3_P (0x904b0228) ===[clkcore_regs_pll3_p]
 
-=== PLL3_S (0x904b022c) ===
+=== PLL3_S (0x904b022c) ===[clkcore_regs_pll3_s]
 
-=== PLL3_CNTRL (0x904b0230) ===
+=== PLL3_CNTRL (0x904b0230) ===[clkcore_regs_pll3_cntrl]
 
-=== PLL3_TEST (0x904b02234) ===
+=== PLL3_TEST (0x904b02234) ===[clkcore_regs_pll3_test]
 
-=== PLL3_STATUS (0x904b0238) ===
+=== PLL3_STATUS (0x904b0238) ===[clkcore_regs_pll3_status]
 
-=== PLL3_DITHER_CNTRL (0x904b023c) ===
+=== PLL3_DITHER_CNTRL (0x904b023c) ===[clkcore_regs_pll3_dither_cntrl]
 
 Dithering control register? Set to 0x00 in bootloader.
 
-=== PLL3_K_LSB (0x904b0240) ===
+=== PLL3_K_LSB (0x904b0240) ===[clkcore_regs_pll3_k_lsb]
 
 || Symbol | Bit range | R/W | Description ||
 | K | 7-0 | RW | K parameter lower byte |
 
-=== PLL3_K_MSB (0x904b0244) ===
+=== PLL3_K_MSB (0x904b0244) ===[clkcore_regs_pll3_k_msb]
 
 || Symbol | Bit range | R/W | Description ||
 | K | 3-0 | RW | K parameter higher byte |
 
-=== PLL3_MFR (0x904b0248) ===
+=== PLL3_MFR (0x904b0248) ===[clkcore_regs_pll3_mfr]
 
 Unknown. Set to 0x01 in bootloader.
 
-=== PLL3_MRR (0x904b024c) ===
+=== PLL3_MRR (0x904b024c) ===[clkcore_regs_pll3_mrr]
 
 Unknown and unused. Set to 0x07 in bootloader.
 
@@ -790,7 +797,7 @@ Unknown and unused. Set to 0x07 in bootloader.
 === TSUNTG_ADDR_SPACE_BASEADDR (0x904b02c0) ===
 
 
-=== XXX_CLK_CNTRL ===
+=== XXX_CLK_CNTRL ===[clkcore_regs_xxx_clk_cntrl]
 
 Peripheral clock control register.
 
@@ -799,7 +806,7 @@ Peripheral clock control register.
 | CLOCK_DOMAIN_ENABLE | 0 | R/W | Enable/disable clock domain. 0: disable, 1: enable |
 
 
-=== XXX_CLK_DIV_CNTRL ===
+=== XXX_CLK_DIV_CNTRL ===[clkcore_regs_xxx_clk_div_cntrl]
 
 Peripheral clock divider control register.
 
@@ -811,13 +818,13 @@ Barebox keeps this info in IRAM, while Linux uses the DDR.
 
 || Symbol | Bit range | R/W | Description ||
 | BYPASS | 7 | W | Enable/disable divider bypass. 0=apply divider, 1=bypass |
-| DIVIDER | 0-4 | RW | Clock divider value. Values 0 and 1 are reserved will not work as expected. Please set the BYPASS bit instead of setting DIVIDER to 1. |
+| DIVIDER | 0-4 | RW | Clock divider value. Values 0 and 1 are reserved and will not work as expected. Please set the BYPASS bit instead of setting DIVIDER to 1. |
 
 === XXX_RESET ===
 
 Peripheral reset register.
 
-=== PLLx_M_LSB ===
+=== PLLx_M_LSB ===[clkcore_regs_pllx_m_lsb]
 
 PLL main divider (M) value (lower 8 bits).
 
@@ -826,7 +833,7 @@ Applies to PLLs 0-2.
 || Symbol | Bit range | R/W | Description ||
 | M_LSB | 7-0 | RW | M low bits |
 
-=== PLLx_M_MSB ===
+=== PLLx_M_MSB ===[clkcore_regs_pllx_m_msb]
 
 PLL main divider (M) value (higher 2 bits).
 
@@ -835,7 +842,7 @@ Applies to PLLs 0-2.
 || Symbol | Bit range | R/W | Description ||
 | M_MSB | 1-0 | RW | M high bits |
 
-=== PLLx_P ===
+=== PLLx_P ===[clkcore_regs_pllx_p]
 
 PLL pre-divider (P) value.
 
@@ -844,7 +851,7 @@ Applies to PLLs 0-3.
 || Symbol | Bit range | R/W | Description ||
 | P | 5-0 | RW | P parameter value |
 
-=== PLLx_S ===
+=== PLLx_S ===[clkcore_regs_pllx_s]
 
 PLL post-scaler (S) value.
 
@@ -853,25 +860,25 @@ Applies to PLLs 0-3.
 || Symbol | Bit range | R/W | Description ||
 | S | 2-0 | RW | S parameter value |
 
-=== PLLx_CNTRL ===
+=== PLLx_CNTRL ===[clkcore_regs_pllx_cntrl]
 
 PLL control register.
 
 Applies to PLLs 0-3.
 
 || Symbol | Bit range | R/W | Description ||
-| VSEL | 6 | RW | Voltage selection? |
+| VSEL | 6 | RW | Voltage? VCO? selection |
 | LOCK_EN | 5 | RW | Lock something? PLL registers maybe? |
 | BYPASS | 4 | RW | Bypass PLL and use Fref as Fout |
 | RESET | 0 | RW | 0: Leave reset state 1: Put in reset state. If BYPASS is set, Fout still outputs Fref. |
 
-=== PLLx_TEST ===
+=== PLLx_TEST ===[clkcore_regs_pllx_test]
 
 PLL test register?
 
 Applies to PLLs 0-3.
 
-=== PLLx_STATUS ===
+=== PLLx_STATUS ===[clkcore_regs_pllx_status]
 
 PLL status register.
 
@@ -880,7 +887,7 @@ Applies to PLLs 0-3.
 || Symbol | Bit range | R/W | Description ||
 | LOCK | 0 | R | Bit set when PLL is locked |
 
-=== PLLx_DIV_CNTRL ===
+=== PLLx_DIV_CNTRL ===[clkcore_regs_pllx_div_cntrl]
 
 PLL additional output divider register.
 

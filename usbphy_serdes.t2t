@@ -11,7 +11,8 @@ The control registers can set inputs of those PHYs IP blocks.
 || Base address | 0x90410000 ||
 
 || Symbol | Offset | Description ||
-| [USB0_PHY_CTRL_REG0 #peri_usbphy_serdes_usb0_phy_ctrl_reg0] | 0x0000 | USB PHY control register (USB 2.0) |
+| [USB0_PHY_CTRL_REG0 #peri_usbphy_serdes_usb0_phy_ctrl_reg0] | 0x0000 | USB0 PHY control register (USB 2.0) |
+| [USB1_PHY_CTRL_REG0 #peri_usbphy_serdes_usb1_phy_ctrl_reg0] | 0x0010 | USB1 PHY control register (USB 2.0) |
 | [SD0_PHY_STS #peri_usbphy_serdes_sdx_phy_sts] | 0x002c | SerDes 0 PHY status register |
 | SD0_PHY_CTRL1 | 0x0030 | SerDes 0 PHY control register 1 |
 | [SD0_PHY_CTRL2 #peri_usbphy_serdes_sdx_phy_ctrl2] | 0x0034 | SerDes 0 PHY control register 2 |
@@ -37,6 +38,21 @@ Register controlling the USB 2.0 PHY (usb0).
 | usb0_otgdisable | 4 | RW | Disable OTG block. 0 = enabled, 1 = powered down |
 | usb0_vbusvldext | 3 | RW | VBUS signal valid. 0 = no, pull-up on D+ disabled, 1 = ? |
 | usb0_vbusvldextsel | 2 | RW | OTG Session Valid comparator selection. 0 = internal (default), 1 = external (use value from bit 3) |
+
+==== USB1_PHY_CTRL_REG0 (0x90410010) ====[peri_usbphy_serdes_usb1_phy_ctrl_reg0]
+
+Register controlling the USB 2.0 PHY (usb1).
+
+Probably only present on FPGA version.
+
+|| Symbol | Bit range | R/W | Description ||
+| usb1_common_disable? | 24 | RW | Disable common blocks? Saves power. 0 = enabled, 1 = powered down |
+| usb1_refclksel | 21-20 | RW | Reference clock selsction. 2 = 2.5V clock on XO pin. 0, 1, 3 = ? |
+| usb1_refclkdiv | 17-16 | RW | Reference clock frequency select. 0 = ?, 1 = 24 MHz, 2 = 48 MHz, 3 = ? |
+| usb1_analog_disable? | 6 | RW | Disable analog blocks?. Saves power. 0 = enabled, 1 = powered down |
+| usb1_otgdisable | 4 | RW | Disable OTG block. 0 = enabled, 1 = powered down |
+| usb1_vbusvldext | 3 | RW | VBUS signal valid. 0 = no, pull-up on D+ disabled, 1 = ? |
+| usb1_vbusvldextsel | 2 | RW | OTG Session Valid comparator selection. 0 = internal (default), 1 = external (use value from bit 3) |
 
 ==== SDx_PHY_STS (0x9041002c + (x * 0x10)) ====[peri_usbphy_serdes_sdx_phy_sts]
 

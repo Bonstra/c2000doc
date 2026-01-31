@@ -265,7 +265,7 @@ Once the security lock is enabled, the OTP becomes permanently read-only.
 === DATA_OUT_COUNTER (0x904f004c) ===[otp_regs_data_out_counter]
 
 || Symbol | Bit range | R/W | Description ||
-| ?_COUNTER | ?-0 | RW | ? (Typical value: 0x1c) |
+| ?_COUNTER | ?-0 | RW | ? (Typical value: 0x1c Other seen in IBR: 0x1f) |
 
 
 === DATA_OUTPUT (0x904f0050) ===[otp_regs_data_output]

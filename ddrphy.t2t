@@ -1,0 +1,22 @@
+
+= DDR PHY configurtion =[peri_ddrphy]
+
+Configuration registers for the DDR PHY.
+
+
+== DDR controller configuration registers ==[peri_ddrphy_regs]
+
+|| Base address | 0x905b0000 ||
+
+|| Symbol | Offset | Description ||
+| DDR_PHY_CTL_00 | 0x00 |  |
+| DDR_PHY_CTL_01 | 0x04 |  |
+| DDR_PHY_CTL_02 | 0x08 |  |
+| DDR_PHY_CTL_03 | 0x0c |  |
+| DDR_PHY_CTL_04 | 0x10 |  |
+| DDR_PHY_CTL_05 | 0x14 |  |
+| DDR_PHY_CTL_06 | 0x18 |  |
+| DDR_PHY_CTL_07 | 0x1c |  |
+| DDR_PHY_DLL_STAT | 0x70 |  |
+| DDR_PHY_ZQ_STAT | 0x74 |  |
+
